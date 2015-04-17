@@ -36,6 +36,7 @@
 #include "glproc.hpp"
 #include "glsize.hpp"
 #include "glstate.hpp"
+#include "glstate_images.hpp"
 #include "glstate_internal.hpp"
 
 
@@ -62,43 +63,8 @@ OSStatus CGSGetSurfaceBounds(CGSConnectionID, CGWindowID, CGSSurfaceID, CGRect *
 
 namespace glstate {
 
-
-struct ImageDesc
-{
-    GLint width;
-    GLint height;
-    GLint depth;
-    GLint samples;
-    GLint internalFormat;
-
-    inline
-    ImageDesc() :
-        width(0),
-        height(0),
-        depth(0),
-        samples(0),
-        internalFormat(GL_NONE)
-    {}
-
-    inline bool
-    operator == (const ImageDesc &other) const {
-        return width == other.width &&
-               height == other.height &&
-               depth == other.depth &&
-               samples == other.samples &&
-               internalFormat == other.internalFormat;
-    }
-
-    inline bool
-    valid(void) const {
-        return width > 0 && height > 0 && depth > 0;
-    }
-};
-
-
 static GLenum
 getTextureTarget(Context &context, GLuint texture);
-
 
 /**
  * OpenGL ES does not support glGetTexLevelParameteriv, but it is possible to
