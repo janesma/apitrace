@@ -41,6 +41,16 @@ if (WIN32)
     set (ws_os ws_win32.cpp)
 endif ()
 
+if (WIN32)
+    set (glws_os glws_wgl.cpp)
+else ()
+    if (APPLE)
+        set (glws_os glws_cocoa.mm)
+    else ()
+        set (glws_os glws_xlib.cpp glws_glx.cpp)
+    endif ()
+endif ()
+
 add_library (retrace_common STATIC
     retrace.cpp
     retrace_stdc.cpp
@@ -51,6 +61,8 @@ add_library (retrace_common STATIC
     state_writer_ubjson.cpp
     ws.cpp
     ${ws_os}
+    #TODO(majanes) seems wrong to link this here
+    ${glws_os}
 )
 target_link_libraries (retrace_common
     image
@@ -69,6 +81,7 @@ endif ()
 
 add_library (glretrace_common STATIC
     glretrace.hpp
+    glretrace_main.cpp
     glretrace_gl.cpp
     glretrace_cgl.cpp
     glretrace_glx.cpp
@@ -88,7 +101,8 @@ add_library (glretrace_common STATIC
     metric_backend_amd_perfmon.cpp
     metric_backend_intel_perfquery.cpp
     metric_backend_opengl.cpp
-)
+    glws_xlib.cpp
+    )
 add_dependencies (glretrace_common glproc)
 target_link_libraries (glretrace_common
     retrace_common
@@ -98,28 +112,16 @@ if (PROCPS_FOUND)
 endif ()
 
 
-if (WIN32)
-    set (glws_os glws_wgl.cpp)
-else ()
-    if (APPLE)
-        set (glws_os glws_cocoa.mm)
-    else ()
-        set (glws_os glws_xlib.cpp glws_glx.cpp)
-    endif ()
-endif ()
-
 
 if (WIN32 OR APPLE OR X11_FOUND)
     add_executable (glretrace
         glretrace_main.cpp
-        ${glws_os}
         retrace_main.cpp
     )
 
     add_dependencies (glretrace glproc)
 
     target_link_libraries (glretrace
-        retrace_common
         glretrace_common
         glhelpers
         glproc_gl
