@@ -12,6 +12,33 @@ namespace trace  {
 
 class Frame;
 
+struct RenderBookmark {
+    RenderBookmark()
+        : numberOfCalls(0)
+    {}
+    RenderBookmark(const ParseBookmark &s)
+        : start(s),
+          numberOfCalls(0)
+    {}
+    ParseBookmark start;
+    unsigned numberOfCalls;
+};    
+
+struct FrameBookmark {
+    FrameBookmark()
+        : numberOfCalls(0)
+    {}
+    FrameBookmark(const ParseBookmark &s)
+        : start(s),
+          numberOfCalls(0)
+    {}
+    unsigned numberOfRenders() const;
+    std::vector<RenderBookmark> renders() const;
+
+    ParseBookmark start;
+    unsigned numberOfCalls;
+};
+
 class Loader
 {
 public:
@@ -30,6 +57,7 @@ public:
 
     unsigned numberOfFrames() const;
     unsigned numberOfCallsInFrame(unsigned frameIdx) const;
+    std::vector<FrameBookmark> frames() const;
 
     bool open(const char *filename);
     void close();
@@ -37,18 +65,6 @@ public:
     std::vector<trace::Call*> frame(unsigned idx);
 
 private:
-    struct FrameBookmark {
-        FrameBookmark()
-            : numberOfCalls(0)
-        {}
-        FrameBookmark(const ParseBookmark &s)
-            : start(s),
-              numberOfCalls(0)
-        {}
-
-        ParseBookmark start;
-        unsigned numberOfCalls;
-    };
     bool isCallAFrameMarker(const trace::Call *call) const;
 
 private:
