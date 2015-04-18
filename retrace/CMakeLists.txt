@@ -1,5 +1,6 @@
 ##############################################################################
 # API retracers
+add_subdirectory (daemon)
 
 include_directories (
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -32,30 +33,6 @@ add_custom_command (
         ${CMAKE_SOURCE_DIR}/specs/gltypes.py
         ${CMAKE_SOURCE_DIR}/specs/stdapi.py
 )
-
-add_library (retrace_common STATIC
-    retrace.cpp
-    retrace_main.cpp
-    retrace_stdc.cpp
-    retrace_swizzle.cpp
-    json.cpp
-    state_writer.cpp
-    state_writer_json.cpp
-    state_writer_ubjson.cpp
-)
-target_link_libraries (retrace_common
-    image
-    common
-    ${ZLIB_LIBRARIES}
-    ${SNAPPY_LIBRARIES}
-    ${GETOPT_LIBRARIES}
-)
-if (NOT ANDROID AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries (retrace_common rt)
-endif ()
-if (WIN32)
-    target_link_libraries (retrace_common dxerr winmm)
-endif ()
 
 
 add_library (glretrace_common STATIC
@@ -92,10 +69,37 @@ else ()
     endif ()
 endif ()
 
+add_library (retrace_common STATIC
+    retrace.cpp
+    #retrace_main.cpp
+    retrace_stdc.cpp
+    retrace_swizzle.cpp
+    json.cpp
+    state_writer.cpp
+    state_writer_json.cpp
+    state_writer_ubjson.cpp
+    ${glws_os}
+)
+
+target_link_libraries (retrace_common
+    image
+    common
+    ${ZLIB_LIBRARIES}
+    ${SNAPPY_LIBRARIES}
+    ${GETOPT_LIBRARIES}
+)
+
+if (NOT ANDROID AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries (retrace_common rt)
+endif ()
+if (WIN32)
+    target_link_libraries (retrace_common Winmm dxerr winmm)
+endif ()
+
 
 if (WIN32 OR APPLE OR X11_FOUND)
-    add_executable (glretrace
-        ${glws_os}
+  add_executable (glretrace
+    retrace_main.cpp
     )
 
     add_dependencies (glretrace glproc)
@@ -134,6 +138,7 @@ endif ()
 
 if (ENABLE_EGL AND X11_FOUND AND NOT WIN32 AND NOT APPLE AND NOT ENABLE_WAFFLE)
     add_executable (eglretrace
+        retrace_main.cpp
         glws_xlib.cpp
         glws_egl_xlib.cpp
     )
@@ -155,6 +160,7 @@ endif ()
 if (ENABLE_EGL)
     if ((ANDROID OR ENABLE_WAFFLE) AND Waffle_FOUND)
         add_executable (eglretrace
+          retrace_main.cpp
             glws_waffle.cpp
         )
 
@@ -340,6 +346,7 @@ if (WIN32)
     endif ()
 
     add_executable (d3dretrace
+        retrace_main.cpp
         d3dretrace_main.cpp
         d3dretrace_ddraw.cpp
         d3dretrace_d3d8.cpp
