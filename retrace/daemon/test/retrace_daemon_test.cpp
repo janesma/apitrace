@@ -23,10 +23,13 @@
  *
  **************************************************************************/
 
-#include <gtest/gtest.h>
-#include <glframe_retrace.hpp>
+#include <unistd.h>
+
 #include <vector>
 #include "glws.hpp"
+#include <gtest/gtest.h>
+
+#include "glframe_retrace.hpp"
 
 using glretrace::FrameRetrace;
 using glretrace::RenderBookmark;
@@ -38,6 +41,7 @@ TEST(Build, Cmake)
 
 // TODO(majanes) find a way to make this available
 static const char *test_file = "/home/majanes/src/apitrace/retrace/daemon/test/simple.trace";
+// static const char *test_file = "/home/majanes/.steam/steam/steamapps/common/dota/dota_linux.2.trace"
 
 TEST(Daemon, LoadFile)
 {
@@ -46,4 +50,9 @@ TEST(Daemon, LoadFile)
     FrameRetrace rt(test_file, 7);
     std::vector<RenderBookmark> renders = rt.getRenders();
     EXPECT_EQ(renders.size(), 2);  // 1 for clear, 1 for draw
+    for (int i = 0; i < renders.size(); ++i)
+    {
+        rt.retraceRenderTarget(renders[i], 0, glretrace::NORMAL_RENDER,
+                               glretrace::STOP_AT_RENDER, NULL);
+    }
 }

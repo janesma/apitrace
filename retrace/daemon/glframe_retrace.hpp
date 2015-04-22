@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2014 Intel Corporation
+ * Copyright 2015 Intel Corporation
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,6 +29,8 @@
 #include "glstate_images.hpp"
 #include "image.hpp"
 #include "trace_parser.hpp"
+#include "retrace.hpp"
+#include "glframe_state.hpp"
 
 namespace glretrace {
 
@@ -66,6 +68,7 @@ struct RenderBookmark {
 class OnFrameRetrace {
 public:
     virtual void onShaderAssembly(const RenderBookmark &render,
+                                  const std::string &vertex_assembly,
                                   const std::string &shader_assembly) = 0;
     virtual void onRenderTarget(const RenderBookmark &render, RenderTargetType type,
                                 const RenderTargetData &data) = 0;
@@ -82,6 +85,8 @@ private:
 
     RenderBookmark frame_start;
     std::vector<RenderBookmark> renders;
+
+    StateTrack tracker;
 public:
     // 
     FrameRetrace(const std::string &filename, int framenumber);
@@ -96,7 +101,9 @@ public:
                                OnFrameRetrace *callback);
     void insertCall(const trace::Call &call,
                     const RenderBookmark &render);
-    void setShaders(const std::string &vs, const std::string &fs);
+    void setShaders(const std::string &vs,
+                    const std::string &fs,
+                    OnFrameRetrace *callback);
     void revertModifications();
 };
 
