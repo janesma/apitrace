@@ -10,6 +10,8 @@ include_directories (
 add_library(retrace_daemon STATIC
   glframe_retrace.hpp
   glframe_retrace.cpp
+  glframe_state.hpp
+  glframe_state.cpp
   glretrace_globals.cpp
   )
 

@@ -23,34 +23,47 @@
  *
  **************************************************************************/
 
-#include <unistd.h>
+#include "glframe_state.hpp"
 
-#include <vector>
-#include <gtest/gtest.h>
+#include <string.h>
 
-#include "glframe_retrace.hpp"
+#include "trace_model.hpp"
 
-using glretrace::FrameRetrace;
+using glretrace::StateTrack;
+using trace::Call;
 
-TEST(Build, Cmake)
+// TODO: use a lookup table
+void
+StateTrack::track(const trace::Call &call)
 {
-    
+    const char *name = call.sig->name;
+    if (strcmp(name, "glAttachShader") == 0)
+        return trackAttachShader(call.args[0].value->toDouble(),
+                                 call.args[1].value->toDouble());
+    if (strcmp(name, "glCreateShader") == 0)
+        return trackCreateShader(call.args[0].value->toDouble(),
+                                 call.ret->toDouble());
+
+    if (strcmp(name, "glShaderSource") == 0)
+        return trackShaderSource(call.args[0].value->toDouble(),
+                                 call.args[2].value->toString());
 }
 
-// TODO(majanes) find a way to make this available
-static const char *test_file = "/home/majanes/src/apitrace/retrace/daemon/test/simple.trace";
-// static const char *test_file = "/home/majanes/.steam/steam/steamapps/common/dota/dota_linux.2.trace"
-
-TEST(Daemon, LoadFile)
+void
+StateTrack::trackAttachShader(int program, int shader)
 {
-    retrace::setUp();
-
-    FrameRetrace rt(test_file, 7);
-    std::vector<trace::RenderBookmark> renders = rt.getRenders();
-    EXPECT_EQ(renders.size(), 2);  // 1 for clear, 1 for draw
-    for (int i = 0; i < renders.size(); ++i)
-    {
-        rt.retraceRenderTarget(renders[i], 0, glretrace::NORMAL_RENDER,
-                               glretrace::STOP_AT_RENDER, NULL);
-    }
+    program_to_shaders[program].push_back(shader);
 }
+
+void
+StateTrack::trackCreateShader(int shader_type, int shader)
+{
+    shader_to_type[shader] = shader_type;
+}
+
+void
+StateTrack::trackShaderSource(int shader, const char *source)
+{
+    shader_to_source[shader] = source;
+}
+

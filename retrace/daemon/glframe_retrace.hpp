@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2014 Intel Corporation
+ * Copyright 2015 Intel Corporation
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,6 +30,7 @@
 #include "image.hpp"
 #include "retrace.hpp"
 #include "trace_loader.hpp"
+#include "glframe_state.hpp"
 
 namespace glretrace {
 
@@ -71,6 +72,8 @@ private:
 
     trace::RenderBookmark frame_start;
     std::vector<trace::RenderBookmark> renders;
+
+    StateTrack tracker;
 public:
     // 
     FrameRetrace(const std::string &filename, int framenumber);
