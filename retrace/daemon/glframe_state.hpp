@@ -51,10 +51,20 @@ public:
     std::string currentFragmentShader() const;
     std::string currentFragmentAssembly() const;
 private:
-
-    void trackAttachShader(int program, int shader);
-    void trackCreateShader(int shader_type, int shader);
-    void trackShaderSource(int shader, const char *source);
+    class TrackMap {
+    public:
+        TrackMap();
+        void track(StateTrack *tracker, const trace::Call &call);
+    private:
+        typedef void (glretrace::StateTrack::*MemberFunType)(const trace::Call&);
+        std::map <std::string, MemberFunType> lookup;
+    };
+    static TrackMap lookup;
+    void trackAttachShader(const trace::Call &);
+    void trackCreateShader(const trace::Call &);
+    void trackShaderSource(const trace::Call &);
+    void trackLinkProgram(const trace::Call &);
+    void trackUseProgram(const trace::Call &);
 
     int current_program;
     std::map<int, std::string> shader_to_source;
@@ -64,8 +74,7 @@ private:
     // for these maps, key is program
     std::map<int, std::string> program_to_vertex_shader_source;
     std::map<int, std::string> program_to_vertex_shader_ir;
-    std::map<int, std::string> program_to_vertex_shader_simd8;
-    std::map<int, std::string> program_to_vertex_shader_simd16;
+    std::map<int, std::string> program_to_vertex_shader_vec4;
     std::map<int, std::string> program_to_fragment_shader_source;
     std::map<int, std::string> program_to_fragment_shader_ir;
     std::map<int, std::string> program_to_fragment_shader_simd8;

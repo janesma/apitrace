@@ -25,7 +25,10 @@
 
 #include "glframe_retrace.hpp"
 
+#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "glretrace.hpp"
 #include "trace_dump.hpp"
@@ -38,15 +41,46 @@ using retrace::parser;
 
 extern retrace::Retracer retracer;
 
+
+class StdErrRedirect {
+public:
+    StdErrRedirect() {
+        pipe2(out_pipe, O_NONBLOCK);
+        dup2(out_pipe[1], STDERR_FILENO);
+        close(out_pipe[1]);
+        buf.resize(1024);
+    }
+    std::string poll() {
+        fflush(stdout);
+        std::string ret;
+        int bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+        while (0 < bytes ) {
+            buf[bytes] = '\0';
+            ret.append(buf.data());
+            bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+        }
+        return ret;
+    }
+private:
+    int out_pipe[2];
+    std::vector<char> buf;
+};
+    
+static StdErrRedirect assemblyOutput;
+
 class PlayAndCleanUpCall
 {
 public:
     PlayAndCleanUpCall(Call *c, StateTrack *tracker)
         : call(c) {
-        trace::dump(*c, std::cout, 0);
-        if (tracker)
-            tracker->track(*c);
+        assemblyOutput.poll();
+        //trace::dump(*c, std::cout, 0);
         retracer.retrace(*call);
+
+        if (tracker) {
+            tracker->track(*c);
+            tracker->parse(assemblyOutput.poll());
+        }
     }
     ~PlayAndCleanUpCall() {
         delete call;
@@ -170,4 +204,31 @@ FrameRetrace::retraceRenderTarget(const trace::RenderBookmark &render,
     if ((call = parser.parse_call()))
         PlayAndCleanUpCall c(call, NULL);
         
+}
+
+
+void
+FrameRetrace::retraceShaderAssembly(const trace::RenderBookmark &render,
+                                    OnFrameRetrace *callback)
+{
+    trace::Call *call;
+    StateTrack tmp_tracker = tracker;
+
+    // reset to beginning of frame
+    parser.setBookmark(frame_start.start);
+    int played_calls = 0;
+
+    // play up to the beginning of the render
+    int current_call = frame_start.start.next_call_no;
+    while ((current_call < render.start.next_call_no) &&
+           (call = parser.parse_call()))
+    {
+        ++played_calls;
+        ++current_call;
+        PlayAndCleanUpCall c(call, &tmp_tracker);
+    }
+
+    callback->onShaderAssembly(render,
+                               tmp_tracker.currentVertexAssembly(),
+                               tmp_tracker.currentFragmentAssembly());
 }
