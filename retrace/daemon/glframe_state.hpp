@@ -46,10 +46,14 @@ public:
     ~StateTrack() {}
     void track(const trace::Call &call);
     void parse(const std::string &output);
+    void reset() { current_program = 0; }
     std::string currentVertexShader() const;
-    std::string currentVertexAssembly() const;
+    std::string currentVertexIr() const;
+    std::string currentVertexVec4() const;
     std::string currentFragmentShader() const;
-    std::string currentFragmentAssembly() const;
+    std::string currentFragmentIr() const;
+    std::string currentFragmentSimd8() const;
+    std::string currentFragmentSimd16() const;
 private:
     class TrackMap {
     public:
@@ -69,7 +73,6 @@ private:
     int current_program;
     std::map<int, std::string> shader_to_source;
     std::map<int, int> shader_to_type;
-    std::map<int, std::vector<int> > program_to_shaders;
 
     // for these maps, key is program
     std::map<int, std::string> program_to_vertex_shader_source;
