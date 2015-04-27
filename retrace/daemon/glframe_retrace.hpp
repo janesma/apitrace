@@ -68,8 +68,13 @@ struct RenderBookmark {
 class OnFrameRetrace {
 public:
     virtual void onShaderAssembly(const RenderBookmark &render,
-                                  const std::string &vertex_assembly,
-                                  const std::string &shader_assembly) = 0;
+                                  const std::string &vertex_shader,
+                                  const std::string &vertex_ir,
+                                  const std::string &vertex_vec4,
+                                  const std::string &fragemnt_shader,
+                                  const std::string &fragemnt_ir,
+                                  const std::string &fragemnt_simd8,
+                                  const std::string &fragemnt_simd16) = 0;
     virtual void onRenderTarget(const RenderBookmark &render, RenderTargetType type,
                                 const RenderTargetData &data) = 0;
     virtual void onShaderCompile(const RenderBookmark &render, int status,

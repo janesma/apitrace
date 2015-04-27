@@ -75,7 +75,7 @@ public:
     PlayAndCleanUpCall(Call *c, StateTrack *tracker)
         : call(c) {
         assemblyOutput.poll();
-        //trace::dump(*c, std::cout, 0);
+        // trace::dump(*c, std::cout, 0);
         retracer.retrace(*call);
 
         if (tracker) {
@@ -214,7 +214,8 @@ FrameRetrace::retraceShaderAssembly(const RenderBookmark &render,
 {
     trace::Call *call;
     StateTrack tmp_tracker = tracker;
-
+    tmp_tracker.reset();
+    
     // reset to beginning of frame
     parser->setBookmark(frame_start.start);
     int played_calls = 0;
@@ -229,7 +230,23 @@ FrameRetrace::retraceShaderAssembly(const RenderBookmark &render,
         PlayAndCleanUpCall c(call, &tmp_tracker);
     }
 
+    // play up to the end of the render
+    for (int render_calls = 0; render_calls < render.numberOfCalls; ++render_calls)
+    {
+        call = parser->parse_call();
+        if (!call)
+            break;
+        
+        ++played_calls;
+        PlayAndCleanUpCall c(call, &tmp_tracker);
+    }
+
     callback->onShaderAssembly(render,
-                               tmp_tracker.currentVertexAssembly(),
-                               tmp_tracker.currentFragmentAssembly());
+                               tmp_tracker.currentVertexShader(),
+                               tmp_tracker.currentVertexIr(),
+                               tmp_tracker.currentVertexVec4(),
+                               tmp_tracker.currentFragmentShader(),
+                               tmp_tracker.currentFragmentIr(),
+                               tmp_tracker.currentFragmentSimd8(),
+                               tmp_tracker.currentFragmentSimd16());
 }
