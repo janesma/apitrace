@@ -56,8 +56,13 @@ struct RenderTargetData {
 class OnFrameRetrace {
 public:
     virtual void onShaderAssembly(const trace::RenderBookmark &render,
-                                  const std::string &vertex_assembly,
-                                  const std::string &shader_assembly) = 0;
+                                  const std::string &vertex_shader,
+                                  const std::string &vertex_ir,
+                                  const std::string &vertex_vec4,
+                                  const std::string &fragemnt_shader,
+                                  const std::string &fragemnt_ir,
+                                  const std::string &fragemnt_simd8,
+                                  const std::string &fragemnt_simd16) = 0;
     virtual void onRenderTarget(const trace::RenderBookmark &render, RenderTargetType type,
                                 const RenderTargetData &data) = 0;
     virtual void onShaderCompile(const trace::RenderBookmark &render, int status,

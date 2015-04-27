@@ -30,6 +30,7 @@
 #include <sstream>
 
 #include "trace_model.hpp"
+#include "GLES2/gl2.h"
 
 using glretrace::StateTrack;
 using trace::Call;
@@ -69,7 +70,10 @@ StateTrack::trackAttachShader(const Call &call)
 {
     const int program = call.args[0].value->toDouble();
     const int shader = call.args[1].value->toDouble();
-    program_to_shaders[program].push_back(shader);
+    if (shader_to_type[shader] == GL_FRAGMENT_SHADER)
+        program_to_fragment_shader_source[program] = shader_to_source[shader];
+    else if (shader_to_type[shader] == GL_VERTEX_SHADER)
+        program_to_vertex_shader_source[program] = shader_to_source[shader];
 }
 
 void
@@ -116,33 +120,34 @@ StateTrack::parse(const std::string &output) {
         int line_shader;
         int matches = sscanf(line.c_str(),
                              "GLSL IR for native vertex shader %d:", &line_shader);
-        if (matches)
+        if (matches > 0)
             current_target = &vs_ir;
-        if (! matches) {
+
+        if (matches <= 0) {
             matches = sscanf(line.c_str(),
-                             "Native code for meta clear vertex shader %d:", &line_shader);
-            if (matches)
+                             "Native code for unnamed vertex shader %d:", &line_shader);
+            if (matches > 0)
                 current_target = &vs_vec4;
         }
-        if (! matches) {
+        if (matches <= 0) {
             matches = sscanf(line.c_str(),
                              "GLSL IR for native fragment shader %d:", &line_shader);
-            if (matches)
+            if (matches > 0)
                 current_target = &fs_ir;
         }
-        if (! matches) {
+        if (matches <= 0) {
             int wide;
             matches = sscanf(line.c_str(),
-                             "Native code for meta clear fragment shader %d (SIMD%d dispatch):",
+                             "Native code for unnamed fragment shader %d (SIMD%d dispatch):",
                              &line_shader, &wide);
-            if (matches)
+            if (matches > 0)
                 current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
         }
         if (line_shader != current_program)
             // this is probably a shader that mesa uses
             current_target = NULL;
         if (current_target) {
-            *current_target += line;
+            *current_target += line + "\n";
         }
     }
     if (fs_ir.length() > 0)
@@ -158,7 +163,15 @@ StateTrack::parse(const std::string &output) {
 }
 
 std::string
-StateTrack::currentVertexAssembly() const {
+StateTrack::currentVertexIr() const {
+    auto sh = program_to_vertex_shader_ir.find(current_program);
+    if (sh == program_to_vertex_shader_ir.end())
+        return "";
+    return sh->second;
+}
+
+std::string
+StateTrack::currentFragmentIr() const {
     auto sh = program_to_fragment_shader_ir.find(current_program);
     if (sh == program_to_fragment_shader_ir.end())
         return "";
@@ -166,9 +179,41 @@ StateTrack::currentVertexAssembly() const {
 }
 
 std::string
-StateTrack::currentFragmentAssembly() const {
-    auto sh = program_to_vertex_shader_ir.find(current_program);
-    if (sh == program_to_vertex_shader_ir.end())
+StateTrack::currentVertexShader() const {
+    auto sh = program_to_vertex_shader_source.find(current_program);
+    if (sh == program_to_vertex_shader_source.end())
+        return "";
+    return sh->second;
+}
+
+std::string
+StateTrack::currentFragmentShader() const {
+    auto sh = program_to_fragment_shader_source.find(current_program);
+    if (sh == program_to_fragment_shader_source.end())
+        return "";
+    return sh->second;
+}
+
+std::string
+StateTrack::currentVertexVec4() const {
+    auto sh = program_to_vertex_shader_vec4.find(current_program);
+    if (sh == program_to_vertex_shader_vec4.end())
+        return "";
+    return sh->second;
+}
+
+std::string
+StateTrack::currentFragmentSimd8() const {
+    auto sh = program_to_fragment_shader_simd8.find(current_program);
+    if (sh == program_to_fragment_shader_simd8.end())
+        return "";
+    return sh->second;
+}
+
+std::string
+StateTrack::currentFragmentSimd16() const {
+    auto sh = program_to_fragment_shader_simd16.find(current_program);
+    if (sh == program_to_fragment_shader_simd16.end())
         return "";
     return sh->second;
 }

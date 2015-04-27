@@ -20,3 +20,4 @@ target_link_libraries(retrace_daemon
   )
 
 add_subdirectory (test)
+add_subdirectory (ui)
