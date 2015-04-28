@@ -30,6 +30,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <GLES2/gl2.h>
+#include <sstream>
+
 #include "glretrace.hpp"
 #include "glws.hpp"
 #include "trace_dump.hpp"
@@ -39,7 +42,7 @@ using glretrace::FrameRetrace;
 using glretrace::StateTrack;
 using trace::Call;
 using retrace::parser;
-
+using image::Image;
 extern retrace::Retracer retracer;
 
 
@@ -72,7 +75,7 @@ static StdErrRedirect assemblyOutput;
 class PlayAndCleanUpCall
 {
 public:
-    PlayAndCleanUpCall(Call *c, StateTrack *tracker)
+    PlayAndCleanUpCall(Call *c, StateTrack *tracker, bool dump = true)
         : call(c) {
         assemblyOutput.poll();
         // trace::dump(*c, std::cout, 0);
@@ -110,7 +113,7 @@ FrameRetrace::FrameRetrace(const std::string &filename, int framenumber)
     int current_frame = 0;
     while ((call = parser->parse_call()) && current_frame < framenumber)
     {
-        PlayAndCleanUpCall c(call, &tracker);
+        PlayAndCleanUpCall c(call, &tracker, false);
         if (call->flags & trace::CALL_FLAG_END_FRAME)
         {
             ++current_frame;
@@ -126,7 +129,7 @@ FrameRetrace::FrameRetrace(const std::string &filename, int framenumber)
     // play through the frame, recording renders and call counts
     while ((call = parser->parse_call()))
     {
-        PlayAndCleanUpCall c(call, &tracker);
+        PlayAndCleanUpCall c(call, &tracker, false);
 
         ++frame_start.numberOfCalls;
         ++(renders.back().numberOfCalls);
@@ -190,21 +193,17 @@ FrameRetrace::retraceRenderTarget(const RenderBookmark &render,
         PlayAndCleanUpCall c(call, NULL);
     }
 
-    // play remainder of frame
-    while ((played_calls < frame_start.numberOfCalls - 1) &&
-           (call = parser->parse_call()))
-    {
-        ++played_calls;
-        if (! (options & glretrace::STOP_AT_RENDER))
-        {
-            PlayAndCleanUpCall c(call, NULL);
-        }
-    }
+    Image *i = glstate::getDrawBufferImage(0);
+    std::stringstream png;
+    i->writePNG(png);
+    //i->writePNG("/tmp/foo.png");
 
-    // play the swapBuffers
-    if ((call = parser->parse_call()))
-        PlayAndCleanUpCall c(call, NULL);
-        
+    std::vector<unsigned char> d;
+    const int bytes = png.str().size();
+    d.resize(bytes);
+    memcpy(d.data(), png.str().c_str(), bytes);
+    
+    callback->onRenderTarget(render, type, d);
 }
 
 
@@ -227,7 +226,7 @@ FrameRetrace::retraceShaderAssembly(const RenderBookmark &render,
     {
         ++played_calls;
         ++current_call;
-        PlayAndCleanUpCall c(call, &tmp_tracker);
+        PlayAndCleanUpCall c(call, &tmp_tracker, true);
     }
 
     // play up to the end of the render
@@ -238,7 +237,7 @@ FrameRetrace::retraceShaderAssembly(const RenderBookmark &render,
             break;
         
         ++played_calls;
-        PlayAndCleanUpCall c(call, &tmp_tracker);
+        PlayAndCleanUpCall c(call, &tmp_tracker, true);
     }
 
     callback->onShaderAssembly(render,

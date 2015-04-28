@@ -70,7 +70,7 @@ FrameRetraceModel::onShaderAssembly(const RenderBookmark &render,
 }
 void
 FrameRetraceModel::onRenderTarget(const RenderBookmark &render, RenderTargetType type,
-                        const RenderTargetData &data)
+                                  const std::vector<unsigned char> &data)
 {}
 void
 FrameRetraceModel::onShaderCompile(const RenderBookmark &render, int status,
@@ -84,6 +84,8 @@ FrameRetraceModel::retrace(int start)
         if (i->start() != start)
             continue;
         m_retrace->retraceShaderAssembly(i->bookmark, this);
+        m_retrace->retraceRenderTarget(i->bookmark, 0, glretrace::NORMAL_RENDER,
+                                       glretrace::STOP_AT_RENDER, this);
         return;
     }
 }
