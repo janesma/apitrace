@@ -84,7 +84,7 @@ public:
                           const std::string &fragment_simd8,
                           const std::string &fragment_simd16);
     void onRenderTarget(const trace::RenderBookmark &render, RenderTargetType type,
-                        const RenderTargetData &data);
+                        const std::vector<unsigned char> &data);
     void onShaderCompile(const trace::RenderBookmark &render, int status,
                          std::string errorString);
     QString vsIR() const { return m_vs_ir; }
