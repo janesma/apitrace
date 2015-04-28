@@ -48,10 +48,6 @@ enum RenderOptions {
     CLEAR_BEFORE_RENDER = 0x2,
 };
 
-struct RenderTargetData {
-    glstate::ImageDesc description;
-    image::Image imageData;
-};
 
 struct RenderBookmark {
     RenderBookmark()
@@ -76,7 +72,7 @@ public:
                                   const std::string &fragemnt_simd8,
                                   const std::string &fragemnt_simd16) = 0;
     virtual void onRenderTarget(const RenderBookmark &render, RenderTargetType type,
-                                const RenderTargetData &data) = 0;
+                                const std::vector<unsigned char> &pngImageData) = 0;
     virtual void onShaderCompile(const RenderBookmark &render, int status,
                                  std::string errorString) = 0;
 };

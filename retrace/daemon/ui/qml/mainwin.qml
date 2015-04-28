@@ -14,6 +14,7 @@ ApplicationWindow {
         id : frameRetrace
         Component.onCompleted: {
             setFrame("/home/majanes/src/apitrace/retrace/daemon/test/simple.trace", 7);
+            //setFrame("/home/majanes/.steam/steam/steamapps/common/dota/dota_linux.2.trace", 1800)
         }
     }
 
