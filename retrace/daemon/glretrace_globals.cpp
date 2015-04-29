@@ -6,7 +6,7 @@
 static trace::CallSet snapshotFrequency;
 static trace::ParseBookmark lastFrameStart;
 
-static unsigned dumpStateCallNo = ~0;
+//static unsigned dumpStateCallNo = ~0;
 
 retrace::Retracer retracer;
 
