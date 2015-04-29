@@ -1,0 +1,45 @@
+package ApiTrace;
+
+enum RenderTargetType {
+  NORMAL_RENDER = 0;
+  HIGHLIGHT_RENDER = 1;
+}
+
+enum RenderTargetOptions {
+  STOP_AT_RENDER = 1;
+  CLEAR_BEFORE_RENDER = 2;
+};
+
+message RenderTargetRequest {
+  required uint32 renderId = 1;
+  required RenderTargetType type = 2;
+  required RenderTargetOptions options = 3;
+}
+
+message RenderTargetResponse {
+  required bytes image = 1;
+}
+
+message ShaderAssemblyRequest {
+  required uint32 renderId = 1;
+}
+
+message ShaderAssemblyResponse {
+  required string vertex_shader = 1;
+  required string vertex_ir = 2;
+  required string vertex_vec4 = 3;
+  required string fragemnt_shader = 4;
+  required string fragemnt_ir = 5;
+  required string fragemnt_simd8 = 6;
+  required string fragemnt_simd16 = 7;
+}
+
+message RetraceRequest {
+  optional RenderTargetRequest renderTarget = 1;
+  optional ShaderAssemblyRequest shaderAssembly = 2;
+}
+
+message RetraceResponse {
+  optional RenderTargetResponse renderTarget = 1;
+  optional ShaderAssemblyResponse shaderAssembly = 2;
+}
