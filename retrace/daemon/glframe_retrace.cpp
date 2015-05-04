@@ -149,21 +149,21 @@ FrameRetrace::FrameRetrace(const std::string &filename, int framenumber)
     }
 }
 
-std::vector<glretrace::RenderBookmark>
-FrameRetrace::getRenders() const {
-    return renders;
+int 
+FrameRetrace::getRenderCount() const {
+    return renders.size();
 }
 
 
 void
-FrameRetrace::retraceRenderTarget(const RenderBookmark &render,
+FrameRetrace::retraceRenderTarget(RenderId renderId,
                                   int render_target_number,
                                   RenderTargetType type,
                                   RenderOptions options,
                                   OnFrameRetrace *callback) const
 {
     trace::Call *call;
-
+    const RenderBookmark &render = renders[renderId.index()];
     // reset to beginning of frame
     parser->setBookmark(frame_start.start);
     int played_calls = 0;
@@ -196,21 +196,28 @@ FrameRetrace::retraceRenderTarget(const RenderBookmark &render,
     Image *i = glstate::getDrawBufferImage(0);
     std::stringstream png;
     i->writePNG(png);
-    //i->writePNG("/tmp/foo.png");
+
+    // debugging these images showed that Qt GL context interferes
+    // with playback.
+    // std::stringstream fn;
+    // fn << "/tmp/foo" << renderId.index() << ".png";
+    // i->writePNG(fn.str().c_str());
 
     std::vector<unsigned char> d;
     const int bytes = png.str().size();
     d.resize(bytes);
     memcpy(d.data(), png.str().c_str(), bytes);
-    
-    callback->onRenderTarget(render, type, d);
+
+    if (callback)
+        callback->onRenderTarget(renderId, type, d);
 }
 
 
 void
-FrameRetrace::retraceShaderAssembly(const RenderBookmark &render,
+FrameRetrace::retraceShaderAssembly(RenderId renderId,
                                     OnFrameRetrace *callback)
 {
+    const RenderBookmark &render = renders[renderId.index()];
     trace::Call *call;
     StateTrack tmp_tracker = tracker;
     tmp_tracker.reset();
@@ -240,7 +247,7 @@ FrameRetrace::retraceShaderAssembly(const RenderBookmark &render,
         PlayAndCleanUpCall c(call, &tmp_tracker, true);
     }
 
-    callback->onShaderAssembly(render,
+    callback->onShaderAssembly(renderId,
                                tmp_tracker.currentVertexShader(),
                                tmp_tracker.currentVertexIr(),
                                tmp_tracker.currentVertexVec4(),

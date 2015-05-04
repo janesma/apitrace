@@ -48,7 +48,6 @@ enum RenderOptions {
     CLEAR_BEFORE_RENDER = 0x2,
 };
 
-
 struct RenderBookmark {
     RenderBookmark()
         : numberOfCalls(0)
@@ -61,9 +60,30 @@ struct RenderBookmark {
     unsigned numberOfCalls;
 };    
 
+enum IdPrefix {
+    CALL_ID_PREFIX = 0x1 << 28,
+    RENDER_ID_PREFIX = 0x2  << 28,
+    RENDER_TARGET_ID_PREFIX = 0x3  << 28,
+    ID_PREFIX_MASK = 0xf << 28
+};
+
+class RenderId {
+public:
+    RenderId(uint32_t renderNumber) {
+        assert(((renderNumber & ID_PREFIX_MASK) == 0) ||
+               ((renderNumber & ID_PREFIX_MASK) == RENDER_ID_PREFIX));
+        value = RENDER_ID_PREFIX | renderNumber;
+    }
+
+    uint32_t operator()() const { return value; }
+    uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+private:
+    uint32_t value;
+};
+
 class OnFrameRetrace {
 public:
-    virtual void onShaderAssembly(const RenderBookmark &render,
+    virtual void onShaderAssembly(RenderId renderId,
                                   const std::string &vertex_shader,
                                   const std::string &vertex_ir,
                                   const std::string &vertex_vec4,
@@ -71,13 +91,26 @@ public:
                                   const std::string &fragemnt_ir,
                                   const std::string &fragemnt_simd8,
                                   const std::string &fragemnt_simd16) = 0;
-    virtual void onRenderTarget(const RenderBookmark &render, RenderTargetType type,
+    virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
                                 const std::vector<unsigned char> &pngImageData) = 0;
-    virtual void onShaderCompile(const RenderBookmark &render, int status,
+    virtual void onShaderCompile(RenderId renderId, int status,
                                  std::string errorString) = 0;
 };
 
-class FrameRetrace
+class IFrameRetrace
+{
+public:
+    virtual ~IFrameRetrace() {}
+    virtual void retraceRenderTarget(RenderId renderId,
+                                     int render_target_number,
+                                     RenderTargetType type,
+                                     RenderOptions options,
+                                     OnFrameRetrace *callback) const = 0;
+    virtual void retraceShaderAssembly(RenderId renderId,
+                                       OnFrameRetrace *callback) = 0;;
+};
+
+class FrameRetrace : public IFrameRetrace
 {
 private:
     // these are global
@@ -91,21 +124,24 @@ private:
 public:
     // 
     FrameRetrace(const std::string &filename, int framenumber);
-    std::vector<RenderBookmark> getRenders() const;
-    std::vector<int> renderTargets() const;
-    void retraceRenderTarget(const RenderBookmark &render,
+
+    // TODO move to frame state tracker
+    int getRenderCount() const;
+    //std::vector<int> renderTargets() const;
+    void retraceRenderTarget(RenderId renderId,
                              int render_target_number,
                              RenderTargetType type,
                              RenderOptions options,
-                             OnFrameRetrace *callback) const;
-    void retraceShaderAssembly(const RenderBookmark &render,
+                             OnFrameRetrace *callback) const; 
+   void retraceShaderAssembly(RenderId renderId,
                                OnFrameRetrace *callback);
-    void insertCall(const trace::Call &call,
-                    const RenderBookmark &render);
-    void setShaders(const std::string &vs,
-                    const std::string &fs,
-                    OnFrameRetrace *callback);
-    void revertModifications();
+    // this is going to be ugly to serialize
+    // void insertCall(const trace::Call &call,
+    //                 uint32_t renderId,);
+    // void setShaders(const std::string &vs,
+    //                 const std::string &fs,
+    //                 OnFrameRetrace *callback);
+    // void revertModifications();
 };
 
 } /* namespace glretrace */
