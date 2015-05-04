@@ -31,6 +31,7 @@
 #include "glframe_retrace.hpp"
 
 using glretrace::FrameRetrace;
+using glretrace::RenderId;
 
 TEST(Build, Cmake)
 {
@@ -46,11 +47,11 @@ TEST(Daemon, LoadFile)
     retrace::setUp();
 
     FrameRetrace rt(test_file, 7);
-    std::vector<trace::RenderBookmark> renders = rt.getRenders();
-    EXPECT_EQ(renders.size(), 2);  // 1 for clear, 1 for draw
-    for (int i = 0; i < renders.size(); ++i)
+    int renderCount = rt.getRenderCount();
+    EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
+    for (int i = 0; i < renderCount; ++i)
     {
-        rt.retraceRenderTarget(renders[i], 0, glretrace::NORMAL_RENDER,
+        rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
                                glretrace::STOP_AT_RENDER, NULL);
     }
 }

@@ -43,17 +43,17 @@ class QRenderBookmark : public QObject
 {
     Q_OBJECT
 public:
-    QRenderBookmark() {}
-    QRenderBookmark(const QRenderBookmark& o) :bookmark(o.bookmark) {}
-    Q_PROPERTY(int start READ start NOTIFY onStart);
+    QRenderBookmark() : renderId(0) {}
+    QRenderBookmark(const QRenderBookmark& o) : renderId(o.renderId) {}
+    Q_PROPERTY(int index READ index NOTIFY onIndex);
 
-    explicit QRenderBookmark(trace::RenderBookmark &bm)
-        : bookmark(bm) {}
+    explicit QRenderBookmark(int id)
+        : renderId(id) {}
 
-    int start() { return bookmark.start.next_call_no - 1; }
-    trace::RenderBookmark bookmark;
+    int index() { return renderId.index(); }
+    glretrace::RenderId renderId;
 signals:
-    void onStart();
+    void onIndex();
 };
 
 class FrameRetraceModel : public QObject,
@@ -75,7 +75,7 @@ public:
     Q_INVOKABLE void retrace(int start);
     QQmlListProperty<QRenderBookmark> renders();
 
-    void onShaderAssembly(const trace::RenderBookmark &render,
+    void onShaderAssembly(RenderId renderId,
                           const std::string &vertex_shader,
                           const std::string &vertex_ir,
                           const std::string &vertex_vec4,
@@ -83,9 +83,9 @@ public:
                           const std::string &fragment_ir,
                           const std::string &fragment_simd8,
                           const std::string &fragment_simd16);
-    void onRenderTarget(const trace::RenderBookmark &render, RenderTargetType type,
+    void onRenderTarget(RenderId renderId, RenderTargetType type,
                         const std::vector<unsigned char> &data);
-    void onShaderCompile(const trace::RenderBookmark &render, int status,
+    void onShaderCompile(RenderId renderId, int status,
                          std::string errorString);
     QString vsIR() const { return m_vs_ir; }
     QString fsIR() const { return m_fs_ir; }
