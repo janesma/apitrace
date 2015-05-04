@@ -34,12 +34,12 @@ ApplicationWindow {
                 width : renderList.width
                 Text {
                     id: renderNum
-                    text: model.start
+                    text: model.index
                 }
                 MouseArea {
                     anchors.fill: parent
                     onPressed : {
-                        frameRetrace.retrace(start)
+                        frameRetrace.retrace(index)
                     }
                 }
             }

@@ -36,8 +36,8 @@ FrameRetraceModel::FrameRetraceModel() : m_retrace(NULL)
 void
 FrameRetraceModel::setFrame(const QString &filename, int framenumber) {
     m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
-    for (auto i : m_retrace->getRenders()) {
-        std::cout << "got: " << i.start.next_call_no << std::endl;
+    const int rcount = m_retrace->getRenderCount();
+    for (int i = 0; i < rcount; ++i ) {
         m_renders_model.append(new QRenderBookmark(i));
     }
     emit onRenders();
@@ -50,7 +50,7 @@ FrameRetraceModel::renders() {
 
 
 void
-FrameRetraceModel::onShaderAssembly(const RenderBookmark &render,
+FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const std::string &vertex_shader,
                                     const std::string &vertex_ir,
                                     const std::string &vertex_vec4,
@@ -69,23 +69,20 @@ FrameRetraceModel::onShaderAssembly(const RenderBookmark &render,
     emit onShaders();
 }
 void
-FrameRetraceModel::onRenderTarget(const RenderBookmark &render, RenderTargetType type,
+FrameRetraceModel::onRenderTarget(RenderId renderId,
+                                  RenderTargetType type,
                                   const std::vector<unsigned char> &data)
 {}
 void
-FrameRetraceModel::onShaderCompile(const RenderBookmark &render, int status,
-                         std::string errorString)
+FrameRetraceModel::onShaderCompile(RenderId renderId,
+                                   int status,
+                                   std::string errorString)
 {}
 
 void
 FrameRetraceModel::retrace(int start)
 {
-    for (auto i : m_renders_model) {
-        if (i->start() != start)
-            continue;
-        m_retrace->retraceShaderAssembly(i->bookmark, this);
-        m_retrace->retraceRenderTarget(i->bookmark, 0, glretrace::NORMAL_RENDER,
+    m_retrace->retraceShaderAssembly(RenderId(start), this);
+    m_retrace->retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
                                        glretrace::STOP_AT_RENDER, this);
-        return;
-    }
 }
