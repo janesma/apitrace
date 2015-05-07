@@ -38,7 +38,10 @@
 #include "trace_dump.hpp"
 #include "trace_parser.hpp"
 
+#include "glstate_images.hpp"
+
 using glretrace::FrameRetrace;
+using glretrace::FrameState;
 using glretrace::StateTrack;
 using trace::Call;
 using retrace::parser;
@@ -93,9 +96,13 @@ private:
     Call *call;
 };
 
-FrameRetrace::FrameRetrace(const std::string &filename, int framenumber)
-{
+FrameRetrace::FrameRetrace() {}
+
+void
+FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
+                       OnFrameRetrace *callback) {
     setenv("INTEL_DEBUG", "vs,fs", 1);
+    setenv("vblank_mode", "0", 1);
 
     // TODO reroute stdout, to get the shader contents
     
@@ -117,6 +124,7 @@ FrameRetrace::FrameRetrace(const std::string &filename, int framenumber)
         if (call->flags & trace::CALL_FLAG_END_FRAME)
         {
             ++current_frame;
+            callback->onFileOpening(false, current_frame * 100 / framenumber);
             if (current_frame == framenumber)
                 break;
         }
@@ -147,6 +155,7 @@ FrameRetrace::FrameRetrace(const std::string &filename, int framenumber)
             break;
         }
     }
+    callback->onFileOpening(true, 100);
 }
 
 int 
@@ -178,7 +187,8 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
         PlayAndCleanUpCall c(call, NULL);
     }
 
-    if (options & glretrace::CLEAR_BEFORE_RENDER)
+    // TODO
+    // if (options & glretrace::CLEAR_BEFORE_RENDER)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
                 GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     
@@ -255,4 +265,34 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
                                tmp_tracker.currentFragmentIr(),
                                tmp_tracker.currentFragmentSimd8(),
                                tmp_tracker.currentFragmentSimd16());
+}
+
+FrameState::FrameState(const std::string &filename,
+                       int framenumber) : render_count(0)
+{
+    trace::Parser *p = reinterpret_cast<trace::Parser*>(parser);
+    p->open(filename.c_str());
+    trace::Call *call;
+    int current_frame = 0;
+    
+    while ((call = p->scan_call()) && current_frame < framenumber)
+    {
+        if (call->flags & trace::CALL_FLAG_END_FRAME)
+        {
+            ++current_frame;
+            if (current_frame == framenumber)
+                break;
+        }
+    }
+
+    while ((call = p->scan_call()))
+    {
+        if (call->flags & trace::CALL_FLAG_RENDER) {
+            ++render_count;
+        }
+            
+        if (call->flags & trace::CALL_FLAG_END_FRAME) {
+            break;
+        }
+    }
 }
