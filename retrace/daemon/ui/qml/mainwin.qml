@@ -12,26 +12,190 @@ ApplicationWindow {
 
     FrameRetrace {
         id : frameRetrace
-        Component.onCompleted: {
-            setFrame("/home/majanes/src/apitrace/retrace/daemon/test/simple.trace", 7);
-            //setFrame("/home/majanes/.steam/steam/steamapps/common/dota/dota_linux.2.trace", 1800)
+        onOpenPercentChanged: {
+            if (openPercent < 100) {
+                progressBar.percentComplete = openPercent;
+                return;
+            }
+            progressBar.visible = false;
+            mainUI.visible = true;
         }
     }
 
-    RowLayout {
+    Item {
+        id: openfile
+        anchors.fill:parent
+        Component.onCompleted: visible = true
+        Text {
+            id: enterText
+            width: 400
+            anchors.centerIn: parent
+            text: "trace file:"
+        }
+        Text {
+            id: textHeight
+            visible:false
+            text: "ForHeight"
+        }
+        Rectangle {
+            width: 400
+            id: textBox
+            border.width: 1
+            height: textHeight.height * 1.5
+            anchors.top: enterText.bottom
+            anchors.left: enterText.left
+            TextInput {
+                anchors.verticalCenter: parent.verticalCenter
+                verticalAlignment: Text.AlignVCenter
+                height: textHeight.height
+                width:400
+                selectByMouse: true
+                activeFocusOnPress : true
+                focus: true
+                id: textInput
+                text: ""
+            }
+        }
+        Rectangle {
+            id: file_rect
+            border.width: 1
+            width: textBox.height
+            height: textBox.height
+            anchors.left: textBox.right
+            anchors.bottom: textBox.bottom
+            Text {
+                anchors.centerIn: parent
+                text: "?"
+            }
+            MouseArea {
+                anchors.fill: parent
+                onPressed : {
+                    fileDialog.visible =  true
+                }
+            }
+        }
+        FileDialog {
+            id: fileDialog
+            visible: false
+            title: "Please choose a trace file"
+            selectExisting: true
+            selectMultiple: false
+            nameFilters: [ "trace files (*.trace)", "All files (*)" ]
+            onAccepted: {
+                var path = fileDialog.fileUrl.toString();
+                path = path.replace(/^(file:\/{2})/,"");
+                textInput.text = path
+                fileDialog.visible = false
+            }
+        }
+        Text {
+            id: frameText
+            anchors.top: file_rect.bottom
+            anchors.left: textBox.left
+            text: "frame number:"
+        }
+        Rectangle {
+            width: 100
+            id: frameBox
+            border.width: 1
+            height: textHeight.height * 1.5
+            anchors.top: frameText.bottom
+            anchors.left: frameText.left
+            TextInput {
+                height: textHeight.height
+                anchors.verticalCenter: parent.verticalCenter
+                verticalAlignment: Text.AlignVCenter
+                activeFocusOnPress : true
+                width: parent.width
+                selectByMouse: true
+                focus: true
+                id: frameInput
+                text: ""
+            }
+        }
+        Button {
+            id: okButton
+            anchors.left: frameBox.left
+            anchors.top: frameBox.bottom
+            text: "OK"
+            onClicked: {
+                openfile.visible = false
+                progressBar.visible = true
+                frameRetrace.setFrame(textInput.text, frameInput.text);
+            }
+        }
+        Button {
+            text: "Cancel"
+            anchors.left: okButton.right
+            anchors.top: frameBox.bottom
+            onClicked: {
+                Qt.quit();
+            }
+        }
+    }
+    Item {
+        id: progressBar
+        visible: false
         anchors.fill: parent
+        property int percentComplete
+        onPercentCompleteChanged: {
+            blueBar.width = percentComplete / 100 * progressBackground.width
+        }
+        Rectangle {
+            id: progressBackground
+            anchors.centerIn: parent
+            color: "black"
+            width: parent.width * 0.8
+            height: 20
+        }
+        Rectangle {
+            id: blueBar
+            anchors.left: progressBackground.left
+            anchors.top: progressBackground.top
+            color: "light blue"
+            width: 0
+            height: 20
+            z:1
+        }
+    }
+    RowLayout {
+        id: mainUI
+        anchors.fill: parent
+        visible: false
+        Component {
+            id: highlightBar
+            Rectangle {
+                clip: false
+                width: renderList.width; height: 20 //heightCalculation.height * 1.5
+                color: "light blue"
+                opacity: .4
+                y: renderList.currentItem.y;
+                onYChanged: {
+                    visible = true
+                }
+            }
+        }
         ListView {
             id: renderList
+            clip: false
             Layout.preferredWidth: 50
             Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
             Layout.fillHeight: true
-            // anchors.fill: parent
             model: frameRetrace.renders
+            focus: true
+            highlight: highlightBar
+            highlightFollowsCurrentItem : false
+            onCurrentItemChanged : {
+                frameRetrace.retrace(currentIndex)
+                renderList.visible = false
+                renderList.visible = true
+            }
             delegate: Rectangle {
                 id: renderDel
                 height : renderNum.height * 1.5
                 width : renderList.width
+                color: "transparent"  // necessary for the highlight to show
                 Text {
                     id: renderNum
                     text: model.index
@@ -39,7 +203,9 @@ ApplicationWindow {
                 MouseArea {
                     anchors.fill: parent
                     onPressed : {
+                        renderList.currentIndex = index
                         frameRetrace.retrace(index)
+                        renderList.focus = true
                     }
                 }
             }
@@ -137,6 +303,16 @@ ApplicationWindow {
                             }
                         }
                     }
+                }
+            }
+            Tab {
+                title: "RenderTarget"
+                Image {
+                    id: rtDisplayImage
+                    anchors.fill: parent
+                    fillMode: Image.PreserveAspectFit
+                    source: frameRetrace.renderTargetImage
+                    cache: false
                 }
             }
         }

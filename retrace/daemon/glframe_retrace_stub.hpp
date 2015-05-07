@@ -23,38 +23,34 @@
  *
  **************************************************************************/
 
-#include <unistd.h>
-
-#include <vector>
-#include "glws.hpp"
-#include <gtest/gtest.h>
+#ifndef _GLFRAME_RETRACE_STUB_HPP_
+#define _GLFRAME_RETRACE_STUB_HPP_
 
 #include "glframe_retrace.hpp"
 
-using glretrace::FrameRetrace;
-using glretrace::RenderId;
+namespace glretrace {
 
-TEST(Build, Cmake)
-{
-    
-}
+// offloads the request to a thread which serializes request to the
+// retrace process, and blocks on the result.
+class FrameRetraceStub : public IFrameRetrace {
+ public:
+    // call once, to set up the retrace socket, and shut it down at
+    // exit
+    static void Init(int port);
+    static void Shutdown();
 
-// TODO(majanes) find a way to make this available
-static const char *test_file = "/home/majanes/src/apitrace/retrace/daemon/test/simple.trace";
-// static const char *test_file = "/home/majanes/.steam/steam/steamapps/common/dota/dota_linux.2.trace"
+    virtual void openFile(const std::string &filename,
+                          uint32_t frameNumber,
+                          OnFrameRetrace *callback);
+    virtual void retraceRenderTarget(RenderId renderId,
+                                     int render_target_number,
+                                     RenderTargetType type,
+                                     RenderOptions options,
+                                     OnFrameRetrace *callback) const;
+    virtual void retraceShaderAssembly(RenderId renderId,
+                                       OnFrameRetrace *callback);
+ private:
+};
+}  // namespace glretrace
 
-TEST(Daemon, LoadFile)
-{
-    glws::init();
-
-    FrameRetrace rt;
-    rt.openFile(test_file, 7, NULL);
-    //FrameRetrace rt(test_file, 7);
-    int renderCount = rt.getRenderCount();
-    EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
-    for (int i = 0; i < renderCount; ++i)
-    {
-        rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
-                               glretrace::STOP_AT_RENDER, NULL);
-    }
-}
+#endif // _GLFRAME_RETRACE_STUB_HPP_

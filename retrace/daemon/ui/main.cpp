@@ -25,23 +25,66 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#include <unistd.h>
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
 #include "glframe_retrace_model.hpp"
+#include "glframe_retrace_skeleton.hpp"
+#include "glframe_retrace_stub.hpp"
+#include "glframe_socket.hpp"
+#include "glframe_retrace_images.hpp"
+
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
+
 
 using glretrace::FrameRetraceModel;
+using glretrace::FrameRetraceSkeleton;
+using glretrace::FrameRetraceStub;
 using glretrace::QRenderBookmark;
+using glretrace::ServerSocket;
+
+int fork_retracer() {
+    ServerSocket sock(0);
+    pid_t pid = fork();
+    //pid_t pid = 0;
+    if (pid == -1) {
+        // When fork() returns -1, an error happened.
+        perror("fork failed");
+        exit(-1);
+    }
+    if (pid == 0) {
+        // child: create retrace skeleton
+        FrameRetraceSkeleton skel(sock.Accept());
+        skel.Run();
+        exit(0);  // exit() is unreliable here, so _exit must be used
+    }
+    //exit(0);  // exit() is unreliable here, so _exit must be used
+    return sock.GetPort();
+}
+    
 
 int main(int argc, char *argv[]) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+    const int port = fork_retracer();
+    FrameRetraceStub::Init(port);
+    
     QGuiApplication app(argc, argv);
 
     qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0, "QRenderBookmark");
     qmlRegisterType<glretrace::FrameRetraceModel>("ApiTrace", 1, 0, "FrameRetrace");
 
+    glretrace::FrameImages::Create();
+    
     QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
+    engine.addImageProvider("myimageprovider", glretrace::FrameImages::instance());
     int ret = app.exec();
+
+    FrameRetraceStub::Shutdown();
+    ::google::protobuf::ShutdownProtobufLibrary();
+    glretrace::FrameImages::Destroy();
     return ret;
 }

@@ -22,13 +22,15 @@ qt5_add_resources(RESOURCE_ADDED resources.qrc)
 
 add_executable(frame_retrace 
   main.cpp
+  glframe_retrace_images.hpp
+  glframe_retrace_images.cpp
   glframe_retrace_model.hpp
   glframe_retrace_model.cpp
   ${UIS_HDRS}
   ${RESOURCE_ADDED} 
 )
 
-qt5_use_modules(frame_retrace Core Gui Quick) 
+qt5_use_modules(frame_retrace Core Gui Concurrent Quick) 
 # OpenGL
 #Widgets
 
@@ -37,8 +39,10 @@ target_link_libraries(frame_retrace
   glretrace_common
   glhelpers
   glproc_gl
+  protobuf
   GL
   ${X11_X11_LIB}
+  pthread
   dl
 )
 
