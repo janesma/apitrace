@@ -23,24 +23,41 @@
  *
  **************************************************************************/
 
+// this has to be first, yuck
+#include <QQuickImageProvider>
+#include <QtConcurrentRun>
+
 #include "glframe_retrace_model.hpp"
+
+#include <sstream>
+
+#include "glframe_retrace_images.hpp"
 
 #include "glframe_retrace.hpp"
 
 using glretrace::FrameRetraceModel;
 using glretrace::QRenderBookmark;
+using glretrace::FrameState;
 
-FrameRetraceModel::FrameRetraceModel() : m_retrace(NULL)
+FrameRetraceModel::FrameRetraceModel() : m_open_percent(0)
 {}
+
+FrameRetraceModel::~FrameRetraceModel() {
+    std::cout << "~FrameRetraceModel\n";
+}
+
+FrameState *frame_state_off_thread(std::string filename,
+                                   int framenumber) {
+    return new FrameState(filename, framenumber);
+}
+
+static QFuture<FrameState *> future;
 
 void
 FrameRetraceModel::setFrame(const QString &filename, int framenumber) {
-    m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
-    const int rcount = m_retrace->getRenderCount();
-    for (int i = 0; i < rcount; ++i ) {
-        m_renders_model.append(new QRenderBookmark(i));
-    }
-    emit onRenders();
+    // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
+     future = QtConcurrent::run(frame_state_off_thread, filename.toStdString(), framenumber);
+    m_retrace.openFile(filename.toStdString(), framenumber, this);
 }
 
 QQmlListProperty<QRenderBookmark>
@@ -59,6 +76,7 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const std::string &fragment_simd8,
                                     const std::string &fragment_simd16)
 {
+    ScopedLock s(m_protect);
     m_vs_ir = vertex_ir.c_str();
     m_fs_ir = fragment_ir.c_str();
     m_vs_shader = vertex_shader.c_str();
@@ -68,11 +86,18 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
     m_fs_simd16 = fragment_simd16.c_str();
     emit onShaders();
 }
+
+
 void
 FrameRetraceModel::onRenderTarget(RenderId renderId,
                                   RenderTargetType type,
                                   const std::vector<unsigned char> &data)
-{}
+{
+    ScopedLock s(m_protect);
+    glretrace::FrameImages::instance()->SetImage(data);
+    emit onRenderTarget();
+}
+
 void
 FrameRetraceModel::onShaderCompile(RenderId renderId,
                                    int status,
@@ -82,7 +107,40 @@ FrameRetraceModel::onShaderCompile(RenderId renderId,
 void
 FrameRetraceModel::retrace(int start)
 {
-    m_retrace->retraceShaderAssembly(RenderId(start), this);
-    m_retrace->retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
+    ScopedLock s(m_protect);
+    m_retrace.retraceShaderAssembly(RenderId(start), this);
+    m_retrace.retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
                                        glretrace::STOP_AT_RENDER, this);
+}
+
+
+QString
+FrameRetraceModel::renderTargetImage() const
+{
+    ScopedLock s(m_protect);
+    static int i = 0;
+    std::stringstream ss;
+    ss << "image://myimageprovider/image" << ++i << ".png";
+    return ss.str().c_str();
+}
+
+void
+FrameRetraceModel::onFileOpening(bool finished,
+                                 uint32_t percent_complete)
+{
+    ScopedLock s(m_protect);
+    if (finished) {
+        m_state = future.result();
+        const int rcount = m_state->getRenderCount();
+        for (int i = 0; i < rcount; ++i ) {
+            m_renders_model.append(new QRenderBookmark(i));
+        }
+        emit onRenders();
+
+        m_open_percent = 101;
+    }
+    if (m_open_percent == percent_complete)
+        return;
+    m_open_percent = percent_complete;
+    emit onOpenPercent();
 }

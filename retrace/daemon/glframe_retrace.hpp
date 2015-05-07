@@ -71,6 +71,8 @@ private:
 
 class OnFrameRetrace {
 public:
+    virtual void onFileOpening(bool finished,
+                               uint32_t percent_complete) = 0;
     virtual void onShaderAssembly(RenderId renderId,
                                   const std::string &vertex_shader,
                                   const std::string &vertex_ir,
@@ -89,14 +91,31 @@ class IFrameRetrace
 {
 public:
     virtual ~IFrameRetrace() {}
+    virtual void openFile(const std::string &filename,
+                          uint32_t frameNumber,
+                          OnFrameRetrace *callback) = 0;
     virtual void retraceRenderTarget(RenderId renderId,
                                      int render_target_number,
                                      RenderTargetType type,
                                      RenderOptions options,
                                      OnFrameRetrace *callback) const = 0;
     virtual void retraceShaderAssembly(RenderId renderId,
-                                       OnFrameRetrace *callback) = 0;;
+                                       OnFrameRetrace *callback) = 0;
 };
+
+class FrameState {
+private:
+    // not needed yet
+    // StateTrack tracker;
+    // trace::RenderBookmark frame_start;
+    // std::vector<trace::RenderBookmark> renders;
+    int render_count;
+public:
+    FrameState(const std::string &filename,
+               int framenumber);
+    int getRenderCount() const { return render_count; }
+};
+
 
 class FrameRetrace : public IFrameRetrace
 {
@@ -111,7 +130,10 @@ private:
     StateTrack tracker;
 public:
     // 
-    FrameRetrace(const std::string &filename, int framenumber);
+    FrameRetrace();
+    void openFile(const std::string &filename,
+                  uint32_t frameNumber,
+                  OnFrameRetrace *callback);
 
     // TODO move to frame state tracker
     int getRenderCount() const;
