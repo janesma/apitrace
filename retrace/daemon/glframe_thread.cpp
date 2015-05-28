@@ -43,16 +43,21 @@ void *start_thread(void*ctx) {
 }
 
 void
+Thread::start_routine(Thread *context) {
+    context->Run();
+};
+
+void
 Thread::Start() {
+    m_thread = std::thread(start_routine, this);
     //GFLOGF("thread started: %s", m_name.c_str());
-    const int result = pthread_create(&m_thread, NULL, &start_thread, this);
-    assert(result == 0);
 }
 
 void
 Thread::Join() {
     //GFLOGF("joining thread: %s", m_name.c_str());
-    pthread_join(m_thread, NULL);
+    assert(m_thread.joinable());
+    m_thread.join();
     //GFLOGF("thread joined: %s", m_name.c_str());
 }
 
