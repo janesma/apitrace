@@ -28,8 +28,8 @@
 #ifndef OS_GFTHREAD_H_
 #define OS_GFTHREAD_H_
 
-#include <pthread.h>
 #include <string>
+#include <thread>
 
 #include "glframe_traits.hpp"
 
@@ -43,8 +43,9 @@ class Thread : NoCopy, NoAssign, NoMove {
   void Start();
   void Join();
  private:
+  static void start_routine(Thread *context);
   const std::string m_name;
-  pthread_t m_thread;
+  std::thread m_thread;
 };
 
 }  // namespace Grafips
