@@ -138,10 +138,24 @@ StateTrack::parse(const std::string &output) {
         if (matches <= 0) {
             int wide;
             matches = sscanf(line.c_str(),
-                             "Native code for unnamed fragment shader %d (SIMD%d dispatch):",
-                             &line_shader, &wide);
-            if (matches > 0)
+                             "Native code for unnamed fragment shader %d",
+                             &line_shader);
+            if (matches > 0) {
+                if (line_shader != current_program) {
+                    current_target = NULL;
+                    continue;
+                }
+                // for Native code, need the second line to get the
+                // target.
+                const std::string line_copy = line;
+                std::getline(line_split, line, '\n');
+                matches = sscanf(line.c_str(),
+                                 "SIMD%d", &wide);
+                assert(matches > 0);
                 current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
+                
+                *current_target += line_copy + "\n";
+            }
         }
         if (line_shader != current_program)
             // this is probably a shader that mesa uses
