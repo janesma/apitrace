@@ -27,10 +27,13 @@
 
 #include <unistd.h>
 
+#include <sstream>
+
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
+#include "glframe_os.hpp"
 #include "glframe_retrace_model.hpp"
 #include "glframe_retrace_skeleton.hpp"
 #include "glframe_retrace_stub.hpp"
@@ -48,28 +51,29 @@ using glretrace::QRenderBookmark;
 using glretrace::ServerSocket;
 
 int fork_retracer() {
-    ServerSocket sock(0);
-    pid_t pid = fork();
-    //pid_t pid = 0;
-    if (pid == -1) {
-        // When fork() returns -1, an error happened.
-        perror("fork failed");
-        exit(-1);
-    }
-    if (pid == 0) {
-        // child: create retrace skeleton
-        FrameRetraceSkeleton skel(sock.Accept());
-        skel.Run();
-        exit(0);  // exit() is unreliable here, so _exit must be used
-    }
-    //exit(0);  // exit() is unreliable here, so _exit must be used
-    return sock.GetPort();
+  ServerSocket sock(0);
+  pid_t pid = fork();
+  //pid_t pid = 0;
+  if (pid == -1) {
+    // When fork() returns -1, an error happened.
+    perror("fork failed");
+    exit(-1);
+  }
+  if (pid == 0) {
+    // child: create retrace skeleton
+    FrameRetraceSkeleton skel(sock.Accept());
+    skel.Run();
+    exit(0);  // exit() is unreliable here, so _exit must be used
+  }
+  //exit(0);  // exit() is unreliable here, so _exit must be used
+  return sock.GetPort();
 }
-    
 
 int main(int argc, char *argv[]) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     const int port = fork_retracer();
+
     FrameRetraceStub::Init(port);
     
     QGuiApplication app(argc, argv);
