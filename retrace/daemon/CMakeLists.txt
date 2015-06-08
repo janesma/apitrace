@@ -16,9 +16,21 @@ include_directories (
   ${CMAKE_BINARY_DIR}/retrace/daemon
   )
 
+set (RETRACE_LINUX_SOURCE glframe_os_linux.cpp)
+
+set (RETRACE_WIN_SOURCE glframe_os_win.cpp)
+
+if (WIN32)
+  set (RETRACE_OS_SOURCE ${RETRACE_WIN_SOURCE})
+else()
+  set (RETRACE_OS_SOURCE ${RETRACE_LINUX_SOURCE})
+endif()
+
+
 add_library(retrace_daemon STATIC
   ${ProtoHeaders}
   ${ProtoSources}
+  ${RETRACE_OS_SOURCE}
   glframe_retrace.cpp
   glframe_retrace.hpp
   glframe_socket.cpp

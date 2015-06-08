@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2015.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,43 +25,25 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#ifndef _GLFRAME_OS_H_
-#define _GLFRAME_OS_H_
-
-#include <mutex>
-#include <condition_variable>
-//#include <pthread.h>
-
-#include "glframe_traits.hpp"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 namespace glretrace {
 
-typedef std::lock_guard<std::mutex> ScopedLock;
 
-class Semaphore : NoCopy, NoAssign, NoMove {
-public:
-    Semaphore() : m_count(0) {}
-
-    void post() {
-        std::lock_guard<std::mutex> lk(m_mutex);
-        ++m_count;
-        m_cv.notify_one();
+int fork_execv(const char *path, char *const argv[])
+{
+    pid_t pid = fork();
+    if (pid == -1) {
+        // When fork() returns -1, an error happened.
+        perror("fork failed");
+        exit(-1);
     }
-    void wait() {
-        std::unique_lock<std::mutex> lk(m_mutex);
-        while(!m_count)
-            m_cv.wait(lk);
-        --m_count;
+    if (pid == 0) {
+        return ::execv(path, argv);
     }
-private:
-    unsigned long m_count;
-    unsigned long m_max_count;
-    std::mutex m_mutex;
-    std::condition_variable m_cv;
-};
+    return 0;
+}
 
-int fork_execv(const char *path, char *const argv[]);
-
-}  // namespace Grafips
-
-#endif  // _GLFRAME_OS_H_
+}

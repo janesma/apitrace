@@ -28,7 +28,7 @@ ApplicationWindow {
         Component.onCompleted: visible = true
         Text {
             id: enterText
-            width: 400
+            width: 500
             anchors.centerIn: parent
             text: "trace file:"
         }
@@ -38,7 +38,7 @@ ApplicationWindow {
             text: "ForHeight"
         }
         Rectangle {
-            width: 400
+            width: 500
             id: textBox
             border.width: 1
             height: textHeight.height * 1.5
@@ -48,7 +48,7 @@ ApplicationWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 verticalAlignment: Text.AlignVCenter
                 height: textHeight.height
-                width:400
+                width:500
                 selectByMouse: true
                 activeFocusOnPress : true
                 focus: true
