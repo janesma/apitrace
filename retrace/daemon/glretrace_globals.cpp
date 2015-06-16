@@ -42,7 +42,26 @@ void
 frameComplete(trace::Call &call) {
 }
 
-static Dumper defaultDumper;
+class DefaultDumper: public Dumper
+{
+public:
+    image::Image *
+    getSnapshot(void) {
+        return NULL;
+    }
+
+    bool
+    canDump(void) {
+        return false;
+    }
+
+    void
+    dumpState(StateWriter &writer) {
+        assert(0);
+    }
+};
+
+static DefaultDumper defaultDumper;
 
 Dumper *dumper = &defaultDumper;
 
