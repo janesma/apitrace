@@ -34,21 +34,21 @@ namespace glretrace {
 // retrace process, and blocks on the result.
 class FrameRetraceStub : public IFrameRetrace {
  public:
-    // call once, to set up the retrace socket, and shut it down at
-    // exit
-    static void Init(int port);
-    static void Shutdown();
+  // call once, to set up the retrace socket, and shut it down at
+  // exit
+  static void Init(int port);
+  static void Shutdown();
 
-    virtual void openFile(const std::string &filename,
-                          uint32_t frameNumber,
-                          OnFrameRetrace *callback);
-    virtual void retraceRenderTarget(RenderId renderId,
-                                     int render_target_number,
-                                     RenderTargetType type,
-                                     RenderOptions options,
-                                     OnFrameRetrace *callback) const;
-    virtual void retraceShaderAssembly(RenderId renderId,
-                                       OnFrameRetrace *callback);
+  virtual void openFile(const std::string &filename,
+                        uint32_t frameNumber,
+                        OnFrameRetrace *callback);
+  virtual void retraceRenderTarget(RenderId renderId,
+                                   int render_target_number,
+                                   RenderTargetType type,
+                                   RenderOptions options,
+                                   OnFrameRetrace *callback) const;
+  virtual void retraceShaderAssembly(RenderId renderId,
+                                     OnFrameRetrace *callback);
  private:
 };
 }  // namespace glretrace

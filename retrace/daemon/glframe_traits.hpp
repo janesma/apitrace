@@ -30,22 +30,22 @@
 
 namespace glretrace {
 class NoCopy {
-public:
-    NoCopy() {}
-private:
-    NoCopy(const NoCopy&) = delete;
+ public:
+  NoCopy() {}
+ private:
+  NoCopy(const NoCopy&) = delete;
 };
 class NoAssign {
-public:
-    NoAssign() {}
-private:
-    NoAssign &operator=(const NoAssign&) = delete;
+ public:
+  NoAssign() {}
+ private:
+  NoAssign &operator=(const NoAssign&) = delete;
 };
 class NoMove {
-public:
-    NoMove() {}
-private:
-    NoMove(NoMove &&) = delete;
+ public:
+  NoMove() {}
+ private:
+  NoMove(NoMove &&) = delete;
 };
 }  // namespace Grafips
 

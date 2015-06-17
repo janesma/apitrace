@@ -45,16 +45,16 @@ static const char *test_file = "/home/majanes/src/apitrace/retrace/daemon/test/s
 
 TEST(Daemon, LoadFile)
 {
-    glws::init();
+  retrace::setUp();
 
-    FrameRetrace rt;
-    rt.openFile(test_file, 7, NULL);
-    //FrameRetrace rt(test_file, 7);
-    int renderCount = rt.getRenderCount();
-    EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
-    for (int i = 0; i < renderCount; ++i)
-    {
-        rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
-                               glretrace::STOP_AT_RENDER, NULL);
-    }
+  FrameRetrace rt;
+  rt.openFile(test_file, 7, NULL);
+  //FrameRetrace rt(test_file, 7);
+  int renderCount = rt.getRenderCount();
+  EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
+  for (int i = 0; i < renderCount; ++i)
+  {
+    rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
+                           glretrace::STOP_AT_RENDER, NULL);
+  }
 }

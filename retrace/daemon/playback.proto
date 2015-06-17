@@ -1,62 +1,62 @@
 package ApiTrace;
 
 enum RenderTargetType {
-    NORMAL_RENDER = 0;
-    HIGHLIGHT_RENDER = 1;
+  NORMAL_RENDER = 0;
+  HIGHLIGHT_RENDER = 1;
 }
 
 enum RequestType {
-    OPEN_FILE_REQUEST = 1;
-    RENDER_TARGET_REQUEST = 2;
-    SHADER_ASSEMBLY_REQUEST = 3;
+  OPEN_FILE_REQUEST = 1;
+  RENDER_TARGET_REQUEST = 2;
+  SHADER_ASSEMBLY_REQUEST = 3;
 };
 
 message OpenFileRequest {
-    required string fileName = 1;
-    required uint32 frameNumber = 2;
+  required string fileName = 1;
+  required uint32 frameNumber = 2;
 };
 
 message OpenFileStatus {
-    required bool finished = 1;
-    required uint32 percent_complete = 2;
+  required bool finished = 1;
+  required uint32 percent_complete = 2;
 }
 
 message RenderTargetRequest {
-    required uint32 renderId = 1;
-    required RenderTargetType type = 2;
-    // options is a mask of:
-    // STOP_AT_RENDER = 0x1,
-    // CLEAR_BEFORE_RENDER = 0x2,
-    required uint32 options = 3;
+  required uint32 renderId = 1;
+  required RenderTargetType type = 2;
+  // options is a mask of:
+  // STOP_AT_RENDER = 0x1,
+  // CLEAR_BEFORE_RENDER = 0x2,
+  required uint32 options = 3;
 }
 
 message RenderTargetResponse {
-    required bytes image = 1;
+  required bytes image = 1;
 }
 
 message ShaderAssemblyRequest {
-    required uint32 renderId = 1;
+  required uint32 renderId = 1;
 }
 
 message ShaderAssemblyResponse {
-    required string vertex_shader = 1;
-    required string vertex_ir = 2;
-    required string vertex_vec4 = 3;
-    required string fragment_shader = 4;
-    required string fragment_ir = 5;
-    required string fragment_simd8 = 6;
-    required string fragment_simd16 = 7;
+  required string vertex_shader = 1;
+  required string vertex_ir = 2;
+  required string vertex_vec4 = 3;
+  required string fragment_shader = 4;
+  required string fragment_ir = 5;
+  required string fragment_simd8 = 6;
+  required string fragment_simd16 = 7;
 }
 
 message RetraceRequest {
-    required RequestType requestType = 1;
-    optional RenderTargetRequest renderTarget = 2;
-    optional ShaderAssemblyRequest shaderAssembly = 3;
-    optional OpenFileRequest fileOpen = 4;
+  required RequestType requestType = 1;
+  optional RenderTargetRequest renderTarget = 2;
+  optional ShaderAssemblyRequest shaderAssembly = 3;
+  optional OpenFileRequest fileOpen = 4;
 }
 
 message RetraceResponse {
-    optional RenderTargetResponse renderTarget = 1;
-    optional ShaderAssemblyResponse shaderAssembly = 2;
-    optional OpenFileStatus fileStatus = 3;
+  optional RenderTargetResponse renderTarget = 1;
+  optional ShaderAssemblyResponse shaderAssembly = 2;
+  optional OpenFileStatus fileStatus = 3;
 }
