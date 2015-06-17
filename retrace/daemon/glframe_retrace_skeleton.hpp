@@ -40,30 +40,30 @@ class FrameRetrace;
 class FrameRetraceSkeleton : public Thread,
                              public OnFrameRetrace {
  public:
-    // call once, to set up the retrace socket, and shut it down at
-    // exit
-    FrameRetraceSkeleton(Socket *sock);
-    virtual void Run();
+  // call once, to set up the retrace socket, and shut it down at
+  // exit
+  FrameRetraceSkeleton(Socket *sock);
+  virtual void Run();
 
-    // callback responses, to be sent through the socket to the caller
-    virtual void onShaderAssembly(RenderId renderId,
-                                  const std::string &vertex_shader,
-                                  const std::string &vertex_ir,
-                                  const std::string &vertex_vec4,
-                                  const std::string &fragment_shader,
-                                  const std::string &fragment_ir,
-                                  const std::string &fragment_simd8,
-                                  const std::string &fragment_simd16);
-    virtual void onFileOpening(bool finished,
-                               uint32_t percent_complete);
-    virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
-                                const std::vector<unsigned char> &pngImageData);
-    virtual void onShaderCompile(RenderId renderId, int status,
-                                 std::string errorString);
+  // callback responses, to be sent through the socket to the caller
+  virtual void onShaderAssembly(RenderId renderId,
+                                const std::string &vertex_shader,
+                                const std::string &vertex_ir,
+                                const std::string &vertex_vec4,
+                                const std::string &fragment_shader,
+                                const std::string &fragment_ir,
+                                const std::string &fragment_simd8,
+                                const std::string &fragment_simd16);
+  virtual void onFileOpening(bool finished,
+                             uint32_t percent_complete);
+  virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
+                              const std::vector<unsigned char> &pngImageData);
+  virtual void onShaderCompile(RenderId renderId, int status,
+                               std::string errorString);
  private:
-    Socket *m_socket;
-    std::vector<unsigned char> m_buf;
-    FrameRetrace *m_frame;
+  Socket *m_socket;
+  std::vector<unsigned char> m_buf;
+  FrameRetrace *m_frame;
 };
 
 }  // namespace glretrace

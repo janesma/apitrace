@@ -32,7 +32,7 @@
 
 namespace trace
 {
-    class Call;
+class Call;
 }
 
 namespace glretrace
@@ -41,47 +41,47 @@ namespace glretrace
 // tracks subset of gl state for frameretrace purposes
 class StateTrack
 {
-public:
-    StateTrack() {};
-    ~StateTrack() {}
-    void track(const trace::Call &call);
-    void parse(const std::string &output);
-    void reset() { current_program = 0; }
-    std::string currentVertexShader() const;
-    std::string currentVertexIr() const;
-    std::string currentVertexVec4() const;
-    std::string currentFragmentShader() const;
-    std::string currentFragmentIr() const;
-    std::string currentFragmentSimd8() const;
-    std::string currentFragmentSimd16() const;
-private:
-    class TrackMap {
-    public:
-        TrackMap();
-        void track(StateTrack *tracker, const trace::Call &call);
-    private:
-        typedef void (glretrace::StateTrack::*MemberFunType)(const trace::Call&);
-        std::map <std::string, MemberFunType> lookup;
-    };
-    static TrackMap lookup;
-    void trackAttachShader(const trace::Call &);
-    void trackCreateShader(const trace::Call &);
-    void trackShaderSource(const trace::Call &);
-    void trackLinkProgram(const trace::Call &);
-    void trackUseProgram(const trace::Call &);
+ public:
+  StateTrack() {};
+  ~StateTrack() {}
+  void track(const trace::Call &call);
+  void parse(const std::string &output);
+  void reset() { current_program = 0; }
+  std::string currentVertexShader() const;
+  std::string currentVertexIr() const;
+  std::string currentVertexVec4() const;
+  std::string currentFragmentShader() const;
+  std::string currentFragmentIr() const;
+  std::string currentFragmentSimd8() const;
+  std::string currentFragmentSimd16() const;
+ private:
+  class TrackMap {
+   public:
+    TrackMap();
+    void track(StateTrack *tracker, const trace::Call &call);
+   private:
+    typedef void (glretrace::StateTrack::*MemberFunType)(const trace::Call&);
+    std::map <std::string, MemberFunType> lookup;
+  };
+  static TrackMap lookup;
+  void trackAttachShader(const trace::Call &);
+  void trackCreateShader(const trace::Call &);
+  void trackShaderSource(const trace::Call &);
+  void trackLinkProgram(const trace::Call &);
+  void trackUseProgram(const trace::Call &);
 
-    int current_program;
-    std::map<int, std::string> shader_to_source;
-    std::map<int, int> shader_to_type;
+  int current_program;
+  std::map<int, std::string> shader_to_source;
+  std::map<int, int> shader_to_type;
 
-    // for these maps, key is program
-    std::map<int, std::string> program_to_vertex_shader_source;
-    std::map<int, std::string> program_to_vertex_shader_ir;
-    std::map<int, std::string> program_to_vertex_shader_vec4;
-    std::map<int, std::string> program_to_fragment_shader_source;
-    std::map<int, std::string> program_to_fragment_shader_ir;
-    std::map<int, std::string> program_to_fragment_shader_simd8;
-    std::map<int, std::string> program_to_fragment_shader_simd16;
+  // for these maps, key is program
+  std::map<int, std::string> program_to_vertex_shader_source;
+  std::map<int, std::string> program_to_vertex_shader_ir;
+  std::map<int, std::string> program_to_vertex_shader_vec4;
+  std::map<int, std::string> program_to_fragment_shader_source;
+  std::map<int, std::string> program_to_fragment_shader_ir;
+  std::map<int, std::string> program_to_fragment_shader_simd8;
+  std::map<int, std::string> program_to_fragment_shader_simd16;
 };
 }
 #endif

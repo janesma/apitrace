@@ -39,25 +39,25 @@ namespace glretrace {
 typedef std::lock_guard<std::mutex> ScopedLock;
 
 class Semaphore : NoCopy, NoAssign, NoMove {
-public:
-    Semaphore() : m_count(0) {}
+ public:
+  Semaphore() : m_count(0) {}
 
-    void post() {
-        std::lock_guard<std::mutex> lk(m_mutex);
-        ++m_count;
-        m_cv.notify_one();
-    }
-    void wait() {
-        std::unique_lock<std::mutex> lk(m_mutex);
-        while(!m_count)
-            m_cv.wait(lk);
-        --m_count;
-    }
-private:
-    unsigned long m_count;
-    unsigned long m_max_count;
-    std::mutex m_mutex;
-    std::condition_variable m_cv;
+  void post() {
+    std::lock_guard<std::mutex> lk(m_mutex);
+    ++m_count;
+    m_cv.notify_one();
+  }
+  void wait() {
+    std::unique_lock<std::mutex> lk(m_mutex);
+    while(!m_count)
+      m_cv.wait(lk);
+    --m_count;
+  }
+ private:
+  unsigned long m_count;
+  unsigned long m_max_count;
+  std::mutex m_mutex;
+  std::condition_variable m_cv;
 };
 
 int fork_execv(const char *path, char *const argv[]);

@@ -30,35 +30,33 @@
 #include <assert.h>
 #include <string>
 
-//#include "error/gflog.h"
-
 using glretrace::Thread;
 
 Thread::Thread(const std::string &name) : m_name(name) {}
 
 void *start_thread(void*ctx);
 void *start_thread(void*ctx) {
-    reinterpret_cast<Thread*>(ctx)->Run();
-    return NULL;
+  reinterpret_cast<Thread*>(ctx)->Run();
+  return NULL;
 }
 
 void
 Thread::start_routine(Thread *context) {
-    context->Run();
-};
+  context->Run();
+}
 
 void
 Thread::Start() {
-    m_thread = std::thread(start_routine, this);
-    //GFLOGF("thread started: %s", m_name.c_str());
+  m_thread = std::thread(start_routine, this);
+  // GFLOGF("thread started: %s", m_name.c_str());
 }
 
 void
 Thread::Join() {
-    //GFLOGF("joining thread: %s", m_name.c_str());
-    assert(m_thread.joinable());
-    m_thread.join();
-    //GFLOGF("thread joined: %s", m_name.c_str());
+  // GFLOGF("joining thread: %s", m_name.c_str());
+  assert(m_thread.joinable());
+  m_thread.join();
+  // GFLOGF("thread joined: %s", m_name.c_str());
 }
 
 

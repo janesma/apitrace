@@ -38,24 +38,21 @@
 
 #include <string>
 
-#include <iostream>
-
 using glretrace::Socket;
 using glretrace::ServerSocket;
 
 bool
 Socket::Read(void * buf, int size) {
-    //std::cout << "sock read : " << size << "\n";
-    int bytes_remaining = size;
-    void *curPtr = buf;
-    while (bytes_remaining > 0) {
-        int bytes_read = ::read(m_socket_fd, curPtr, bytes_remaining);
-        if (bytes_read <= 0)
-            return false;
-        bytes_remaining -= bytes_read;
-        curPtr = reinterpret_cast<char*>(curPtr) + bytes_read;
-    }
-    return true;
+  int bytes_remaining = size;
+  void *curPtr = buf;
+  while (bytes_remaining > 0) {
+    int bytes_read = ::read(m_socket_fd, curPtr, bytes_remaining);
+    if (bytes_read <= 0)
+      return false;
+    bytes_remaining -= bytes_read;
+    curPtr = reinterpret_cast<char*>(curPtr) + bytes_read;
+  }
+  return true;
 }
 
 bool
