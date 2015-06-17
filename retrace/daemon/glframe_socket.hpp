@@ -38,56 +38,56 @@ namespace glretrace {
 // Socket class abstracts the simplest socket functionality for
 // portability.  The intention is to have OS-specific implementations.
 class Socket : NoAssign, NoCopy, NoMove {
-public:
-    // Client-side constructor: connects to server.  For server-side
-    // sockets, use the ServerSocket class
-    Socket(const std::string &address, int port);
-    ~Socket();
+ public:
+  // Client-side constructor: connects to server.  For server-side
+  // sockets, use the ServerSocket class
+  Socket(const std::string &address, int port);
+  ~Socket();
 
-    bool Read(void * buf, int size);
-    template <typename T> bool Read(T *val) { return Read(val, sizeof(T)); }
-    template <typename T> bool ReadVec(std::vector<T> *vec) {
-        return Read(vec->data(), vec->size() * sizeof(T));
-    }
-    bool Write(const void * buf, int size);
-    template <typename T> bool Write(const T &val) {
-        return Write(&val, sizeof(val));
-    }
-    template <typename T> bool WriteVec(const std::vector<T> &vec) {
-        return Write(vec.data(), sizeof(T) * vec.size());
-    }
+  bool Read(void * buf, int size);
+  template <typename T> bool Read(T *val) { return Read(val, sizeof(T)); }
+  template <typename T> bool ReadVec(std::vector<T> *vec) {
+    return Read(vec->data(), vec->size() * sizeof(T));
+  }
+  bool Write(const void * buf, int size);
+  template <typename T> bool Write(const T &val) {
+    return Write(&val, sizeof(val));
+  }
+  template <typename T> bool WriteVec(const std::vector<T> &vec) {
+    return Write(vec.data(), sizeof(T) * vec.size());
+  }
 
-    const std::string &Address() const { return m_address; }
+  const std::string &Address() const { return m_address; }
 
-private:
-    friend class ServerSocket;
-    // this constructor only called by ServerSocket, when connection is
-    // accepted.
-    Socket(int fd, const std::string &address)
-        : m_address(address), m_socket_fd(fd) {}
+ private:
+  friend class ServerSocket;
+  // this constructor only called by ServerSocket, when connection is
+  // accepted.
+  Socket(int fd, const std::string &address)
+      : m_address(address), m_socket_fd(fd) {}
 
-    // address is stored so a server process can query the address of a
-    // connected client.
-    const std::string m_address;
-    int m_socket_fd;
+  // address is stored so a server process can query the address of a
+  // connected client.
+  const std::string m_address;
+  int m_socket_fd;
 };
 
 // ServerSocket class listens for a single connection, creating a
 // server side Socket object.  The intention is to have OS-specific
 // implementations.
 class ServerSocket : NoAssign, NoCopy, NoMove {
-public:
-    // establishes a server, waits for a client to connect
-    explicit ServerSocket(int port);
-    ~ServerSocket();
+ public:
+  // establishes a server, waits for a client to connect
+  explicit ServerSocket(int port);
+  ~ServerSocket();
 
-    Socket *Accept();
+  Socket *Accept();
 
-    // if 0 is passed as port, to choose an unused ephemeral port, then the
-    // chosen port can be retrieved with GetPort
-    int GetPort() const;
-private:
-    int m_server_fd;
+  // if 0 is passed as port, to choose an unused ephemeral port, then the
+  // chosen port can be retrieved with GetPort
+  int GetPort() const;
+ private:
+  int m_server_fd;
 };
 
 }  // namespace Grafips

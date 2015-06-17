@@ -26,10 +26,7 @@ else()
   set (RETRACE_OS_SOURCE ${RETRACE_LINUX_SOURCE})
 endif()
 
-
-add_library(retrace_daemon STATIC
-  ${ProtoHeaders}
-  ${ProtoSources}
+set (RETRACE_SOURCES
   ${RETRACE_OS_SOURCE}
   glframe_retrace.cpp
   glframe_retrace.hpp
@@ -46,11 +43,28 @@ add_library(retrace_daemon STATIC
   glframe_retrace_stub.cpp
   glframe_retrace_skeleton.hpp
   glframe_retrace_skeleton.cpp
+)  
+
+macro (FullPath out_var _IN_FILES)
+  foreach( _in_file ${${_IN_FILES}})
+    list (APPEND out_list ${CMAKE_CURRENT_SOURCE_DIR}/${_in_file})
+  endforeach(_in_file)
+  set (${out_var} ${out_list})
+endmacro(FullPath)
+
+FullPath(src_full_paths RETRACE_SOURCES)
+
+add_library(retrace_daemon STATIC
+  ${ProtoHeaders}
+  ${ProtoSources}
+  ${RETRACE_SOURCES}
   )
 
 target_link_libraries(retrace_daemon
   glretrace_common
   )
+
+add_custom_target(lint ALL python ${CMAKE_CURRENT_SOURCE_DIR}/cpplint.py --output=emacs ${src_full_paths})
 
 add_subdirectory (test)
 add_subdirectory (ui)
