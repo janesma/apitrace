@@ -26,6 +26,8 @@
 #ifndef _GLFRAME_RETRACE_STUB_HPP_
 #define _GLFRAME_RETRACE_STUB_HPP_
 
+#include <string>
+
 #include "glframe_retrace.hpp"
 
 namespace glretrace {
@@ -53,4 +55,4 @@ class FrameRetraceStub : public IFrameRetrace {
 };
 }  // namespace glretrace
 
-#endif // _GLFRAME_RETRACE_STUB_HPP_
+#endif  // _GLFRAME_RETRACE_STUB_HPP_
