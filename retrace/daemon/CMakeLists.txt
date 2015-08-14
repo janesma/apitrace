@@ -1,3 +1,5 @@
+include(Lint.cmake)
+
 find_package(Protobuf REQUIRED)
 
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders
@@ -45,15 +47,6 @@ set (RETRACE_SOURCES
   glframe_retrace_skeleton.cpp
 )  
 
-macro (FullPath out_var _IN_FILES)
-  foreach( _in_file ${${_IN_FILES}})
-    list (APPEND out_list ${CMAKE_CURRENT_SOURCE_DIR}/${_in_file})
-  endforeach(_in_file)
-  set (${out_var} ${out_list})
-endmacro(FullPath)
-
-FullPath(src_full_paths RETRACE_SOURCES)
-
 add_library(retrace_daemon STATIC
   ${ProtoHeaders}
   ${ProtoSources}
@@ -64,7 +57,7 @@ target_link_libraries(retrace_daemon
   glretrace_common
   )
 
-add_custom_target(lint ALL python ${CMAKE_CURRENT_SOURCE_DIR}/cpplint.py --output=emacs ${src_full_paths})
+Lint( RETRACE_SOURCES )
 
 add_subdirectory (test)
 add_subdirectory (ui)
