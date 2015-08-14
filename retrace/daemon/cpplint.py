@@ -493,7 +493,7 @@ _line_length = 80
 
 # The allowed extensions for file names
 # This is set by --extensions flag.
-_valid_extensions = set(['cc', 'h', 'cpp', 'cu', 'cuh'])
+_valid_extensions = set(['cc', 'h', 'hpp', 'cpp', 'cu', 'cuh'])
 
 def ParseNolintSuppressions(filename, raw_line, linenum, error):
   """Updates the global list of error-suppressions.
@@ -5786,11 +5786,11 @@ def FlagCxx11Features(filename, clean_lines, linenum, error):
   # Flag unapproved C++11 headers.
   include = Match(r'\s*#\s*include\s+[<"]([^<"]+)[">]', line)
   if include and include.group(1) in ('cfenv',
-                                      'condition_variable',
+                                      #'condition_variable',
                                       'fenv.h',
                                       'future',
-                                      'mutex',
-                                      'thread',
+                                      #'mutex',
+                                      #'thread',
                                       'chrono',
                                       'ratio',
                                       'regex',
