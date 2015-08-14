@@ -30,19 +30,16 @@
 #include <string>
 #include <vector>
 
-namespace trace
-{
+namespace trace {
 class Call;
 }
 
-namespace glretrace
-{
+namespace glretrace {
 
 // tracks subset of gl state for frameretrace purposes
-class StateTrack
-{
+class StateTrack {
  public:
-  StateTrack() {};
+  StateTrack() {}
   ~StateTrack() {}
   void track(const trace::Call &call);
   void parse(const std::string &output);
@@ -54,6 +51,7 @@ class StateTrack
   std::string currentFragmentIr() const;
   std::string currentFragmentSimd8() const;
   std::string currentFragmentSimd16() const;
+
  private:
   class TrackMap {
    public:
@@ -83,6 +81,6 @@ class StateTrack
   std::map<int, std::string> program_to_fragment_shader_simd8;
   std::map<int, std::string> program_to_fragment_shader_simd16;
 };
-}
+}  // namespace glretrace
 #endif
 

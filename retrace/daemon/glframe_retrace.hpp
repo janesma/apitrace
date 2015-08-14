@@ -26,6 +26,9 @@
 #ifndef _GLFRAME_RETRACE_HPP_
 #define _GLFRAME_RETRACE_HPP_
 
+#include <string>
+#include <vector>
+
 #include "glstate_images.hpp"
 #include "image.hpp"
 #include "retrace.hpp"
@@ -57,7 +60,7 @@ enum IdPrefix {
 
 class RenderId {
  public:
-  RenderId(uint32_t renderNumber) {
+  explicit RenderId(uint32_t renderNumber) {
     assert(((renderNumber & ID_PREFIX_MASK) == 0) ||
            ((renderNumber & ID_PREFIX_MASK) == RENDER_ID_PREFIX));
     value = RENDER_ID_PREFIX | renderNumber;
@@ -70,6 +73,8 @@ class RenderId {
 };
 
 class OnFrameRetrace {
+ private:
+  typedef std::vector<unsigned char> uvec;
  public:
   virtual void onFileOpening(bool finished,
                              uint32_t percent_complete) = 0;
@@ -82,13 +87,12 @@ class OnFrameRetrace {
                                 const std::string &fragemnt_simd8,
                                 const std::string &fragemnt_simd16) = 0;
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
-                              const std::vector<unsigned char> &pngImageData) = 0;
+                              const uvec & pngImageData) = 0;
   virtual void onShaderCompile(RenderId renderId, int status,
                                std::string errorString) = 0;
 };
 
-class IFrameRetrace
-{
+class IFrameRetrace {
  public:
   virtual ~IFrameRetrace() {}
   virtual void openFile(const std::string &filename,
@@ -117,27 +121,26 @@ class FrameState {
 };
 
 
-class FrameRetrace : public IFrameRetrace
-{
+class FrameRetrace : public IFrameRetrace {
  private:
   // these are global
-  //trace::Parser parser;
-  //retrace::Retracer retracer;
+  // trace::Parser parser;
+  // retrace::Retracer retracer;
 
   trace::RenderBookmark frame_start;
   std::vector<trace::RenderBookmark> renders;
 
   StateTrack tracker;
+
  public:
-  // 
   FrameRetrace();
   void openFile(const std::string &filename,
                 uint32_t frameNumber,
                 OnFrameRetrace *callback);
 
-  // TODO move to frame state tracker
+  // TODO(majanes) move to frame state tracker
   int getRenderCount() const;
-  //std::vector<int> renderTargets() const;
+  // std::vector<int> renderTargets() const;
   void retraceRenderTarget(RenderId renderId,
                            int render_target_number,
                            RenderTargetType type,

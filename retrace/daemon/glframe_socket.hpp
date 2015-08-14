@@ -90,6 +90,6 @@ class ServerSocket : NoAssign, NoCopy, NoMove {
   int m_server_fd;
 };
 
-}  // namespace Grafips
+}  // namespace glretrace
 
 #endif  // OS_GFSOCKET_H_

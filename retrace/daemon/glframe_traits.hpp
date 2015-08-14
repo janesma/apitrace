@@ -47,6 +47,6 @@ class NoMove {
  private:
   NoMove(NoMove &&) = delete;
 };
-}  // namespace Grafips
+}  // namespace glretrace
 
 #endif  // OS_GFTRAITS_H_
