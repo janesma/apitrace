@@ -30,7 +30,7 @@
 
 #include <mutex>
 #include <condition_variable>
-//#include <pthread.h>
+// #include <pthread.h>
 
 #include "glframe_traits.hpp"
 
@@ -49,19 +49,19 @@ class Semaphore : NoCopy, NoAssign, NoMove {
   }
   void wait() {
     std::unique_lock<std::mutex> lk(m_mutex);
-    while(!m_count)
+    while (!m_count)
       m_cv.wait(lk);
     --m_count;
   }
  private:
-  unsigned long m_count;
-  unsigned long m_max_count;
+  unsigned m_count;
+  unsigned m_max_count;
   std::mutex m_mutex;
   std::condition_variable m_cv;
 };
 
 int fork_execv(const char *path, char *const argv[]);
 
-}  // namespace Grafips
+}  // namespace glretrace
 
 #endif  // _GLFRAME_OS_H_

@@ -48,6 +48,6 @@ class Thread : NoCopy, NoAssign, NoMove {
   std::thread m_thread;
 };
 
-}  // namespace Grafips
+}  // namespace glretrace
 
 #endif  // OS_GFTHREAD_H_

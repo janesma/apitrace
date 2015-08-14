@@ -26,6 +26,7 @@
 #ifndef _GLFRAME_RETRACE_SKELETON_HPP_
 #define _GLFRAME_RETRACE_SKELETON_HPP_
 
+#include <string>
 #include <vector>
 
 #include "glframe_thread.hpp"
@@ -42,7 +43,7 @@ class FrameRetraceSkeleton : public Thread,
  public:
   // call once, to set up the retrace socket, and shut it down at
   // exit
-  FrameRetraceSkeleton(Socket *sock);
+  explicit FrameRetraceSkeleton(Socket *sock);
   virtual void Run();
 
   // callback responses, to be sent through the socket to the caller
@@ -68,4 +69,4 @@ class FrameRetraceSkeleton : public Thread,
 
 }  // namespace glretrace
 
-#endif // _GLFRAME_RETRACE_SKELETON_HPP_
+#endif  // _GLFRAME_RETRACE_SKELETON_HPP_

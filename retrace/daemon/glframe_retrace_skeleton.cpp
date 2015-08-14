@@ -94,7 +94,8 @@ FrameRetraceSkeleton::Run() {
           //           << rt.options() << ", "
           //           << "\n";
 
-          m_frame->retraceRenderTarget(rt.renderid(), 0,
+          m_frame->retraceRenderTarget(glretrace::RenderId(rt.renderid()),
+                                       0,
                                        (RenderTargetType)rt.type(),
                                        (RenderOptions)rt.options(),
                                        this);
@@ -103,7 +104,8 @@ FrameRetraceSkeleton::Run() {
       case ApiTrace::SHADER_ASSEMBLY_REQUEST:
         assert(request.has_shaderassembly());
         auto shader = request.shaderassembly();
-        m_frame->retraceShaderAssembly(shader.renderid(), this);
+        m_frame->retraceShaderAssembly(glretrace::RenderId(shader.renderid()),
+                                       this);
         break;
     }
   }
