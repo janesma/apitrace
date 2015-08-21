@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2015.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,40 +25,26 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#ifndef _GLFRAME_BARGRAPH_HPP_
-#define _GLFRAME_BARGRAPH_HPP_
+#ifndef RETRACE_DAEMON_BARGRAPH_TEST_TEST_BARGRAPH_CTX_H_
+#define RETRACE_DAEMON_BARGRAPH_TEST_TEST_BARGRAPH_CTX_H_
 
-#include <vector>
+#include <waffle-1/waffle.h>
+#include <GLES2/gl2.h>
 
 namespace glretrace {
-
-
-// helper class to encapsulate color, dimension and placement of a
-// metric bar.  Coordinates indicate the lower left/top right of the
-// bar.  The coordinate system is 0.0 - 1.0 on both axis.
-class BarCoordinates {
+class TestContext {
  public:
-  float x1;
-  float y1;
-  float x2;
-  float y2;
-  bool selected;
-};
+  TestContext();
+  ~TestContext();
+  void swapBuffers();
 
-// - BarGraphRenderer
-//   - draws image, including all details:
-//     - selected ergs
-//     - mouse area
-//     - bars
-//   - Independent of Qt
-class BarGraphRenderer {
- public:
-  BarGraphRenderer();
-  void setBars(const std::vector<BarCoordinates> &bars);
-  void setMouseArea(float x1, float y1, float x2, float y2);
-  void render();
+ private:
+  struct waffle_display *m_dpy;
+  struct waffle_config *m_config;
+  struct waffle_window *m_window;
+  struct waffle_context *m_ctx;
+  // GLuint vbo, prog, texture;
+  // GLint attribute_coord2d, tex_uniform;
 };
-
 }  // namespace glretrace
-
-#endif  // _GLFRAME_BARGRAPH_HPP_
+#endif  // RETRACE_DAEMON_BARGRAPH_TEST_TEST_BARGRAPH_CTX_H_

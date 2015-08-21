@@ -23,5 +23,27 @@
  *
  **************************************************************************/
 
-
 #include "glframe_bargraphmodel.hpp"
+
+#include <vector>
+
+using glretrace::BarGraphModel;
+
+void
+BarGraphModel::onMetrics(const std::vector<float> &metric1,
+                         const std::vector<float> &metric2) {
+}
+
+void
+BarGraphModel::onMouseSelect(int x1, int y1, int x2, int y2) {
+}
+
+void
+BarGraphModel::onSelected(const std::vector<RenderId> &renders,
+                          int selectionCount) {
+}
+
+const void
+BarGraphModel::updateRenderer(BarGraphRenderer *renderer) {
+}
+

@@ -25,3 +25,29 @@
 
 
 #include "glframe_qbargraph.hpp"
+
+#include <QtOpenGL>
+
+using glretrace::QBarGraphRenderer;
+using glretrace::BarGraphView;
+
+void
+QBarGraphRenderer::render() {
+}
+
+void
+QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
+}
+
+QOpenGLFramebufferObject *
+QBarGraphRenderer::createFramebufferObject(const QSize & size) {
+  QOpenGLFramebufferObjectFormat format;
+  format.setSamples(20);
+  return new QOpenGLFramebufferObject(size, format);
+}
+
+
+QQuickFramebufferObject::Renderer *
+BarGraphView::createRenderer() const {
+  return new QBarGraphRenderer();
+}
