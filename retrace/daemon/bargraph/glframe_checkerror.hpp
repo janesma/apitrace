@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2015.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,40 +25,11 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#ifndef _GLFRAME_BARGRAPH_HPP_
-#define _GLFRAME_BARGRAPH_HPP_
+#define GL_CHECK() CheckError(__FILE__, __LINE__)
 
-#include <vector>
-
-namespace glretrace {
-
-
-// helper class to encapsulate color, dimension and placement of a
-// metric bar.  Coordinates indicate the lower left/top right of the
-// bar.  The coordinate system is 0.0 - 1.0 on both axis.
-class BarCoordinates {
- public:
-  float x1;
-  float y1;
-  float x2;
-  float y2;
-  bool selected;
-};
-
-// - BarGraphRenderer
-//   - draws image, including all details:
-//     - selected ergs
-//     - mouse area
-//     - bars
-//   - Independent of Qt
-class BarGraphRenderer {
- public:
-  BarGraphRenderer();
-  void setBars(const std::vector<BarCoordinates> &bars);
-  void setMouseArea(float x1, float y1, float x2, float y2);
-  void render();
-};
-
-}  // namespace glretrace
-
-#endif  // _GLFRAME_BARGRAPH_HPP_
+inline void CheckError(const char * file, int line) {
+  const int error = glGetError();
+  if ( error == GL_NO_ERROR)
+    return;
+  printf("ERROR: %x %s:%i\n", error, file, line);
+}

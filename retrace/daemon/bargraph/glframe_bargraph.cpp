@@ -24,3 +24,33 @@
  **************************************************************************/
 
 #include "glframe_bargraph.hpp"
+
+#include <QtOpenGL>
+#include <GLES2/gl2.h>
+
+#include <vector>
+
+#include "glframe_checkerror.hpp"
+
+using glretrace::BarGraphRenderer;
+
+BarGraphRenderer::BarGraphRenderer() {
+  glClearColor(1.0, 1.0, 1.0, 1.0);
+}
+
+void
+BarGraphRenderer::setBars(const std::vector<BarCoordinates> &bars) {
+}
+
+void
+BarGraphRenderer::setMouseArea(float x1, float y1, float x2, float y2) {
+}
+
+void
+BarGraphRenderer::render() {
+  glClearColor(1, 1, 1, 1);
+  GL_CHECK();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  GL_CHECK();
+}
+

@@ -53,7 +53,7 @@ class QBarGraphRenderer : public QObject,
 class BarGraphView : public QQuickFramebufferObject,
                      NoCopy, NoAssign, NoMove {
  public:
-  Renderer *createRenderer() const;
+  QQuickFramebufferObject::Renderer *createRenderer() const;
 };
 
 }  // namespace glretrace
