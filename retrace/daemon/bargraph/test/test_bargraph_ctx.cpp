@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2015.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,40 +25,47 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#ifndef _GLFRAME_BARGRAPH_HPP_
-#define _GLFRAME_BARGRAPH_HPP_
+#include "test_bargraph_ctx.hpp"
 
-#include <vector>
+#include <GL/gl.h>
+#include <stdio.h>
 
-namespace glretrace {
+#include "glframe_checkerror.hpp"
+
+using glretrace::TestContext;
+
+TestContext::TestContext() {
+  const int32_t init_attrs[] = {
+    WAFFLE_PLATFORM, WAFFLE_PLATFORM_GLX,
+    0,
+  };
+  waffle_init(init_attrs);
+
+  m_dpy = waffle_display_connect(NULL);
+  const int32_t config_attrs[] = {
+    WAFFLE_CONTEXT_API, WAFFLE_CONTEXT_OPENGL,
+    0,
+  };
+
+  m_config = waffle_config_choose(m_dpy, config_attrs);
+  m_window = waffle_window_create(m_config, 320, 320);
+  m_ctx = waffle_context_create(m_config, NULL);
+  GL_CHECK();
+  waffle_make_current(m_dpy, m_window, m_ctx);
+  GL_CHECK();
+
+  waffle_window_show(m_window);
+}
+
+TestContext::~TestContext() {
+  waffle_context_destroy(m_ctx);
+  waffle_window_destroy(m_window);
+  waffle_config_destroy(m_config);
+  waffle_display_disconnect(m_dpy);
+}
 
 
-// helper class to encapsulate color, dimension and placement of a
-// metric bar.  Coordinates indicate the lower left/top right of the
-// bar.  The coordinate system is 0.0 - 1.0 on both axis.
-class BarCoordinates {
- public:
-  float x1;
-  float y1;
-  float x2;
-  float y2;
-  bool selected;
-};
-
-// - BarGraphRenderer
-//   - draws image, including all details:
-//     - selected ergs
-//     - mouse area
-//     - bars
-//   - Independent of Qt
-class BarGraphRenderer {
- public:
-  BarGraphRenderer();
-  void setBars(const std::vector<BarCoordinates> &bars);
-  void setMouseArea(float x1, float y1, float x2, float y2);
-  void render();
-};
-
-}  // namespace glretrace
-
-#endif  // _GLFRAME_BARGRAPH_HPP_
+void
+TestContext::swapBuffers() {
+  waffle_window_swap_buffers(m_window);
+}
