@@ -28,6 +28,8 @@
 #ifndef _GLFRAME_BARGRAPH_HPP_
 #define _GLFRAME_BARGRAPH_HPP_
 
+#include <GLES2/gl2.h>
+
 #include <vector>
 
 namespace glretrace {
@@ -57,6 +59,11 @@ class BarGraphRenderer {
   void setBars(const std::vector<BarCoordinates> &bars);
   void setMouseArea(float x1, float y1, float x2, float y2);
   void render();
+
+ private:
+  static const char *vshader, *fshader;
+  GLuint vbo;
+  GLint att_coord, uni_max_x, uni_max_y, uni_bar_color, prog;
 };
 
 }  // namespace glretrace

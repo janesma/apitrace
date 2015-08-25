@@ -20,6 +20,7 @@ target_link_libraries(retrace_bargraph_test
   gtest
   waffle-1
   GL
+  dl
   )
 
 Lint( BARGRAPH_TEST_SOURCE )
