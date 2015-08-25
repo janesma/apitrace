@@ -30,7 +30,7 @@
 #include <GL/gl.h>
 #include <stdio.h>
 
-#include "glframe_checkerror.hpp"
+#include "glframe_glhelper.hpp"
 
 using glretrace::TestContext;
 
