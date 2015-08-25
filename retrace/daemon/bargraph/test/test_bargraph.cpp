@@ -30,15 +30,21 @@
 #include <gtest/gtest.h>
 
 #include "glframe_bargraph.hpp"
+#include "glframe_glhelper.hpp"
 #include "test_bargraph_ctx.hpp"
 
 using glretrace::TestContext;
 using glretrace::BarGraphRenderer;
+using glretrace::GlFunctions;
 
 TEST(BarGraph, Create) {
+  GlFunctions::Init();
   TestContext c;
   BarGraphRenderer r;
   r.render();
+
+  // double-buffered?
+  c.swapBuffers();
   c.swapBuffers();
   sleep(3);
 }

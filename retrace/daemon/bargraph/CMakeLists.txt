@@ -18,13 +18,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #qt5_add_resources(RESOURCE_ADDED resources.qrc)
 
 set (BARGRAPH_SOURCES
-  glframe_bargraph.hpp
-  glframe_qbargraph.hpp
-  glframe_bargraphmodel.hpp
   glframe_bargraph.cpp
-  glframe_qbargraph.cpp
+  glframe_bargraph.hpp
   glframe_bargraphmodel.cpp
-  glframe_checkerror.hpp
+  glframe_bargraphmodel.hpp
+  glframe_glhelper.cpp
+  glframe_glhelper.hpp
+  glframe_qbargraph.cpp
+  glframe_qbargraph.hpp
   )
 
 Lint( BARGRAPH_SOURCES )
