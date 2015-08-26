@@ -29,15 +29,24 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "glframe_bargraph.hpp"
 #include "glframe_glhelper.hpp"
 #include "test_bargraph_ctx.hpp"
 
-using glretrace::TestContext;
 using glretrace::BarGraphRenderer;
+using glretrace::BarMetrics;
 using glretrace::GlFunctions;
+using glretrace::TestContext;
 
 TEST(BarGraph, Create) {
+  GlFunctions::Init();
+  TestContext c;
+  BarGraphRenderer r;
+}
+
+TEST(BarGraph, Render) {
   GlFunctions::Init();
   TestContext c;
   BarGraphRenderer r;
@@ -48,3 +57,20 @@ TEST(BarGraph, Create) {
   c.swapBuffers();
   sleep(3);
 }
+
+TEST(BarGraph, MultiBar) {
+  GlFunctions::Init();
+  TestContext c;
+  BarGraphRenderer r;
+  std::vector<BarMetrics> bars(2);
+  bars[0].metric1 = 25;
+  bars[1].metric1 = 37;
+  r.setBars(bars);
+  r.render();
+
+  // double-buffered?
+  c.swapBuffers();
+  c.swapBuffers();
+  sleep(3);
+}
+
