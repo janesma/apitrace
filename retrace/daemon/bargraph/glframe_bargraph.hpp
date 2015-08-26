@@ -38,12 +38,10 @@ namespace glretrace {
 // helper class to encapsulate color, dimension and placement of a
 // metric bar.  Coordinates indicate the lower left/top right of the
 // bar.  The coordinate system is 0.0 - 1.0 on both axis.
-class BarCoordinates {
+class BarMetrics {
  public:
-  float x1;
-  float y1;
-  float x2;
-  float y2;
+  float metric1;  // bar height
+  float metric2;  // bar width
   bool selected;
 };
 
@@ -56,7 +54,7 @@ class BarCoordinates {
 class BarGraphRenderer {
  public:
   BarGraphRenderer();
-  void setBars(const std::vector<BarCoordinates> &bars);
+  void setBars(const std::vector<BarMetrics> &bars);
   void setMouseArea(float x1, float y1, float x2, float y2);
   void render();
 
@@ -64,6 +62,13 @@ class BarGraphRenderer {
   static const char *vshader, *fshader;
   GLuint vbo;
   GLint att_coord, uni_max_x, uni_max_y, uni_bar_color, prog;
+  struct Vertex {
+    float x;
+    float y;
+  };
+
+  std::vector<Vertex> vertices;
+  float max_y, total_x;
 };
 
 }  // namespace glretrace
