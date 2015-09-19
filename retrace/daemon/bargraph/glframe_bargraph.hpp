@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2015.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -53,7 +53,7 @@ class BarMetrics {
 //   - Independent of Qt
 class BarGraphRenderer {
  public:
-  BarGraphRenderer();
+  explicit BarGraphRenderer(bool invert = false);  // Qt draws top-to-bottom
   void setBars(const std::vector<BarMetrics> &bars);
   void setMouseArea(float x1, float y1, float x2, float y2);
   void render();
@@ -61,14 +61,14 @@ class BarGraphRenderer {
  private:
   static const char *vshader, *fshader;
   GLuint vbo;
-  GLint att_coord, uni_max_x, uni_max_y, uni_bar_color, prog;
+  GLint att_coord, uni_max_x, uni_max_y, uni_invert_y, uni_bar_color, prog;
   struct Vertex {
     float x;
     float y;
   };
 
   std::vector<Vertex> vertices;
-  float max_y, total_x;
+  float max_y, total_x, invert_y;
 };
 
 }  // namespace glretrace

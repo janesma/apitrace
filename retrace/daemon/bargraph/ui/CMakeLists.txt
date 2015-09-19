@@ -17,43 +17,38 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-include(../Lint.cmake)
+
+cmake_minimum_required(VERSION 2.8)
 
 include_directories (
-  ${CMAKE_SOURCE_DIR}/retrace/daemon
+  ${CMAKE_SOURCE_DIR}/retrace/daemon/bargraph
   )
 
+find_package(Qt5Widgets REQUIRED) 
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
-find_package(Qt5OpenGL REQUIRED)
-find_package(Qt5Quick REQUIRED)
-find_package(Qt5Widgets REQUIRED) 
 
+# Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-#add_definitions(${Qt5Widgets_DEFINITIONS})
+add_definitions(${Qt5Widgets_DEFINITIONS})
 
-#qt5_add_resources(RESOURCE_ADDED resources.qrc)
+qt5_add_resources(RESOURCE_ADDED_BG resources.qrc)
 
-set (BARGRAPH_SOURCES
-  glframe_bargraph.cpp
-  glframe_bargraph.hpp
-  glframe_bargraphmodel.cpp
-  glframe_bargraphmodel.hpp
-  glframe_glhelper.cpp
-  glframe_glhelper.hpp
-  glframe_qbargraph.cpp
-  glframe_qbargraph.hpp
-  )
+add_executable(bargraph 
+  main.cpp
+  ${UIS_HDRS}
+  ${RESOURCE_ADDED_BG} 
+)
 
-Lint( BARGRAPH_SOURCES )
+qt5_use_modules(bargraph Core Gui Concurrent Quick) 
 
-add_library(retrace_bargraph STATIC
-  ${BARGRAPH_SOURCES}
-  )
+target_link_libraries(bargraph
+  retrace_bargraph
+  GL
+  ${X11_X11_LIB}
+  pthread
+  dl
+)
 
-qt5_use_modules(retrace_bargraph Core Gui OpenGL Quick) 
-
-add_subdirectory(test)
-add_subdirectory(ui)

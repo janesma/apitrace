@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2015.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -39,6 +39,7 @@ class QBarGraphRenderer : public QObject,
                           public QQuickFramebufferObject::Renderer,
                           NoCopy, NoAssign, NoMove {
  public:
+  QBarGraphRenderer();
   void render();
   void synchronize(QQuickFramebufferObject * item);
   // to ensure that we get a multisample fbo
@@ -53,6 +54,7 @@ class QBarGraphRenderer : public QObject,
 class BarGraphView : public QQuickFramebufferObject,
                      NoCopy, NoAssign, NoMove {
  public:
+  BarGraphView();
   QQuickFramebufferObject::Renderer *createRenderer() const;
 };
 
