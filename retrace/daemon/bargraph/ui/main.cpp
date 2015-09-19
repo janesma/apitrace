@@ -25,56 +25,25 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#include <unistd.h>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QtQml>
 
-#include <gtest/gtest.h>
-
-#include <vector>
-
-#include "glframe_bargraph.hpp"
+#include "glframe_qbargraph.hpp"
 #include "glframe_glhelper.hpp"
-#include "test_bargraph_ctx.hpp"
 
-using glretrace::BarGraphRenderer;
-using glretrace::BarMetrics;
+using glretrace::BarGraphView;
 using glretrace::GlFunctions;
-using glretrace::TestContext;
 
-TEST(BarGraph, Create) {
+int main(int argc, char *argv[]) {
   GlFunctions::Init();
-  TestContext c;
-  BarGraphRenderer r;
+
+  QGuiApplication app(argc, argv);
+
+  qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");
+
+  QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
+
+  int ret = app.exec();
+  return ret;
 }
-
-TEST(BarGraph, Render) {
-  GlFunctions::Init();
-  TestContext c;
-  BarGraphRenderer r;
-  r.render();
-
-  // double-buffered?
-  c.swapBuffers();
-  c.swapBuffers();
-  sleep(3);
-}
-
-TEST(BarGraph, MultiBar) {
-  GlFunctions::Init();
-  TestContext c;
-  BarGraphRenderer r;
-  std::vector<BarMetrics> bars(3);
-  bars[0].metric1 = 25;
-  bars[0].metric2 = 5;
-  bars[1].metric1 = 37;
-  bars[1].metric2 = 10;
-  bars[2].metric1 = 7;
-  bars[2].metric2 = 2;
-  r.setBars(bars);
-  r.render();
-
-  // double-buffered?
-  c.swapBuffers();
-  c.swapBuffers();
-  sleep(3);
-}
-

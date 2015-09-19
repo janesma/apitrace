@@ -28,11 +28,24 @@
 
 #include <QtOpenGL>
 
+#include <vector>
+
 using glretrace::QBarGraphRenderer;
 using glretrace::BarGraphView;
+using glretrace::BarMetrics;
+
+QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
+  std::vector<BarMetrics> metrics(2);
+  metrics[0].metric1 = 1;
+  metrics[0].metric2 = 1;
+  metrics[1].metric1 = 2;
+  metrics[1].metric2 = 2;
+  m_graph.setBars(metrics);
+}
 
 void
 QBarGraphRenderer::render() {
+  m_graph.render();
 }
 
 void
@@ -51,3 +64,7 @@ QQuickFramebufferObject::Renderer *
 BarGraphView::createRenderer() const {
   return new QBarGraphRenderer();
 }
+
+BarGraphView::BarGraphView() {
+}
+
