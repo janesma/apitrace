@@ -41,13 +41,14 @@ BarGraphRenderer::vshader =
     "attribute vec2 coord; \n"
     "uniform float max_x; \n"
     "uniform float max_y; \n"
+    "uniform float invert_y; \n"
     "void main(void) { \n"
     "  /* normalize y */ \n"
     "  /* normalize x */ \n"
     "  mat2 normalize = mat2(2.0 / max_x , 0.0, 0.0, 2.0 / max_y); \n"
     "  vec2 translate = vec2(-1.0, -1.0); \n"
     "  vec2 pos = translate + normalize * coord; \n"
-    "  gl_Position = vec4(pos.x, pos.y, 0.0, 1.0); \n"
+    "  gl_Position = vec4(pos.x, invert_y * pos.y, 0.0, 1.0); \n"
     "}";
 
 const char *
@@ -57,7 +58,8 @@ BarGraphRenderer::fshader =
     "   gl_FragColor = bar_color;"
     "}";
 
-BarGraphRenderer::BarGraphRenderer() {
+BarGraphRenderer::BarGraphRenderer(bool invert)
+    : invert_y(invert ? -1 : 1) {
   // generate vbo
   GL::GenBuffers(1, &vbo);
   GL_CHECK();
@@ -96,6 +98,8 @@ BarGraphRenderer::BarGraphRenderer() {
   uni_max_x = GL::GetUniformLocation(prog,  "max_x");
   GL_CHECK();
   uni_max_y = GL::GetUniformLocation(prog,  "max_y");
+  GL_CHECK();
+  uni_invert_y = GL::GetUniformLocation(prog,  "invert_y");
   GL_CHECK();
   uni_bar_color = GL::GetUniformLocation(prog, "bar_color");
   GL_CHECK();
@@ -166,6 +170,8 @@ BarGraphRenderer::render() {
   GL::Uniform1f(uni_max_y, max_y);
   GL_CHECK();
   GL::Uniform1f(uni_max_x, total_x);
+  GL_CHECK();
+  GL::Uniform1f(uni_invert_y, invert_y);
   GL_CHECK();
   const float color[4] = { .5, .5, .5, 1.0 };
   GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);

@@ -25,56 +25,19 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#include <unistd.h>
+import QtQuick 2.2
+import QtQuick.Controls 1.1
+import QtQuick.Layouts 1.1
+import QtQuick.Dialogs 1.1
+import ApiTrace 1.0
 
-#include <gtest/gtest.h>
-
-#include <vector>
-
-#include "glframe_bargraph.hpp"
-#include "glframe_glhelper.hpp"
-#include "test_bargraph_ctx.hpp"
-
-using glretrace::BarGraphRenderer;
-using glretrace::BarMetrics;
-using glretrace::GlFunctions;
-using glretrace::TestContext;
-
-TEST(BarGraph, Create) {
-  GlFunctions::Init();
-  TestContext c;
-  BarGraphRenderer r;
+ApplicationWindow {
+    width: 600
+    height: 500
+    visible: true
+    id: mainWindow
+    BarGraph {
+        visible: true
+        anchors.fill: parent
+    }
 }
-
-TEST(BarGraph, Render) {
-  GlFunctions::Init();
-  TestContext c;
-  BarGraphRenderer r;
-  r.render();
-
-  // double-buffered?
-  c.swapBuffers();
-  c.swapBuffers();
-  sleep(3);
-}
-
-TEST(BarGraph, MultiBar) {
-  GlFunctions::Init();
-  TestContext c;
-  BarGraphRenderer r;
-  std::vector<BarMetrics> bars(3);
-  bars[0].metric1 = 25;
-  bars[0].metric2 = 5;
-  bars[1].metric1 = 37;
-  bars[1].metric2 = 10;
-  bars[2].metric1 = 7;
-  bars[2].metric2 = 2;
-  r.setBars(bars);
-  r.render();
-
-  // double-buffered?
-  c.swapBuffers();
-  c.swapBuffers();
-  sleep(3);
-}
-
