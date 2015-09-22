@@ -83,8 +83,6 @@ TEST(BarGraph, MultiBar) {
   bars[2].metric2 = 2;
   r.setBars(bars);
   r.render();
-  c.swapBuffers();
-  c.swapBuffers();
 
   Pixel data;
 

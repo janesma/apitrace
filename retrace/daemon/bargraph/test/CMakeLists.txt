@@ -23,4 +23,6 @@ target_link_libraries(retrace_bargraph_test
   dl
   )
 
+add_test (NAME bargraph_test COMMAND $<TARGET_FILE:retrace_bargraph_test>)
+
 Lint( BARGRAPH_TEST_SOURCE )

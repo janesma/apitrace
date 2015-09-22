@@ -84,9 +84,8 @@ class RenderId {
 };
 
 class OnFrameRetrace {
- private:
-  typedef std::vector<unsigned char> uvec;
  public:
+  typedef std::vector<unsigned char> uvec;
   virtual void onFileOpening(bool finished,
                              uint32_t percent_complete) = 0;
   virtual void onShaderAssembly(RenderId renderId,
