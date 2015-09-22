@@ -59,6 +59,7 @@ static void *pVertexAttribPointer = NULL;
 static void *pDrawArrays = NULL;
 static void *pDisableVertexAttribArray = NULL;
 static void *pEnable = NULL;
+static void *pReadPixels = NULL;
 }  // namespace
 
 void
@@ -123,6 +124,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pDisableVertexAttribArray);
   pEnable = GetProcAddress("glEnable");
   assert(pEnable);
+  pReadPixels = GetProcAddress("glReadPixels");
+  assert(pReadPixels);
 }
 
 GLuint
@@ -287,4 +290,17 @@ void
 GlFunctions::Enable(GLenum cap) {
   typedef void (*ENABLE)(GLenum cap);
   ((ENABLE)pEnable)(cap);
+}
+
+
+void
+GlFunctions::ReadPixels(GLint x, GLint y,
+                          GLsizei width, GLsizei height,
+                          GLenum format, GLenum type,
+                          GLvoid *pixels) {
+  typedef void (*READPIXELS)(GLint x, GLint y,
+                             GLsizei width, GLsizei height,
+                             GLenum format, GLenum type,
+                             GLvoid *pixels);
+  ((READPIXELS)pReadPixels)(x, y, width, height, format, type, pixels);
 }
