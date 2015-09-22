@@ -32,29 +32,50 @@
 #include "glframe_retrace.hpp"
 
 using glretrace::FrameRetrace;
+using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
+using glretrace::RenderTargetType;
 
 TEST(Build, Cmake)
 {
     
 }
 
-// TODO(majanes) find a way to make this available
-static const char *test_file = "/home/majanes/src/apitrace/retrace/daemon/test/simple.trace";
-// static const char *test_file = "/home/majanes/.steam/steam/steamapps/common/dota/dota_linux.2.trace"
+static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.test_trace";
+
+class NullCallback : public OnFrameRetrace {
+ public:
+  void onFileOpening(bool finished,
+                     uint32_t percent_complete) {}
+  void onShaderAssembly(RenderId renderId,
+                        const std::string &vertex_shader,
+                        const std::string &vertex_ir,
+                        const std::string &vertex_vec4,
+                        const std::string &fragemnt_shader,
+                        const std::string &fragemnt_ir,
+                        const std::string &fragemnt_simd8,
+                        const std::string &fragemnt_simd16) {}
+  void onRenderTarget(RenderId renderId, RenderTargetType type,
+                      const uvec & pngImageData) {}
+  void onShaderCompile(RenderId renderId, int status,
+                       std::string errorString) {}
+};
+
 
 TEST(Daemon, LoadFile)
 {
   retrace::setUp();
 
+  NullCallback cb;
+  
   FrameRetrace rt;
-  rt.openFile(test_file, 7, NULL);
+  rt.openFile(test_file, 7, &cb);
   //FrameRetrace rt(test_file, 7);
   int renderCount = rt.getRenderCount();
   EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
   for (int i = 0; i < renderCount; ++i)
   {
     rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
-                           glretrace::STOP_AT_RENDER, NULL);
+                           glretrace::STOP_AT_RENDER, &cb);
   }
 }
