@@ -173,7 +173,7 @@ BarGraphRenderer::render() {
   GL_CHECK();
   GL::Uniform1f(uni_invert_y, invert_y);
   GL_CHECK();
-  const float color[4] = { .5, .5, .5, 1.0 };
+  const float color[4] = { 0.0, 0.0, 1.0, 1.0 };
   GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
   GL_CHECK();
 

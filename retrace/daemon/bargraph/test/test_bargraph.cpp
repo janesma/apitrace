@@ -46,17 +46,29 @@ TEST(BarGraph, Create) {
   BarGraphRenderer r;
 }
 
+struct Pixel {
+  unsigned char red;
+  unsigned char blue;
+  unsigned char green;
+  unsigned char alpha;
+};
+
 TEST(BarGraph, Render) {
   GlFunctions::Init();
   TestContext c;
   BarGraphRenderer r;
   r.render();
 
-  // double-buffered?
-  c.swapBuffers();
-  c.swapBuffers();
-  sleep(3);
+  Pixel data;
+  GlFunctions::ReadPixels(500, 500, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+
+  // check that the clearcolor is white
+  EXPECT_EQ(data.red, 255);
+  EXPECT_EQ(data.blue, 255);
+  EXPECT_EQ(data.green, 255);
+  EXPECT_EQ(data.alpha, 255);
 }
+
 
 TEST(BarGraph, MultiBar) {
   GlFunctions::Init();
@@ -65,16 +77,31 @@ TEST(BarGraph, MultiBar) {
   std::vector<BarMetrics> bars(3);
   bars[0].metric1 = 25;
   bars[0].metric2 = 5;
-  bars[1].metric1 = 37;
+  bars[1].metric1 = 50;
   bars[1].metric2 = 10;
-  bars[2].metric1 = 7;
+  bars[2].metric1 = 10;
   bars[2].metric2 = 2;
   r.setBars(bars);
   r.render();
+  c.swapBuffers();
+  c.swapBuffers();
 
-  // double-buffered?
-  c.swapBuffers();
-  c.swapBuffers();
-  sleep(3);
+  Pixel data;
+
+  // top left should be at 50%
+  GlFunctions::ReadPixels(0, 501, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 255);
+  GlFunctions::ReadPixels(0, 499, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 0);
+
+  // center should be at 100%
+  GlFunctions::ReadPixels(500, 999, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 0);
+
+  // top right should be at 20%
+  GlFunctions::ReadPixels(999, 199, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 0);
+  GlFunctions::ReadPixels(999, 201, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 255);
 }
 

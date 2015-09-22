@@ -74,6 +74,11 @@ class GlFunctions {
   static void DisableVertexAttribArray(GLuint index);
   static void Enable(GLenum cap);
 
+  static void ReadPixels(GLint x, GLint y,
+                           GLsizei width, GLsizei height,
+                           GLenum format, GLenum type,
+                           GLvoid *pixels);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
