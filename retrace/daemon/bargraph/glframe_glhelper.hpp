@@ -80,6 +80,7 @@ class GlFunctions {
                            GLvoid *pixels);
   static void DrawElements(GLenum mode, GLsizei count,
                            GLenum type, const GLvoid *indices);
+  static void BlendFunc(GLenum sfactor, GLenum dfactor);
 
  private:
   GlFunctions();
