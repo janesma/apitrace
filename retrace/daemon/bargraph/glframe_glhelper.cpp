@@ -60,6 +60,7 @@ static void *pDrawArrays = NULL;
 static void *pDisableVertexAttribArray = NULL;
 static void *pEnable = NULL;
 static void *pReadPixels = NULL;
+static void *pDrawElements = NULL;
 }  // namespace
 
 void
@@ -126,6 +127,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pEnable);
   pReadPixels = GetProcAddress("glReadPixels");
   assert(pReadPixels);
+  pDrawElements = GetProcAddress("glDrawElements");
+  assert(pDrawElements);
 }
 
 GLuint
@@ -303,4 +306,12 @@ GlFunctions::ReadPixels(GLint x, GLint y,
                              GLenum format, GLenum type,
                              GLvoid *pixels);
   ((READPIXELS)pReadPixels)(x, y, width, height, format, type, pixels);
+}
+
+void
+GlFunctions::DrawElements(GLenum mode, GLsizei count,
+                          GLenum type, const GLvoid *indices) {
+  typedef void (*DRAWELEMENTS)(GLenum mode, GLsizei count,
+                               GLenum type, const GLvoid *indices);
+  ((DRAWELEMENTS) pDrawElements)(mode, count, type, indices);
 }

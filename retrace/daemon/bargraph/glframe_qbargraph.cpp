@@ -35,11 +35,15 @@ using glretrace::BarGraphView;
 using glretrace::BarMetrics;
 
 QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
-  std::vector<BarMetrics> metrics(2);
+  std::vector<BarMetrics> metrics(4);
   metrics[0].metric1 = 1;
   metrics[0].metric2 = 1;
   metrics[1].metric1 = 2;
   metrics[1].metric2 = 2;
+  metrics[2].metric1 = 1;
+  metrics[2].metric2 = 1;
+  metrics[3].metric1 = 2;
+  metrics[3].metric2 = 2;
   m_graph.setBars(metrics);
 }
 

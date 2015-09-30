@@ -78,6 +78,8 @@ class GlFunctions {
                            GLsizei width, GLsizei height,
                            GLenum format, GLenum type,
                            GLvoid *pixels);
+  static void DrawElements(GLenum mode, GLsizei count,
+                           GLenum type, const GLvoid *indices);
 
  private:
   GlFunctions();
