@@ -173,9 +173,6 @@ BarGraphRenderer::render() {
   GL_CHECK();
   GL::Uniform1f(uni_invert_y, invert_y);
   GL_CHECK();
-  const float color[4] = { 0.0, 0.0, 1.0, 1.0 };
-  GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
-  GL_CHECK();
 
   // bind vbo
   GL::BindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -201,11 +198,31 @@ BarGraphRenderer::render() {
                           0);                  // use the vbo
   GL_CHECK();
 
+  // these indices encircle the first bar.
+  std::vector<uint16_t> outline_indices = { 0, 1, 3, 2, 0 };
+
   for (GLint i = 0; i < vertices.size(); i += 4) {
-    // draw
+    // draw the bars
+    const float color[4] = { 0.0, 0.0, 1.0, 1.0 };
+    GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
+    GL_CHECK();
     GL::DrawArrays(GL_TRIANGLE_STRIP, i, 4);
     GL_CHECK();
-  }
+
+    // draw a thin border around each bar
+    const float black_color[4] = { 0.0, 0.0, 0.0, 1.0 };
+    GL::Uniform4f(uni_bar_color, black_color[0], black_color[1],
+                  black_color[2], black_color[3]);
+    GL_CHECK();
+    GL::DrawElements(GL_LINE_STRIP, 5, GL_UNSIGNED_SHORT,
+                     outline_indices.data());
+    GL_CHECK();
+
+    // increment the indices to reflect the outline of the next bar
+    for (auto &i : outline_indices) {
+      i += 4;
+    }
+}
 
   // disable vbo
   GL::DisableVertexAttribArray(att_coord);
