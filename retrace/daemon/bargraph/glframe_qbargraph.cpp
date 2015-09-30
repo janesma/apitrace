@@ -40,6 +40,7 @@ QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
   metrics[0].metric2 = 1;
   metrics[1].metric1 = 2;
   metrics[1].metric2 = 2;
+  metrics[1].selected = true;
   metrics[2].metric1 = 1;
   metrics[2].metric2 = 1;
   metrics[3].metric1 = 2;

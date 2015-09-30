@@ -67,6 +67,7 @@ class BarGraphRenderer {
     float y;
   };
 
+  std::vector<bool> selected;
   std::vector<Vertex> vertices;
   std::vector<Vertex> mouse_vertices;
 
