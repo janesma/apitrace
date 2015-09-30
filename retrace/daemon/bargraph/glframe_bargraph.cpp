@@ -110,6 +110,8 @@ BarGraphRenderer::BarGraphRenderer(bool invert)
 void
 BarGraphRenderer::setBars(const std::vector<BarMetrics> &bars) {
   vertices.resize(bars.size() * 4);
+  selected.resize(bars.size());
+
   max_y = 0;
   total_x = 0;
   for (auto bar : bars) {
@@ -128,7 +130,11 @@ BarGraphRenderer::setBars(const std::vector<BarMetrics> &bars) {
 
   float current_x = start_x;
   auto current_vertex = vertices.begin();
+  auto current_selection = selected.begin();
   for (auto bar : bars) {
+    *current_selection = bar.selected ? true : false;
+    ++current_selection;
+
     current_vertex->x = current_x;
     current_vertex->y = 0;
     ++current_vertex;
@@ -223,7 +229,9 @@ BarGraphRenderer::render() {
 
   for (GLint i = 0; i < vertices.size(); i += 4) {
     // draw the bars
-    const float color[4] = { 0.0, 0.0, 1.0, 1.0 };
+    const float bar_color[4] = { 0.0, 0.0, 1.0, 1.0 };
+    const float selected_color[4] = { 1.0, 1.0, 0.0, 1.0 };
+    const float* color = selected[i/4] ? selected_color : bar_color;
     GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
     GL_CHECK();
     GL::DrawArrays(GL_TRIANGLE_STRIP, i, 4);
@@ -261,7 +269,7 @@ BarGraphRenderer::render() {
     GL_CHECK();
 
     // yellow selection box
-    const float color[4] = { 1.0, 1.0, 0.0, 0.5 };
+    const float color[4] = { 0.5, 0.5, 0.5, 0.5 };
     GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
     GL_CHECK();
     GL::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
