@@ -103,3 +103,60 @@ TEST(BarGraph, MultiBar) {
   EXPECT_EQ(data.red, 255);
 }
 
+TEST(BarGraph, BarSpacing) {
+  GlFunctions::Init();
+  TestContext c;
+  BarGraphRenderer r;
+  std::vector<BarMetrics> bars(2);
+  bars[0].metric1 = 25;
+  bars[0].metric2 = 0;
+  bars[1].metric1 = 50;
+  bars[1].metric2 = 0;
+  r.setBars(bars);
+  r.render();
+
+  Pixel data;
+
+  // whitespace should be at center
+  GlFunctions::ReadPixels(500, 2, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 255);
+  EXPECT_EQ(data.blue, 255);
+  EXPECT_EQ(data.green, 255);
+}
+
+TEST(BarGraph, MouseSelect) {
+  GlFunctions::Init();
+  TestContext c;
+  BarGraphRenderer r;
+  std::vector<BarMetrics> bars(2);
+  bars[0].metric1 = 25;
+  bars[0].metric2 = 0;
+  bars[1].metric1 = 50;
+  bars[1].metric2 = 0;
+  r.setBars(bars);
+  r.setMouseArea(0.25, 0.25, 0.75, 0.75);
+  r.render();
+
+  Pixel data;
+
+  // yellow blended on white should be at center
+  GlFunctions::ReadPixels(500, 500, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 255);
+  EXPECT_EQ(data.blue, 255);
+  EXPECT_EQ(data.green, 128);
+  EXPECT_EQ(data.alpha, 255);
+
+  // white should be at the bottom
+  GlFunctions::ReadPixels(500, 2, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 255);
+  EXPECT_EQ(data.blue, 255);
+  EXPECT_EQ(data.green, 255);
+  EXPECT_EQ(data.alpha, 255);
+
+  // blend should be on the bar
+  GlFunctions::ReadPixels(300, 300, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+  EXPECT_EQ(data.red, 128);
+  EXPECT_EQ(data.blue, 128);
+  EXPECT_EQ(data.green, 128);
+  EXPECT_EQ(data.alpha, 255);
+}
