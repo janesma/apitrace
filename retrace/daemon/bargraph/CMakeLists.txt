@@ -45,6 +45,8 @@ set (BARGRAPH_SOURCES
   glframe_glhelper.hpp
   glframe_qbargraph.cpp
   glframe_qbargraph.hpp
+  glframe_qselection.cpp
+  glframe_qselection.hpp
   )
 
 Lint( BARGRAPH_SOURCES )
