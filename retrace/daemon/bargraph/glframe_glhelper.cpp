@@ -61,6 +61,7 @@ static void *pDisableVertexAttribArray = NULL;
 static void *pEnable = NULL;
 static void *pReadPixels = NULL;
 static void *pDrawElements = NULL;
+static void *pBlendFunc = NULL;
 }  // namespace
 
 void
@@ -129,6 +130,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pReadPixels);
   pDrawElements = GetProcAddress("glDrawElements");
   assert(pDrawElements);
+  pBlendFunc = GetProcAddress("glBlendFunc");
+  assert(pBlendFunc);
 }
 
 GLuint
@@ -314,4 +317,10 @@ GlFunctions::DrawElements(GLenum mode, GLsizei count,
   typedef void (*DRAWELEMENTS)(GLenum mode, GLsizei count,
                                GLenum type, const GLvoid *indices);
   ((DRAWELEMENTS) pDrawElements)(mode, count, type, indices);
+}
+
+void
+GlFunctions::BlendFunc(GLenum sfactor, GLenum dfactor) {
+  typedef void (*BLENDFUNC)(GLenum sfactor, GLenum dfactor);
+  ((BLENDFUNC) pBlendFunc)(sfactor, dfactor);
 }

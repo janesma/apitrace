@@ -45,6 +45,7 @@ QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
   metrics[3].metric1 = 2;
   metrics[3].metric2 = 2;
   m_graph.setBars(metrics);
+  m_graph.setMouseArea(.25, .25, .75, .75);
 }
 
 void

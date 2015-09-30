@@ -59,7 +59,9 @@ BarGraphRenderer::fshader =
     "}";
 
 BarGraphRenderer::BarGraphRenderer(bool invert)
-    : invert_y(invert ? -1 : 1) {
+    : mouse_vertices(4),
+      mouse_area(2),
+      invert_y(invert ? -1 : 1) {
   // generate vbo
   GL::GenBuffers(1, &vbo);
   GL_CHECK();
@@ -151,6 +153,24 @@ BarGraphRenderer::setBars(const std::vector<BarMetrics> &bars) {
 
 void
 BarGraphRenderer::setMouseArea(float x1, float y1, float x2, float y2) {
+  mouse_area[0].x = x1;
+  mouse_area[0].y = y1;
+  mouse_area[1].x = x2;
+  mouse_area[1].y = y2;
+
+  // calculate mouse_vertices based on b
+  mouse_vertices[0].x = x1;
+  mouse_vertices[0].y = y1;
+  mouse_vertices[1].x = x1;
+  mouse_vertices[1].y = y2;
+  mouse_vertices[2].x = x2;
+  mouse_vertices[2].y = y1;
+  mouse_vertices[3].x = x2;
+  mouse_vertices[3].y = y2;
+  for (auto &vertex : mouse_vertices) {
+    vertex.x *= total_x;
+    vertex.y *= max_y;
+  }
 }
 
 // solely for debugging: allows gdb to print vertices[n]
@@ -222,7 +242,31 @@ BarGraphRenderer::render() {
     for (auto &i : outline_indices) {
       i += 4;
     }
-}
+  }
+
+  if ((mouse_area[0].x > 0) ||
+      (mouse_area[0].y > 0) ||
+      (mouse_area[1].x > 0) ||
+      (mouse_area[1].y > 0)) {
+    // mouse selection is active, draw a selection rectangle
+
+    GL::Enable(GL_BLEND);
+    GL_CHECK();
+    GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL_CHECK();
+
+    // buffer data to vbo
+    GL::BufferData(GL_ARRAY_BUFFER, mouse_vertices.size() * sizeof(Vertex),
+                   mouse_vertices.data(), GL_STATIC_DRAW);
+    GL_CHECK();
+
+    // yellow selection box
+    const float color[4] = { 1.0, 1.0, 0.0, 0.5 };
+    GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
+    GL_CHECK();
+    GL::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    GL_CHECK();
+  }
 
   // disable vbo
   GL::DisableVertexAttribArray(att_coord);

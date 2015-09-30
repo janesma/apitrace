@@ -68,6 +68,11 @@ class BarGraphRenderer {
   };
 
   std::vector<Vertex> vertices;
+  std::vector<Vertex> mouse_vertices;
+
+  // selection box.  coordinates are in the 0.0 - 1.0 range
+  std::vector<Vertex> mouse_area;
+
   float max_y, total_x, invert_y;
 };
 
