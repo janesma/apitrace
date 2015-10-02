@@ -34,10 +34,6 @@ using glretrace::QSelection;
 using glretrace::SelectionObserver;
 
 TEST(Selection, Select) {
-  int argc = 0;
-  char **argv = NULL;
-  QCoreApplication a(argc, argv);
-
   QSelection selection;
   SelectionObserver observer(&selection);
 

@@ -33,11 +33,19 @@
 
 #include "glframe_bargraph.hpp"
 #include "glframe_glhelper.hpp"
+#include "glframe_qbargraph.hpp"
+#include "glframe_qselection.hpp"
 #include "test_bargraph_ctx.hpp"
+#include "test_selection.hpp"
 
 using glretrace::BarGraphRenderer;
+using glretrace::BarGraphSubscriber;
+using glretrace::BarGraphView;
 using glretrace::BarMetrics;
 using glretrace::GlFunctions;
+using glretrace::QBarGraphRenderer;
+using glretrace::QSelection;
+using glretrace::SelectionObserver;
 using glretrace::TestContext;
 
 TEST(BarGraph, Create) {
@@ -186,10 +194,43 @@ TEST(BarGraph, SelectedBar) {
   std::vector<BarMetrics> bars(2);
   bars[0].metric1 = 25;
   bars[0].metric2 = 0;
-  bars[0].selected = true;
   bars[1].metric1 = 50;
   bars[1].metric2 = 0;
   r.setBars(bars);
   r.setMouseArea(0.25, 0.25, 0.75, 0.75);
   r.render();
+  // todo: check colors in this test
 }
+
+class MockSubscriber : public BarGraphSubscriber {
+ public:
+  void onBarSelect(const std::vector<int> s) {
+    selection = s;
+  }
+  std::vector<int> selection;
+};
+
+TEST(BarGraph, MouseSelectBars) {
+  GlFunctions::Init();
+  TestContext c;
+  BarGraphRenderer r;
+  std::vector<BarMetrics> bars(2);
+  bars[0].metric1 = 25;
+  bars[0].metric2 = 0;
+  // bars[0].selected = true;
+  bars[1].metric1 = 50;
+  bars[1].metric2 = 0;
+  MockSubscriber s;
+  r.subscribe(&s);
+  r.setBars(bars);
+  r.setMouseArea(0.0, 0.0, 0.5, 0.5);
+  r.selectMouseArea();
+  EXPECT_EQ(s.selection, std::vector<int> {0});
+  r.setMouseArea(0.5, 0.0, 1.0, 0.5);
+  r.selectMouseArea();
+  EXPECT_EQ(s.selection, std::vector<int> {1});
+  r.setMouseArea(0.0, 0.0, 1.0, 0.5);
+  r.selectMouseArea();
+  EXPECT_EQ(s.selection, (std::vector<int> {0, 1}));
+}
+

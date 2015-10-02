@@ -29,11 +29,13 @@
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
-#include "glframe_qbargraph.hpp"
 #include "glframe_glhelper.hpp"
+#include "glframe_qbargraph.hpp"
+#include "glframe_qselection.hpp"
 
 using glretrace::BarGraphView;
 using glretrace::GlFunctions;
+using glretrace::QSelection;
 
 int main(int argc, char *argv[]) {
   GlFunctions::Init();
@@ -41,6 +43,7 @@ int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
 
   qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");
+  qmlRegisterType<glretrace::QSelection>("ApiTrace", 1, 0, "Selection");
 
   QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
 
