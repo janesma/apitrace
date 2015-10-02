@@ -30,7 +30,9 @@
 
 #include <GL/gl.h>
 
+#include <algorithm>
 #include <vector>
+#include <set>
 
 #include "glframe_glhelper.hpp"
 
@@ -61,7 +63,8 @@ BarGraphRenderer::fshader =
 BarGraphRenderer::BarGraphRenderer(bool invert)
     : mouse_vertices(4),
       mouse_area(2),
-      invert_y(invert ? -1 : 1) {
+      invert_y(invert ? -1 : 1),
+      subscriber(NULL) {
   // generate vbo
   GL::GenBuffers(1, &vbo);
   GL_CHECK();
@@ -130,11 +133,7 @@ BarGraphRenderer::setBars(const std::vector<BarMetrics> &bars) {
 
   float current_x = start_x;
   auto current_vertex = vertices.begin();
-  auto current_selection = selected.begin();
   for (auto bar : bars) {
-    *current_selection = bar.selected ? true : false;
-    ++current_selection;
-
     current_vertex->x = current_x;
     current_vertex->y = 0;
     ++current_vertex;
@@ -177,6 +176,39 @@ BarGraphRenderer::setMouseArea(float x1, float y1, float x2, float y2) {
     vertex.x *= total_x;
     vertex.y *= max_y;
   }
+}
+
+void
+BarGraphRenderer::subscribe(BarGraphSubscriber *s) {
+  subscriber = s;
+}
+
+void
+BarGraphRenderer::selectMouseArea() {
+  if (!subscriber)
+    return;
+
+  std::vector<int> selected_renders;
+  const float min_x = total_x * std::min(mouse_area[0].x, mouse_area[1].x);
+  const float max_x = total_x * std::max(mouse_area[0].x, mouse_area[1].x);
+  const float min_y = max_y * std::min(mouse_area[0].y, mouse_area[1].y);
+
+  // iterate over the vertices, to see if the mouse area crosses each bar
+  int current_render = -1;
+  for (auto i = vertices.begin(); i < vertices.end(); i += 4) {
+    BarVertices *current_bar = reinterpret_cast<BarVertices*>(&*i);
+    current_render += 1;
+    selected[current_render] = false;
+    if (current_bar->bottom_right.x < min_x)
+      continue;
+    if (current_bar->top_left.y < min_y)
+      continue;
+    if (current_bar->bottom_left.x > max_x)
+      break;
+    selected_renders.push_back(current_render);
+    selected[current_render] = true;
+  }
+  subscriber->onBarSelect(selected_renders);
 }
 
 // solely for debugging: allows gdb to print vertices[n]
@@ -283,4 +315,10 @@ BarGraphRenderer::render() {
   // unbind vbo
   GL::BindBuffer(GL_ARRAY_BUFFER, 0);
   GL_CHECK();
+}
+
+void
+BarGraphRenderer::setSelection(const std::set<int> &selection) {
+  for (int i = 0; i < selected.size(); ++i)
+    selected[i] = selection.find(i) != selection.end();
 }

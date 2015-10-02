@@ -36,8 +36,35 @@ ApplicationWindow {
     height: 500
     visible: true
     id: mainWindow
+
+    Selection {
+        id: selection
+    }
+
     BarGraph {
+        id: barGraph
+        selection: selection
         visible: true
         anchors.fill: parent
+    }
+    MouseArea {
+        property var startx : -1.0;
+        property var starty : -1.0;
+        anchors.fill: parent
+        onPressed : {
+            startx = mouse.x / barGraph.width;
+            starty = (barGraph.height - mouse.y) / barGraph.height;
+            barGraph.mouseDrag(startx, starty, startx, starty);
+        }
+        onPositionChanged : {
+            if (mouse.buttons & Qt.LeftButton) {
+                var endx = mouse.x / barGraph.width;
+                var endy = (barGraph.height - mouse.y) / barGraph.height;
+                barGraph.mouseDrag(startx, starty, endx, endy)
+            }
+        }
+        onReleased : {
+            barGraph.mouseRelease();
+        }
     }
 }

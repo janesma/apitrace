@@ -30,6 +30,7 @@
 
 #include <GLES2/gl2.h>
 
+#include <set>
 #include <vector>
 
 namespace glretrace {
@@ -42,7 +43,12 @@ class BarMetrics {
  public:
   float metric1;  // bar height
   float metric2;  // bar width
-  bool selected;
+};
+
+class BarGraphSubscriber {
+ public:
+  virtual void onBarSelect(const std::vector<int> selection) = 0;
+  virtual ~BarGraphSubscriber() {}
 };
 
 // - BarGraphRenderer
@@ -55,8 +61,11 @@ class BarGraphRenderer {
  public:
   explicit BarGraphRenderer(bool invert = false);  // Qt draws top-to-bottom
   void setBars(const std::vector<BarMetrics> &bars);
+  void setSelection(const std::set<int> &selection);
   void setMouseArea(float x1, float y1, float x2, float y2);
+  void selectMouseArea();  // on click or drag-release
   void render();
+  void subscribe(BarGraphSubscriber *s);
 
  private:
   static const char *vshader, *fshader;
@@ -65,6 +74,12 @@ class BarGraphRenderer {
   struct Vertex {
     float x;
     float y;
+  };
+  struct BarVertices {
+    Vertex bottom_left;
+    Vertex top_left;
+    Vertex bottom_right;
+    Vertex top_right;
   };
 
   std::vector<bool> selected;
@@ -75,6 +90,7 @@ class BarGraphRenderer {
   std::vector<Vertex> mouse_area;
 
   float max_y, total_x, invert_y;
+  BarGraphSubscriber *subscriber;
 };
 
 }  // namespace glretrace
