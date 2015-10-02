@@ -28,6 +28,8 @@
 
 #include <QtOpenGL>
 
+#include <algorithm>
+#include <set>
 #include <vector>
 
 using glretrace::QBarGraphRenderer;
@@ -35,18 +37,17 @@ using glretrace::BarGraphView;
 using glretrace::BarMetrics;
 
 QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
+  m_graph.subscribe(this);
   std::vector<BarMetrics> metrics(4);
   metrics[0].metric1 = 1;
   metrics[0].metric2 = 1;
   metrics[1].metric1 = 2;
   metrics[1].metric2 = 2;
-  metrics[1].selected = true;
   metrics[2].metric1 = 1;
   metrics[2].metric2 = 1;
   metrics[3].metric1 = 2;
   metrics[3].metric2 = 2;
   m_graph.setBars(metrics);
-  m_graph.setMouseArea(.25, .25, .75, .75);
 }
 
 void
@@ -56,7 +57,45 @@ QBarGraphRenderer::render() {
 
 void
 QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
+  BarGraphView *v = reinterpret_cast<BarGraphView*>(item);
+  if (!selection) {
+    QSelection *s = v->getSelection();
+    if (s) {
+      selection = s;
+      connect(s, &QSelection::onSelect,
+              this, &QBarGraphRenderer::onSelect);
+      connect(this, &QBarGraphRenderer::barSelect,
+              s, &QSelection::select);
+    }
+  }
+
+  m_graph.setMouseArea(v->mouse_area[0],
+                       v->mouse_area[1],
+                       v->mouse_area[2],
+                       v->mouse_area[3]);
+  if (v->clicked) {
+    m_graph.selectMouseArea();
+    m_graph.setMouseArea(0, 0, 0, 0);
+    v->clicked = false;
+  }
 }
+
+void
+QBarGraphRenderer::onBarSelect(const std::vector<int> selection) {
+  QList<int> s;
+  for (auto i : selection)
+    s.append(i);
+  emit barSelect(s);
+}
+
+void
+QBarGraphRenderer::onSelect(QList<int> selection) {
+  std::set<int> s;
+  for (auto i : selection)
+    s.insert(i);
+  m_graph.setSelection(s);
+}
+
 
 QOpenGLFramebufferObject *
 QBarGraphRenderer::createFramebufferObject(const QSize & size) {
@@ -65,12 +104,34 @@ QBarGraphRenderer::createFramebufferObject(const QSize & size) {
   return new QOpenGLFramebufferObject(size, format);
 }
 
+void
+QBarGraphRenderer::onMetrics(QList<BarMetrics> metrics) {
+  std::vector<BarMetrics> m;
+  for (auto metric : metrics)
+    m.push_back(metric);
+  m_graph.setBars(m);
+}
 
 QQuickFramebufferObject::Renderer *
 BarGraphView::createRenderer() const {
   return new QBarGraphRenderer();
 }
 
-BarGraphView::BarGraphView() {
+BarGraphView::BarGraphView() : mouse_area(4), clicked(false), selection(NULL) {
+}
+
+void
+BarGraphView::mouseRelease() {
+  clicked = true;
+  update();
+}
+
+void
+BarGraphView::mouseDrag(float x1, float y1, float x2, float y2) {
+  mouse_area[0] = std::min(x1, x2);
+  mouse_area[1] = std::min(y1, y2);
+  mouse_area[2] = std::max(x1, x2);
+  mouse_area[3] = std::max(y1, y2);
+  update();
 }
 
