@@ -39,8 +39,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set (BARGRAPH_SOURCES
   glframe_bargraph.cpp
   glframe_bargraph.hpp
-  glframe_bargraphmodel.cpp
-  glframe_bargraphmodel.hpp
   glframe_glhelper.cpp
   glframe_glhelper.hpp
   glframe_qbargraph.cpp
