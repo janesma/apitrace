@@ -46,6 +46,7 @@ qt5_use_modules(bargraph Core Gui Concurrent Quick)
 
 target_link_libraries(bargraph
   retrace_bargraph
+  retrace_gldispatch
   GL
   ${X11_X11_LIB}
   pthread
