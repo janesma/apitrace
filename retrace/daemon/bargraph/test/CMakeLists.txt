@@ -24,6 +24,7 @@ add_executable(retrace_bargraph_test
 
 target_link_libraries(retrace_bargraph_test
   retrace_bargraph
+  retrace_gldispatch
   gtest
   waffle-1
   GL
