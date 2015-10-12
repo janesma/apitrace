@@ -27,6 +27,7 @@
 #define _GLFRAME_RETRACE_STUB_HPP_
 
 #include <string>
+#include <vector>
 
 #include "glframe_retrace.hpp"
 
@@ -51,6 +52,9 @@ class FrameRetraceStub : public IFrameRetrace {
                                    OnFrameRetrace *callback) const;
   virtual void retraceShaderAssembly(RenderId renderId,
                                      OnFrameRetrace *callback);
+  virtual void retraceMetrics(const std::vector<MetricId> &ids,
+                              ExperimentId experimentCount,
+                              OnFrameRetrace *callback) const {}
  private:
 };
 }  // namespace glretrace

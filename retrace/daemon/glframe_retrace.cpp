@@ -38,8 +38,11 @@
 #include "glretrace.hpp"
 #include "trace_dump.hpp"
 
+using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
 using glretrace::FrameState;
+using glretrace::MetricId;
+using glretrace::OnFrameRetrace;
 using glretrace::StateTrack;
 using trace::RenderBookmark;
 using trace::Call;
@@ -278,4 +281,10 @@ FrameState::FrameState(const std::string &filename,
       break;
     }
   }
+}
+
+void
+FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
+                             ExperimentId experimentCount,
+                             OnFrameRetrace *callback) const {
 }

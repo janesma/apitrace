@@ -200,3 +200,12 @@ FrameRetraceSkeleton::onShaderCompile(RenderId renderId, int status,
                                       std::string errorString) {
 }
 
+void
+FrameRetraceSkeleton::onMetricList(const std::vector<MetricId> ids,
+                                   const std::vector<std::string> &names) {
+}
+
+void
+FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
+                                ExperimentId experimentCount) {
+}
