@@ -31,7 +31,10 @@
 
 #include "glframe_retrace.hpp"
 
+using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
+using glretrace::MetricId;
+using glretrace::MetricSeries;
 using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
 using glretrace::RenderTargetType;
@@ -59,6 +62,10 @@ class NullCallback : public OnFrameRetrace {
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, int status,
                        std::string errorString) {}
+  void onMetricList(const std::vector<MetricId> ids,
+                    const std::vector<std::string> &names) {}
+  void onMetrics(const MetricSeries &metricData,
+                 ExperimentId experimentCount) {}
 };
 
 

@@ -62,13 +62,20 @@ struct RenderBookmark {
   unsigned numberOfCalls;
 };
 
+// masked onto common integer Ids, to prevent any confusion between
+// integer identifiers.
 enum IdPrefix {
   CALL_ID_PREFIX = 0x1 << 28,
   RENDER_ID_PREFIX = 0x2  << 28,
   RENDER_TARGET_ID_PREFIX = 0x3  << 28,
+  METRIC_ID_PREFIX = 0x4  << 28,
+  SELECTION_ID_PREFIX = 0x5  << 28,
+  EXPERIMENT_ID_PREFIX = 0x6  << 28,
   ID_PREFIX_MASK = 0xf << 28
 };
 
+// Decorates Render numbers with a mask, so they can never be confused
+// with any other Id
 class RenderId {
  public:
   explicit RenderId(uint32_t renderNumber) {
@@ -81,6 +88,59 @@ class RenderId {
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
  private:
   uint32_t value;
+};
+
+// Decorates Metric numbers with a mask, so they can never be confused
+// with any other Id
+class MetricId {
+ public:
+  explicit MetricId(uint32_t metricNumber) {
+    assert(((metricNumber & ID_PREFIX_MASK) == 0) ||
+           ((metricNumber & ID_PREFIX_MASK) == METRIC_ID_PREFIX));
+    value = METRIC_ID_PREFIX | metricNumber;
+  }
+
+  uint32_t operator()() const { return value; }
+  uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+ private:
+  uint32_t value;
+};
+
+// Decorates Selection numbers with a mask, so they can never be
+// confused with any other Id
+class SelectionId {
+ public:
+  explicit SelectionId(uint32_t selectionNumber) {
+    assert(((selectionNumber & ID_PREFIX_MASK) == 0) ||
+           ((selectionNumber & ID_PREFIX_MASK) == SELECTION_ID_PREFIX));
+    value = SELECTION_ID_PREFIX | selectionNumber;
+  }
+
+  uint32_t operator()() const { return value; }
+  uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+ private:
+  uint32_t value;
+};
+
+// Decorates Experiment numbers with a mask, so they can never be
+// confused with any other Id
+class ExperimentId {
+ public:
+  explicit ExperimentId(uint32_t experimentNumber) {
+    assert(((experimentNumber & ID_PREFIX_MASK) == 0) ||
+           ((experimentNumber & ID_PREFIX_MASK) == EXPERIMENT_ID_PREFIX));
+    value = EXPERIMENT_ID_PREFIX | experimentNumber;
+  }
+
+  uint32_t operator()() const { return value; }
+  uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+ private:
+  uint32_t value;
+};
+
+struct MetricSeries {
+  MetricId metric;
+  std::vector<float> data;
 };
 
 class OnFrameRetrace {
@@ -100,6 +160,10 @@ class OnFrameRetrace {
                               const uvec & pngImageData) = 0;
   virtual void onShaderCompile(RenderId renderId, int status,
                                std::string errorString) = 0;
+  virtual void onMetricList(const std::vector<MetricId> ids,
+                            const std::vector<std::string> &names) = 0;
+  virtual void onMetrics(const MetricSeries &metricData,
+                         ExperimentId experimentCount) = 0;
 };
 
 class IFrameRetrace {
@@ -115,6 +179,9 @@ class IFrameRetrace {
                                    OnFrameRetrace *callback) const = 0;
   virtual void retraceShaderAssembly(RenderId renderId,
                                      OnFrameRetrace *callback) = 0;
+  virtual void retraceMetrics(const std::vector<MetricId> &ids,
+                              ExperimentId experimentCount,
+                              OnFrameRetrace *callback) const = 0;
 };
 
 class FrameState {
@@ -158,6 +225,9 @@ class FrameRetrace : public IFrameRetrace {
                            OnFrameRetrace *callback) const;
   void retraceShaderAssembly(RenderId renderId,
                              OnFrameRetrace *callback);
+  void retraceMetrics(const std::vector<MetricId> &ids,
+                              ExperimentId experimentCount,
+                              OnFrameRetrace *callback) const;
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);
