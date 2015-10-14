@@ -62,6 +62,12 @@ static void *pEnable = NULL;
 static void *pReadPixels = NULL;
 static void *pDrawElements = NULL;
 static void *pBlendFunc = NULL;
+static void *pGetFirstPerfQueryIdINTEL = NULL;
+static void *pGetNextPerfQueryIdINTEL = NULL;
+static void *pGetIntegerv = NULL;
+static void *pGetPerfQueryInfoINTEL = NULL;
+static void *pGetPerfCounterInfoINTEL = NULL;
+
 }  // namespace
 
 void
@@ -132,6 +138,16 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pDrawElements);
   pBlendFunc = GetProcAddress("glBlendFunc");
   assert(pBlendFunc);
+  pGetFirstPerfQueryIdINTEL = GetProcAddress("glGetFirstPerfQueryIdINTEL");
+  assert(pGetFirstPerfQueryIdINTEL);
+  pGetNextPerfQueryIdINTEL = GetProcAddress("glGetNextPerfQueryIdINTEL");
+  assert(pGetNextPerfQueryIdINTEL);
+  pGetIntegerv = GetProcAddress("glGetIntegerv");
+  assert(pGetIntegerv);
+  pGetPerfQueryInfoINTEL = GetProcAddress("glGetPerfQueryInfoINTEL");
+  assert(pGetPerfQueryInfoINTEL);
+  pGetPerfCounterInfoINTEL = GetProcAddress("glGetPerfCounterInfoINTEL");
+  assert(pGetPerfCounterInfoINTEL);
 }
 
 GLuint
@@ -323,4 +339,74 @@ void
 GlFunctions::BlendFunc(GLenum sfactor, GLenum dfactor) {
   typedef void (*BLENDFUNC)(GLenum sfactor, GLenum dfactor);
   ((BLENDFUNC) pBlendFunc)(sfactor, dfactor);
+}
+
+void
+GlFunctions::GetFirstPerfQueryIdINTEL(GLuint *queryId) {
+  if (!pGetFirstPerfQueryIdINTEL) {
+    *queryId = -1;
+    return;
+  }
+  typedef void (*GETFIRSTPERFQUERYIDINTEL)(GLuint *queryId);
+  ((GETFIRSTPERFQUERYIDINTEL) pGetFirstPerfQueryIdINTEL)(queryId);
+}
+
+void
+GlFunctions::GetNextPerfQueryIdINTEL(GLuint queryId, GLuint *nextQueryId) {
+  typedef void (*GETNEXTPERFQUERYIDINTEL)(GLuint queryId, GLuint *nextQueryId);
+  ((GETNEXTPERFQUERYIDINTEL) pGetNextPerfQueryIdINTEL)(queryId, nextQueryId);
+}
+
+void
+GlFunctions::GetIntegerv(GLenum pname, GLint *params) {
+  typedef void (*GETINTEGERV)(GLenum pname, GLint *params);
+  ((GETINTEGERV)pGetIntegerv)(pname, params);
+}
+
+void GlFunctions::GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
+                                    GLchar *queryName, GLuint *dataSize,
+                                    GLuint *noCounters, GLuint *noInstances,
+                                        GLuint *capsMask) {
+  typedef void (*GETPERFQUERYINFOINTEL)(GLuint queryId, GLuint queryNameLength,
+                                        GLchar *queryName, GLuint *dataSize,
+                                        GLuint *noCounters, GLuint *noInstances,
+                                        GLuint *capsMask);
+  ((GETPERFQUERYINFOINTEL)pGetPerfQueryInfoINTEL)(queryId, queryNameLength,
+                                                  queryName, dataSize,
+                                                  noCounters, noInstances,
+                                                  capsMask);
+}
+
+void
+GlFunctions::GetPerfCounterInfoINTEL(GLuint queryId, GLuint counterId,
+                                      GLuint counterNameLength,
+                                      GLchar *counterName,
+                                      GLuint counterDescLength,
+                                      GLchar *counterDesc,
+                                      GLuint *counterOffset,
+                                      GLuint *counterDataSize,
+                                      GLuint *counterTypeEnum,
+                                      GLuint *counterDataTypeEnum,
+                                     GLuint64 *rawCounterMaxValue) {
+  typedef void (*GETPERFCOUNTERINFOINTEL)(GLuint queryId, GLuint counterId,
+                                          GLuint counterNameLength,
+                                          GLchar *counterName,
+                                          GLuint counterDescLength,
+                                          GLchar *counterDesc,
+                                          GLuint *counterOffset,
+                                          GLuint *counterDataSize,
+                                          GLuint *counterTypeEnum,
+                                          GLuint *counterDataTypeEnum,
+                                          GLuint64 *rawCounterMaxValue);
+  ((GETPERFCOUNTERINFOINTEL)pGetPerfCounterInfoINTEL)(queryId,
+                                                      counterId,
+                                                      counterNameLength,
+                                                      counterName,
+                                                      counterDescLength,
+                                                      counterDesc,
+                                                      counterOffset,
+                                                      counterDataSize,
+                                                      counterTypeEnum,
+                                                      counterDataTypeEnum,
+                                                      rawCounterMaxValue);
 }

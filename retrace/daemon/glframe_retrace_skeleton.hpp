@@ -61,7 +61,7 @@ class FrameRetraceSkeleton : public Thread,
                               const std::vector<unsigned char> &pngImageData);
   virtual void onShaderCompile(RenderId renderId, int status,
                                std::string errorString);
-  virtual void onMetricList(const std::vector<MetricId> ids,
+  virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names);
   virtual void onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount);

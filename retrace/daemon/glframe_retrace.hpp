@@ -99,9 +99,11 @@ class MetricId {
            ((metricNumber & ID_PREFIX_MASK) == METRIC_ID_PREFIX));
     value = METRIC_ID_PREFIX | metricNumber;
   }
+  MetricId() : value(0) {}
 
   uint32_t operator()() const { return value; }
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+  bool operator<(const MetricId &o) const { return value < o.value; }
  private:
   uint32_t value;
 };
@@ -160,7 +162,7 @@ class OnFrameRetrace {
                               const uvec & pngImageData) = 0;
   virtual void onShaderCompile(RenderId renderId, int status,
                                std::string errorString) = 0;
-  virtual void onMetricList(const std::vector<MetricId> ids,
+  virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names) = 0;
   virtual void onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount) = 0;
@@ -197,7 +199,7 @@ class FrameState {
   int getRenderCount() const { return render_count; }
 };
 
-
+class PerfMetrics;
 class FrameRetrace : public IFrameRetrace {
  private:
   // these are global
@@ -208,6 +210,7 @@ class FrameRetrace : public IFrameRetrace {
   std::vector<RenderBookmark> renders;
 
   StateTrack tracker;
+  PerfMetrics *metrics;
 
  public:
   FrameRetrace();

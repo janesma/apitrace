@@ -94,7 +94,7 @@ public:
                         const std::vector<unsigned char> &data);
     void onShaderCompile(RenderId renderId, int status,
                          std::string errorString);
-    void onMetricList(const std::vector<MetricId> ids,
+    void onMetricList(const std::vector<MetricId> &ids,
                       const std::vector<std::string> &names) {}
     void onMetrics(const MetricSeries &metricData,
                    ExperimentId experimentCount) {}
