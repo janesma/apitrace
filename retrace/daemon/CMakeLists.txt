@@ -16,6 +16,7 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_SOURCE_DIR}/helpers
   ${CMAKE_BINARY_DIR}/retrace/daemon
+  ${CMAKE_SOURCE_DIR}/retrace/daemon/gldispatch
   )
 
 set (RETRACE_LINUX_SOURCE glframe_os_linux.cpp)
@@ -30,21 +31,23 @@ endif()
 
 set (RETRACE_SOURCES
   ${RETRACE_OS_SOURCE}
+  glframe_metrics.cpp
+  glframe_metrics.hpp
+  glframe_os.hpp
   glframe_retrace.cpp
   glframe_retrace.hpp
+  glframe_retrace_skeleton.cpp
+  glframe_retrace_skeleton.hpp
+  glframe_retrace_stub.cpp
+  glframe_retrace_stub.hpp
   glframe_socket.cpp
   glframe_socket.hpp
   glframe_state.cpp
   glframe_state.hpp
   glframe_thread.cpp
   glframe_thread.hpp
-  glframe_os.hpp
   glframe_traits.hpp
   glretrace_globals.cpp
-  glframe_retrace_stub.hpp
-  glframe_retrace_stub.cpp
-  glframe_retrace_skeleton.hpp
-  glframe_retrace_skeleton.cpp
 )  
 
 add_library(retrace_daemon STATIC
@@ -55,6 +58,7 @@ add_library(retrace_daemon STATIC
 
 target_link_libraries(retrace_daemon
   glretrace_common
+  retrace_gldispatch
   )
 
 Lint( RETRACE_SOURCES )

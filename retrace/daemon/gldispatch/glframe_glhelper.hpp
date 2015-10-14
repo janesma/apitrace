@@ -82,6 +82,24 @@ class GlFunctions {
                            GLenum type, const GLvoid *indices);
   static void BlendFunc(GLenum sfactor, GLenum dfactor);
 
+  static void GetFirstPerfQueryIdINTEL(GLuint *queryId);
+  static void GetNextPerfQueryIdINTEL(GLuint queryId, GLuint *nextQueryId);
+  static void GetIntegerv(GLenum pname, GLint *params);
+  static void GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
+                                    GLchar *queryName, GLuint *dataSize,
+                                    GLuint *noCounters, GLuint *noInstances,
+                                    GLuint *capsMask);
+  static void GetPerfCounterInfoINTEL(GLuint queryId, GLuint counterId,
+                                      GLuint counterNameLength,
+                                      GLchar *counterName,
+                                      GLuint counterDescLength,
+                                      GLchar *counterDesc,
+                                      GLuint *counterOffset,
+                                      GLuint *counterDataSize,
+                                      GLuint *counterTypeEnum,
+                                      GLuint *counterDataTypeEnum,
+                                      GLuint64 *rawCounterMaxValue);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
