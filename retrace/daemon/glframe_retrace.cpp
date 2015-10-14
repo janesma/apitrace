@@ -25,16 +25,18 @@
 
 #include "glframe_retrace.hpp"
 
+#include <GLES2/gl2.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <GLES2/gl2.h>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "glframe_glhelper.hpp"
+#include "glframe_metrics.hpp"
 #include "glretrace.hpp"
 #include "glws.hpp"
 #include "trace_dump.hpp"
@@ -51,6 +53,8 @@ using glretrace::StateTrack;
 using trace::Call;
 using retrace::parser;
 using image::Image;
+using retrace::parser;
+using trace::Call;
 extern retrace::Retracer retracer;
 
 
@@ -155,6 +159,7 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
     }
   }
   callback->onFileOpening(true, 100);
+  metrics = new PerfMetrics(callback);
 }
 
 int

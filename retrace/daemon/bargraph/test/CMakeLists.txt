@@ -12,17 +12,26 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(BARGRAPH_TEST_SOURCE
   main_test.cpp
   test_bargraph.cpp
-  test_bargraph_ctx.cpp
-  test_bargraph_ctx.hpp
   test_selection.cpp
   test_selection.hpp
   )
+
+set(TEST_UTILITIES_SOURCE
+  test_bargraph_ctx.cpp
+  test_bargraph_ctx.hpp
+)  
 
 add_executable(retrace_bargraph_test
   ${BARGRAPH_TEST_SOURCE}
   )
 
+add_library(retrace_ui_test_utilities
+  ${TEST_UTILITIES_SOURCE}
+  )
+
+
 target_link_libraries(retrace_bargraph_test
+  retrace_ui_test_utilities
   retrace_bargraph
   retrace_gldispatch
   gtest
@@ -35,4 +44,9 @@ qt5_use_modules(retrace_bargraph_test Core)
 
 add_test (NAME bargraph_test COMMAND $<TARGET_FILE:retrace_bargraph_test>)
 
-Lint( BARGRAPH_TEST_SOURCE )
+set(LINT_SOURCE
+  ${BARGRAPH_TEST_SOURCE}
+  ${TEST_UTILITIES_SOURCE}
+  )
+
+Lint( LINT_SOURCE )

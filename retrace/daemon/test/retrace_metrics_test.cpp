@@ -23,30 +23,19 @@
  *
  **************************************************************************/
 
-#include <unistd.h>
 #include <gtest/gtest.h>
 
-#include <vector>
+#include <set>
 #include <string>
+#include <vector>
 
-#include "glws.hpp"
-
+#include "glframe_glhelper.hpp"
+#include "glframe_metrics.hpp"
 #include "glframe_retrace.hpp"
+#include "test_bargraph_ctx.hpp"
 
-using glretrace::ExperimentId;
-using glretrace::FrameRetrace;
-using glretrace::MetricId;
-using glretrace::MetricSeries;
-using glretrace::OnFrameRetrace;
-using glretrace::RenderId;
-using glretrace::RenderTargetType;
-
-TEST(Build, Cmake) {
-}
-
-static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.test_trace";
-
-class NullCallback : public OnFrameRetrace {
+namespace glretrace {
+class MetricsCallback : public OnFrameRetrace {
  public:
   void onFileOpening(bool finished,
                      uint32_t percent_complete) {}
@@ -62,24 +51,29 @@ class NullCallback : public OnFrameRetrace {
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, int status,
                        std::string errorString) {}
-  void onMetricList(const std::vector<MetricId> &ids,
-                    const std::vector<std::string> &names) {}
+  void onMetricList(const std::vector<MetricId> &i,
+                    const std::vector<std::string> &n) {
+    ids = i;
+    names = n;
+  }
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount) {}
+  std::vector<MetricId> ids;
+  std::vector<std::string> names;
 };
 
-
-TEST(Daemon, LoadFile) {
-  retrace::setUp();
-
-  NullCallback cb;
-
-  FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
-  int renderCount = rt.getRenderCount();
-  EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
-  for (int i = 0; i < renderCount; ++i) {
-    rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
-                           glretrace::STOP_AT_RENDER, &cb);
+TEST(Metrics, ReadMetrics) {
+  GlFunctions::Init();
+  TestContext c;
+  MetricsCallback cb;
+  PerfMetrics p(&cb);
+  EXPECT_EQ(cb.ids.size(), cb.names.size());
+  // check ids are unique
+  std::set<MetricId> mets;
+  for (auto id : cb.ids) {
+    EXPECT_EQ(mets.find(id), mets.end());
+    mets.insert(id);
   }
 }
+
+}  // namespace glretrace
