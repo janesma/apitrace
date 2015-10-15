@@ -153,8 +153,8 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
       break;
     }
   }
-  callback->onFileOpening(true, 100);
   metrics = new PerfMetrics(callback);
+  callback->onFileOpening(true, 100);
 }
 
 int

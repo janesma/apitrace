@@ -22,6 +22,10 @@ ApplicationWindow {
         }
     }
 
+    Selection {
+        id: selection
+    }
+
     Item {
         id: openfile
         anchors.fill:parent
@@ -158,7 +162,7 @@ ApplicationWindow {
             z:1
         }
     }
-    RowLayout {
+    ColumnLayout {
         id: mainUI
         anchors.fill: parent
         visible: false
@@ -175,43 +179,70 @@ ApplicationWindow {
                 }
             }
         }
-        ListView {
-            id: renderList
-            clip: false
-            Layout.preferredWidth: 50
+        BarGraphControl {
+            selection: selection
+            metric_model: frameRetrace
+            Layout.preferredHeight: 50
             Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: frameRetrace.renders
-            focus: true
-            highlight: highlightBar
-            highlightFollowsCurrentItem : false
-            onCurrentItemChanged : {
-                frameRetrace.retrace(currentIndex)
-                renderList.visible = false
-                renderList.visible = true
-            }
-            delegate: Rectangle {
-                id: renderDel
-                height : renderNum.height * 1.5
-                width : renderList.width
-                color: "transparent"  // necessary for the highlight to show
-                Text {
-                    id: renderNum
-                    text: model.index
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onPressed : {
-                        renderList.currentIndex = index
-                        frameRetrace.retrace(index)
-                        renderList.focus = true
-                    }
-                }
-            }
         }
+
+        // ListView {
+        //     id: metricList
+        //     Layout.preferredHeight: 50
+        //     Layout.alignment: Qt.AlignTop
+        //     Layout.fillWidth: true
+        //     Layout.fillHeight: true
+        //     model: frameRetrace.metricsList
+        //     delegate: Rectangle {
+        //         id: metricDel
+        //         height :metricText.height * 1.5
+        //         width : metricText.width
+        //         color: "transparent"  // necessary for the highlight to show
+        //         Text {
+        //             id: metricText
+        //             text: model.name
+        //         }
+        //     }
+        // }
+        // ListView {
+        //     id: renderList
+        //     clip: false
+        //     Layout.preferredWidth: 50
+        //     Layout.alignment: Qt.AlignTop
+        //     Layout.fillWidth: true
+        //     Layout.fillHeight: true
+        //     model: frameRetrace.renders
+        //     focus: true
+        //     highlight: highlightBar
+        //     highlightFollowsCurrentItem : false
+        //     onCurrentItemChanged : {
+        //         frameRetrace.retrace(currentIndex)
+        //         renderList.visible = false
+        //         renderList.visible = true
+        //     }
+        //     delegate: Rectangle {
+        //         id: renderDel
+        //         height : renderNum.height * 1.5
+        //         width : renderList.width
+        //         color: "transparent"  // necessary for the highlight to show
+        //         Text {
+        //             id: renderNum
+        //             text: model.index
+        //         }
+        //         MouseArea {
+        //             anchors.fill: parent
+        //             onPressed : {
+        //                 renderList.currentIndex = index
+        //                 frameRetrace.retrace(index)
+        //                 renderList.focus = true
+        //             }
+        //         }
+        //     }
+        // }
         TabView {
-            Layout.preferredWidth: 600
+            Layout.preferredWidth: 400
             Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
             Layout.fillHeight: true

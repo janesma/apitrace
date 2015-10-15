@@ -27,42 +27,53 @@
 #include <QQuickImageProvider>
 #include <QtConcurrentRun>
 
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "glframe_retrace_model.hpp"
 
-#include <sstream>
-
-#include "glframe_retrace_images.hpp"
 
 #include "glframe_retrace.hpp"
+#include "glframe_retrace_images.hpp"
 
 using glretrace::FrameRetraceModel;
-using glretrace::QRenderBookmark;
 using glretrace::FrameState;
+using glretrace::QMetric;
+using glretrace::QRenderBookmark;
 
-FrameRetraceModel::FrameRetraceModel() : m_open_percent(0)
-{}
+FrameRetraceModel::FrameRetraceModel() : m_open_percent(0) {
+  connect(this, &glretrace::FrameRetraceModel::updateMetricList,
+          this, &glretrace::FrameRetraceModel::onUpdateMetricList);
+}
 
 FrameRetraceModel::~FrameRetraceModel() {
-    std::cout << "~FrameRetraceModel\n";
+  std::cout << "~FrameRetraceModel\n";
 }
 
 FrameState *frame_state_off_thread(std::string filename,
                                    int framenumber) {
-    return new FrameState(filename, framenumber);
+  return new FrameState(filename, framenumber);
 }
 
 static QFuture<FrameState *> future;
 
 void
 FrameRetraceModel::setFrame(const QString &filename, int framenumber) {
-    // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
-     future = QtConcurrent::run(frame_state_off_thread, filename.toStdString(), framenumber);
-    m_retrace.openFile(filename.toStdString(), framenumber, this);
+  // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
+  future = QtConcurrent::run(frame_state_off_thread,
+                             filename.toStdString(), framenumber);
+  m_retrace.openFile(filename.toStdString(), framenumber, this);
 }
 
 QQmlListProperty<QRenderBookmark>
 FrameRetraceModel::renders() {
-    return QQmlListProperty<QRenderBookmark>(this, m_renders_model);
+  return QQmlListProperty<QRenderBookmark>(this, m_renders_model);
+}
+
+QQmlListProperty<QMetric>
+FrameRetraceModel::metricList() {
+  return QQmlListProperty<QMetric>(this, m_metrics_model);
 }
 
 
@@ -74,73 +85,86 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const std::string &fragment_shader,
                                     const std::string &fragment_ir,
                                     const std::string &fragment_simd8,
-                                    const std::string &fragment_simd16)
-{
-    ScopedLock s(m_protect);
-    m_vs_ir = vertex_ir.c_str();
-    m_fs_ir = fragment_ir.c_str();
-    m_vs_shader = vertex_shader.c_str();
-    m_fs_shader = fragment_shader.c_str();
-    m_vs_vec4 = vertex_vec4.c_str();
-    m_fs_simd8 = fragment_simd8.c_str();
-    m_fs_simd16 = fragment_simd16.c_str();
-    emit onShaders();
+                                    const std::string &fragment_simd16) {
+  ScopedLock s(m_protect);
+  m_vs_ir = vertex_ir.c_str();
+  m_fs_ir = fragment_ir.c_str();
+  m_vs_shader = vertex_shader.c_str();
+  m_fs_shader = fragment_shader.c_str();
+  m_vs_vec4 = vertex_vec4.c_str();
+  m_fs_simd8 = fragment_simd8.c_str();
+  m_fs_simd16 = fragment_simd16.c_str();
+  emit onShaders();
 }
 
 
 void
 FrameRetraceModel::onRenderTarget(RenderId renderId,
                                   RenderTargetType type,
-                                  const std::vector<unsigned char> &data)
-{
-    ScopedLock s(m_protect);
-    glretrace::FrameImages::instance()->SetImage(data);
-    emit onRenderTarget();
+                                  const std::vector<unsigned char> &data) {
+  ScopedLock s(m_protect);
+  glretrace::FrameImages::instance()->SetImage(data);
+  emit onRenderTarget();
 }
 
 void
 FrameRetraceModel::onShaderCompile(RenderId renderId,
                                    int status,
-                                   std::string errorString)
-{}
+                                   std::string errorString) {}
 
 void
-FrameRetraceModel::retrace(int start)
-{
-    ScopedLock s(m_protect);
-    m_retrace.retraceShaderAssembly(RenderId(start), this);
-    m_retrace.retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
-                                       glretrace::STOP_AT_RENDER, this);
+FrameRetraceModel::retrace(int start) {
+  ScopedLock s(m_protect);
+  m_retrace.retraceShaderAssembly(RenderId(start), this);
+  m_retrace.retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
+                                glretrace::STOP_AT_RENDER, this);
 }
 
 
 QString
-FrameRetraceModel::renderTargetImage() const
-{
-    ScopedLock s(m_protect);
-    static int i = 0;
-    std::stringstream ss;
-    ss << "image://myimageprovider/image" << ++i << ".png";
-    return ss.str().c_str();
+FrameRetraceModel::renderTargetImage() const {
+  ScopedLock s(m_protect);
+  static int i = 0;
+  std::stringstream ss;
+  ss << "image://myimageprovider/image" << ++i << ".png";
+  return ss.str().c_str();
 }
 
 void
 FrameRetraceModel::onFileOpening(bool finished,
-                                 uint32_t percent_complete)
-{
-    ScopedLock s(m_protect);
-    if (finished) {
-        m_state = future.result();
-        const int rcount = m_state->getRenderCount();
-        for (int i = 0; i < rcount; ++i ) {
-            m_renders_model.append(new QRenderBookmark(i));
-        }
-        emit onRenders();
-
-        m_open_percent = 101;
+                                 uint32_t percent_complete) {
+  ScopedLock s(m_protect);
+  if (finished) {
+    m_state = future.result();
+    const int rcount = m_state->getRenderCount();
+    for (int i = 0; i < rcount; ++i) {
+      m_renders_model.append(new QRenderBookmark(i));
     }
-    if (m_open_percent == percent_complete)
-        return;
-    m_open_percent = percent_complete;
-    emit onOpenPercent();
+    emit onRenders();
+
+    m_open_percent = 101;
+  }
+  if (m_open_percent == percent_complete)
+    return;
+  m_open_percent = percent_complete;
+  emit onOpenPercent();
+}
+
+void
+FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
+                                const std::vector<std::string> &names) {
+  ScopedLock s(m_protect);
+  t_ids = ids;
+  t_names = names;
+  emit updateMetricList();
+}
+
+void
+FrameRetraceModel::onUpdateMetricList() {
+  m_metrics_model.clear();
+  ScopedLock s(m_protect);
+  assert(t_ids.size() == t_names.size());
+  for (int i = 0; i < t_ids.size(); ++i)
+    m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
+  emit onQMetricList();
 }
