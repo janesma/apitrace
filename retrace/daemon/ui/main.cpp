@@ -27,33 +27,34 @@
 
 #include <unistd.h>
 
-#include <sstream>
-
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
 
+#include <sstream>
+
+#include "glframe_glhelper.hpp"
 #include "glframe_os.hpp"
+#include "glframe_qbargraph.hpp"
+#include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
 #include "glframe_retrace_skeleton.hpp"
 #include "glframe_retrace_stub.hpp"
 #include "glframe_socket.hpp"
-#include "glframe_retrace_images.hpp"
-
-#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include <google/protobuf/io/coded_stream.h>
-
 
 using glretrace::FrameRetraceModel;
 using glretrace::FrameRetraceSkeleton;
 using glretrace::FrameRetraceStub;
+using glretrace::GlFunctions;
+using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::ServerSocket;
 
 int fork_retracer() {
   ServerSocket sock(0);
   pid_t pid = fork();
-  //pid_t pid = 0;
   if (pid == -1) {
     // When fork() returns -1, an error happened.
     perror("fork failed");
@@ -65,30 +66,38 @@ int fork_retracer() {
     skel.Run();
     exit(0);  // exit() is unreliable here, so _exit must be used
   }
-  //exit(0);  // exit() is unreliable here, so _exit must be used
   return sock.GetPort();
 }
 
 int main(int argc, char *argv[]) {
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    const int port = fork_retracer();
+  GlFunctions::Init();
 
-    FrameRetraceStub::Init(port);
-    
-    QGuiApplication app(argc, argv);
+  const int port = fork_retracer();
 
-    qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0, "QRenderBookmark");
-    qmlRegisterType<glretrace::FrameRetraceModel>("ApiTrace", 1, 0, "FrameRetrace");
+  FrameRetraceStub::Init(port);
+  QGuiApplication app(argc, argv);
 
-    glretrace::FrameImages::Create();
-    
-    QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
-    engine.addImageProvider("myimageprovider", glretrace::FrameImages::instance());
-    int ret = app.exec();
+  qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0,
+                                              "QRenderBookmark");
+  qmlRegisterType<glretrace::QMetric>("ApiTrace", 1, 0,
+                                      "QMetric");
+  qmlRegisterType<glretrace::FrameRetraceModel>("ApiTrace", 1, 0,
+                                                "FrameRetrace");
 
-    FrameRetraceStub::Shutdown();
-    ::google::protobuf::ShutdownProtobufLibrary();
-    glretrace::FrameImages::Destroy();
-    return ret;
+  qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");
+  qmlRegisterType<glretrace::QSelection>("ApiTrace", 1, 0, "Selection");
+
+  glretrace::FrameImages::Create();
+
+  QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
+  engine.addImageProvider("myimageprovider",
+                          glretrace::FrameImages::instance());
+  int ret = app.exec();
+
+  FrameRetraceStub::Shutdown();
+  ::google::protobuf::ShutdownProtobufLibrary();
+  glretrace::FrameImages::Destroy();
+  return ret;
 }

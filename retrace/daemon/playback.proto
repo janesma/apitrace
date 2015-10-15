@@ -21,6 +21,11 @@ message OpenFileStatus {
   required uint32 percent_complete = 2;
 }
 
+message MetricsList {
+  repeated uint32 metric_ids = 1;
+  repeated string metric_names = 2;
+}
+
 message RenderTargetRequest {
   required uint32 renderId = 1;
   required RenderTargetType type = 2;
@@ -59,4 +64,5 @@ message RetraceResponse {
   optional RenderTargetResponse renderTarget = 1;
   optional ShaderAssemblyResponse shaderAssembly = 2;
   optional OpenFileStatus fileStatus = 3;
+  optional MetricsList metricsList = 4;
 }

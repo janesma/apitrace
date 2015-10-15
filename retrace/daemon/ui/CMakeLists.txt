@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
+  ${CMAKE_SOURCE_DIR}/retrace/daemon/bargraph
   )
 
 find_package(Qt5Widgets REQUIRED) 
@@ -20,12 +21,15 @@ add_definitions(${Qt5Widgets_DEFINITIONS})
 
 qt5_add_resources(RESOURCE_ADDED resources.qrc)
 
-add_executable(frame_retrace 
+set (UI_SRC
   main.cpp
   glframe_retrace_images.hpp
   glframe_retrace_images.cpp
   glframe_retrace_model.hpp
   glframe_retrace_model.cpp
+  )
+add_executable(frame_retrace
+  ${UI_SRC}
   ${UIS_HDRS}
   ${RESOURCE_ADDED} 
 )
@@ -36,6 +40,7 @@ qt5_use_modules(frame_retrace Core Gui Concurrent Quick)
 
 target_link_libraries(frame_retrace
   retrace_daemon
+  retrace_bargraph
   glretrace_common
   glhelpers
   glproc_gl
@@ -46,4 +51,4 @@ target_link_libraries(frame_retrace
   dl
 )
 
-
+Lint(UI_SRC)
