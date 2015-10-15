@@ -203,6 +203,13 @@ FrameRetraceSkeleton::onShaderCompile(RenderId renderId, int status,
 void
 FrameRetraceSkeleton::onMetricList(const std::vector<MetricId> &ids,
                                    const std::vector<std::string> &names) {
+  RetraceResponse proto_response;
+  auto metrics_response = proto_response.mutable_metricslist();
+  for (auto i : ids)
+    metrics_response->add_metric_ids(i());
+  for (auto i : names)
+    metrics_response->add_metric_names(i);
+  writeResponse(m_socket, proto_response, &m_buf);
 }
 
 void

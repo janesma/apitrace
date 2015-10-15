@@ -33,11 +33,13 @@
 #include <vector>
 
 #include "glframe_os.hpp"
+#include "glframe_retrace.hpp"
 #include "glframe_socket.hpp"
 #include "glframe_thread.hpp"
 #include "playback.pb.h" // NOLINT
 
 using glretrace::FrameRetraceStub;
+using glretrace::MetricId;
 using glretrace::Thread;
 using glretrace::RenderId;
 using glretrace::RenderTargetType;
@@ -190,13 +192,26 @@ class RetraceOpenFileRequest: public IRetraceRequest {
     while (true) {
       RetraceResponse response;
       s->response(&response);
-      assert(response.has_filestatus());
-      auto status = response.filestatus();
-      if (m_callback)
-        m_callback->onFileOpening(status.finished(),
-                                  status.percent_complete());
-      if (status.finished())
-        break;
+      if (response.has_filestatus()) {
+        auto status = response.filestatus();
+        if (m_callback)
+          m_callback->onFileOpening(status.finished(),
+                                    status.percent_complete());
+        if (status.finished())
+          break;
+      } else {
+        assert(response.has_metricslist());
+        std::vector<MetricId> ids;
+        std::vector<std::string> names;
+        auto metrics_list = response.metricslist();
+        ids.reserve(metrics_list.metric_ids_size());
+        for (int i = 0; i < metrics_list.metric_ids_size(); ++i )
+          ids.push_back(MetricId(metrics_list.metric_ids(i)));
+        names.reserve(metrics_list.metric_names_size());
+        for (int i = 0; i < metrics_list.metric_names_size(); ++i )
+          names.push_back(metrics_list.metric_names(i));
+        m_callback->onMetricList(ids, names);
+      }
     }
   }
 
