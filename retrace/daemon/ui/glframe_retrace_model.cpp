@@ -168,3 +168,12 @@ FrameRetraceModel::onUpdateMetricList() {
     m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
   emit onQMetricList();
 }
+
+void
+FrameRetraceModel::setMetric(int index, int id) {
+  if (index >= m_active_metrics.size())
+    m_active_metrics.resize(index+1);
+  m_active_metrics[index] = MetricId(id);
+  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+                           this);
+}
