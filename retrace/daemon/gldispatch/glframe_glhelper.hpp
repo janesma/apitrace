@@ -100,6 +100,14 @@ class GlFunctions {
                                       GLuint *counterDataTypeEnum,
                                       GLuint64 *rawCounterMaxValue);
 
+  static void CreatePerfQueryINTEL(GLuint queryId, GLuint *queryHandle);
+  static void DeletePerfQueryINTEL(GLuint queryHandle);
+  static void BeginPerfQueryINTEL(GLuint queryHandle);
+  static void EndPerfQueryINTEL(GLuint queryHandle);
+  static void GetPerfQueryDataINTEL(GLuint queryHandle, GLuint flags,
+                                    GLsizei dataSize, GLvoid *data,
+                                    GLuint *bytesWritten);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
