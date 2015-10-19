@@ -38,22 +38,24 @@
 #include "glframe_thread.hpp"
 #include "playback.pb.h" // NOLINT
 
-using glretrace::FrameRetraceStub;
-using glretrace::MetricId;
-using glretrace::Thread;
-using glretrace::RenderId;
-using glretrace::RenderTargetType;
-using glretrace::RenderOptions;
-using glretrace::OnFrameRetrace;
-using glretrace::Semaphore;
-using glretrace::Socket;
-using glretrace::ScopedLock;
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
+using glretrace::ExperimentId;
+using glretrace::FrameRetraceStub;
+using glretrace::MetricId;
+using glretrace::MetricSeries;
+using glretrace::OnFrameRetrace;
+using glretrace::RenderId;
+using glretrace::RenderOptions;
+using glretrace::RenderTargetType;
+using glretrace::ScopedLock;
+using glretrace::Semaphore;
+using glretrace::Socket;
+using glretrace::Thread;
 using google::protobuf::io::ArrayInputStream;
+using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
-using google::protobuf::io::ArrayOutputStream;
 
 namespace {
 
@@ -220,6 +222,42 @@ class RetraceOpenFileRequest: public IRetraceRequest {
   OnFrameRetrace *m_callback;
 };
 
+class RetraceMetricsRequest : public IRetraceRequest {
+ public:
+  RetraceMetricsRequest(const std::vector<MetricId> &ids,
+                              ExperimentId experimentCount,
+                              OnFrameRetrace *cb)
+      : m_callback(cb) {
+    auto metricsRequest = m_proto_msg.mutable_metrics();
+    for (MetricId i : ids)
+      metricsRequest->add_metric_ids(i());
+    metricsRequest->set_experiment_count(experimentCount());
+    m_proto_msg.set_requesttype(ApiTrace::METRICS_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    RetraceResponse response;
+    s->retrace(m_proto_msg, &response);
+    assert(response.has_metricsdata());
+    auto metrics_response = response.metricsdata();
+
+    const ExperimentId eid(metrics_response.experiment_count());
+    for (auto &metric_data : metrics_response.metric_data()) {
+      MetricSeries met;
+      met.metric = MetricId(metric_data.metric_id());
+      auto &data_float_vec = metric_data.data();
+      met.data.reserve(data_float_vec.size());
+      for (auto d : data_float_vec)
+        met.data.push_back(d);
+
+      m_callback->onMetrics(met, eid);
+    }
+  }
+
+ private:
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -313,4 +351,11 @@ void
 FrameRetraceStub::retraceShaderAssembly(RenderId renderId,
                                         OnFrameRetrace *callback) {
   thread->push(new RetraceShaderAssemblyRequest(renderId, callback));
+}
+
+void
+FrameRetraceStub::retraceMetrics(const std::vector<MetricId> &ids,
+                                 ExperimentId experimentCount,
+                                 OnFrameRetrace *callback) const {
+  thread->push(new RetraceMetricsRequest(ids, experimentCount, callback));
 }

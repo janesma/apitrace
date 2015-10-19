@@ -101,6 +101,7 @@ class FrameRetraceModel : public QObject,
 
   Q_INVOKABLE void setFrame(const QString &filename, int framenumber);
   Q_INVOKABLE void retrace(int start);
+  Q_INVOKABLE void setMetric(int index, int id);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
 
@@ -157,6 +158,8 @@ class FrameRetraceModel : public QObject,
   // socket thread.
   std::vector<MetricId> t_ids;
   std::vector<std::string> t_names;
+
+  std::vector<MetricId> m_active_metrics;
 };
 
 }  // namespace glretrace
