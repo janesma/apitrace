@@ -67,6 +67,11 @@ static void *pGetNextPerfQueryIdINTEL = NULL;
 static void *pGetIntegerv = NULL;
 static void *pGetPerfQueryInfoINTEL = NULL;
 static void *pGetPerfCounterInfoINTEL = NULL;
+static void *pCreatePerfQueryINTEL = NULL;
+static void *pDeletePerfQueryINTEL = NULL;
+static void *pBeginPerfQueryINTEL = NULL;
+static void *pEndPerfQueryINTEL = NULL;
+static void *pGetPerfQueryDataINTEL = NULL;
 
 }  // namespace
 
@@ -148,6 +153,16 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetPerfQueryInfoINTEL);
   pGetPerfCounterInfoINTEL = GetProcAddress("glGetPerfCounterInfoINTEL");
   assert(pGetPerfCounterInfoINTEL);
+  pCreatePerfQueryINTEL = GetProcAddress("glCreatePerfQueryINTEL");
+  assert(pCreatePerfQueryINTEL);
+  pDeletePerfQueryINTEL = GetProcAddress("glDeletePerfQueryINTEL");
+  assert(pDeletePerfQueryINTEL);
+  pBeginPerfQueryINTEL = GetProcAddress("glBeginPerfQueryINTEL");
+  assert(pBeginPerfQueryINTEL);
+  pEndPerfQueryINTEL = GetProcAddress("glEndPerfQueryINTEL");
+  assert(pEndPerfQueryINTEL);
+  pGetPerfQueryDataINTEL = GetProcAddress("glGetPerfQueryDataINTEL");
+  assert(pGetPerfQueryDataINTEL);
 }
 
 GLuint
@@ -409,4 +424,38 @@ GlFunctions::GetPerfCounterInfoINTEL(GLuint queryId, GLuint counterId,
                                                       counterTypeEnum,
                                                       counterDataTypeEnum,
                                                       rawCounterMaxValue);
+}
+
+void GlFunctions::CreatePerfQueryINTEL(GLuint queryId, GLuint *queryHandle) {
+  typedef void (*CREATEPERFQUERYINTEL)(GLuint queryId, GLuint *queryHandle);
+  ((CREATEPERFQUERYINTEL)pCreatePerfQueryINTEL)(queryId, queryHandle);
+}
+
+void GlFunctions::DeletePerfQueryINTEL(GLuint queryHandle) {
+  typedef void (*DELETEPERFQUERYINTEL)(GLuint queryHandle);
+  ((DELETEPERFQUERYINTEL)pDeletePerfQueryINTEL)(queryHandle);
+}
+
+void
+GlFunctions::BeginPerfQueryINTEL(GLuint queryHandle) {
+  typedef void (*BEGINPERFQUERYINTEL)(GLuint queryHandle);
+  ((BEGINPERFQUERYINTEL) pBeginPerfQueryINTEL)(queryHandle);
+}
+
+void
+GlFunctions::EndPerfQueryINTEL(GLuint queryHandle) {
+  typedef void (*ENDPERFQUERYINTEL)(GLuint queryHandle);
+  ((ENDPERFQUERYINTEL) pEndPerfQueryINTEL)(queryHandle);
+}
+
+void
+GlFunctions::GetPerfQueryDataINTEL(GLuint queryHandle, GLuint flags,
+                                   GLsizei dataSize, GLvoid *data,
+                                   GLuint *bytesWritten) {
+  typedef void (*GETPERFQUERYDATAINTEL)(GLuint queryHandle, GLuint flags,
+                                        GLsizei dataSize, GLvoid *data,
+                                        GLuint *bytesWritten);
+  ((GETPERFQUERYDATAINTEL) pGetPerfQueryDataINTEL)(queryHandle, flags,
+                                                   dataSize, data,
+                                                   bytesWritten);
 }
