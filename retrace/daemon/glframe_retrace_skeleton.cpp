@@ -101,12 +101,26 @@ FrameRetraceSkeleton::Run() {
                                        this);
           break;
         }
+      case ApiTrace::METRICS_REQUEST:
+        {
+          assert(request.has_metrics());
+          auto met = request.metrics();
+          std::vector<MetricId> ids;
+          for (int i : met.metric_ids())
+            ids.push_back(MetricId(i));
+          m_frame->retraceMetrics(ids,
+                                  ExperimentId(met.experiment_count()),
+                                  this);
+          break;
+        }
       case ApiTrace::SHADER_ASSEMBLY_REQUEST:
-        assert(request.has_shaderassembly());
-        auto shader = request.shaderassembly();
-        m_frame->retraceShaderAssembly(glretrace::RenderId(shader.renderid()),
-                                       this);
-        break;
+        {
+          assert(request.has_shaderassembly());
+          auto shader = request.shaderassembly();
+          m_frame->retraceShaderAssembly(glretrace::RenderId(shader.renderid()),
+                                         this);
+          break;
+        }
     }
   }
 }

@@ -9,6 +9,7 @@ enum RequestType {
   OPEN_FILE_REQUEST = 1;
   RENDER_TARGET_REQUEST = 2;
   SHADER_ASSEMBLY_REQUEST = 3;
+  METRICS_REQUEST = 4;
 };
 
 message OpenFileRequest {
@@ -43,6 +44,11 @@ message ShaderAssemblyRequest {
   required uint32 renderId = 1;
 }
 
+message MetricsRequest {
+  repeated uint32 metric_ids = 1;
+  required uint32 experiment_count = 2;
+}
+
 message ShaderAssemblyResponse {
   required string vertex_shader = 1;
   required string vertex_ir = 2;
@@ -53,11 +59,22 @@ message ShaderAssemblyResponse {
   required string fragment_simd16 = 7;
 }
 
+message MetricSeries {
+  required uint32 metric_id = 1;
+  repeated float data = 2;
+}
+
+message MetricsResponse {
+  repeated MetricSeries metric_data = 1;
+  required uint32 experiment_count = 2;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
   optional ShaderAssemblyRequest shaderAssembly = 3;
   optional OpenFileRequest fileOpen = 4;
+  optional MetricsRequest metrics = 5;
 }
 
 message RetraceResponse {
@@ -65,4 +82,5 @@ message RetraceResponse {
   optional ShaderAssemblyResponse shaderAssembly = 2;
   optional OpenFileStatus fileStatus = 3;
   optional MetricsList metricsList = 4;
+  optional MetricsResponse metricsData = 5;
 }

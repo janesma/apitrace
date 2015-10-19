@@ -16,6 +16,13 @@ Item {
         }
         return output;
     }
+    function metricId(name) {
+        for (var i = 0; i < metric_model.metricList.length; ++i) {
+            if (metric_model.metricList[i].name == name)
+                return metric_model.metricList[i].id;
+        }
+        return 0;
+    }
     
     ColumnLayout {
         anchors.fill: parent
@@ -25,6 +32,11 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             model: metricNames()
+            onCurrentIndexChanged : {
+                var currentId = metricId(model[currentIndex]);
+                if (currentId)
+                    metric_model.setMetric(0, currentId);
+            }
         }
         Item {
             Layout.alignment: Qt.AlignTop

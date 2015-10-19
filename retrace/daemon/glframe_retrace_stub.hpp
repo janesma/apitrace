@@ -54,7 +54,7 @@ class FrameRetraceStub : public IFrameRetrace {
                                      OnFrameRetrace *callback);
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
-                              OnFrameRetrace *callback) const {}
+                              OnFrameRetrace *callback) const;
  private:
 };
 }  // namespace glretrace
