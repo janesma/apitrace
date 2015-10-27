@@ -82,4 +82,5 @@ TEST(Daemon, LoadFile) {
     rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
                            glretrace::STOP_AT_RENDER, &cb);
   }
+  retrace::cleanUp();
 }

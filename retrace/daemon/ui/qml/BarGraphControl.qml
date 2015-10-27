@@ -46,6 +46,7 @@ Item {
 
             BarGraph {
                 id: barGraph
+                model: metric_model
                 selection: control.selection
                 visible: true
                 anchors.fill: parent

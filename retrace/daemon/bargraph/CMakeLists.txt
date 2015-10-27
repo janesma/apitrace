@@ -21,6 +21,7 @@ include(../Lint.cmake)
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
+  ${CMAKE_SOURCE_DIR}/retrace/daemon/ui
   ${CMAKE_SOURCE_DIR}/retrace/daemon/gldispatch
   )
 
@@ -48,7 +49,7 @@ add_library(retrace_bargraph STATIC
   ${BARGRAPH_SOURCES}
   )
 
-qt5_use_modules(retrace_bargraph Core Gui OpenGL Quick) 
+qt5_use_modules(retrace_bargraph Core Gui OpenGL Concurrent Quick) 
 
 add_subdirectory(test)
 add_subdirectory(ui)

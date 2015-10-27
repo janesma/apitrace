@@ -78,6 +78,7 @@ enum IdPrefix {
 // with any other Id
 class RenderId {
  public:
+  RenderId() : value(0) {}
   explicit RenderId(uint32_t renderNumber) {
     assert(((renderNumber & ID_PREFIX_MASK) == 0) ||
            ((renderNumber & ID_PREFIX_MASK) == RENDER_ID_PREFIX));
@@ -86,6 +87,7 @@ class RenderId {
 
   uint32_t operator()() const { return value; }
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+  bool operator<(const RenderId &o) const { return value < o.value; }
  private:
   uint32_t value;
 };
@@ -94,18 +96,25 @@ class RenderId {
 // with any other Id
 class MetricId {
  public:
-  explicit MetricId(uint32_t metricNumber) {
+  explicit MetricId(uint64_t metricNumber) {
     assert(((metricNumber & ID_PREFIX_MASK) == 0) ||
            ((metricNumber & ID_PREFIX_MASK) == METRIC_ID_PREFIX));
     value = METRIC_ID_PREFIX | metricNumber;
   }
+  MetricId(uint32_t group, uint16_t counter) {
+    value = METRIC_ID_PREFIX | (group << 16) | counter;
+  }
   MetricId() : value(0) {}
 
-  uint32_t operator()() const { return value; }
-  uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+  uint64_t operator()() const { return value; }
+  uint32_t group() const { return value >> 16; }
+  uint32_t counter() const { return (value & 0x0FFFF); }
   bool operator<(const MetricId &o) const { return value < o.value; }
  private:
-  uint32_t value;
+  // low 16 bits are the counter number
+  // middle 32 bits are the group
+  // high 4 bits are the mask
+  uint64_t value;
 };
 
 // Decorates Selection numbers with a mask, so they can never be
@@ -128,6 +137,7 @@ class SelectionId {
 // confused with any other Id
 class ExperimentId {
  public:
+  ExperimentId() : value(0) {}
   explicit ExperimentId(uint32_t experimentNumber) {
     assert(((experimentNumber & ID_PREFIX_MASK) == 0) ||
            ((experimentNumber & ID_PREFIX_MASK) == EXPERIMENT_ID_PREFIX));
@@ -135,10 +145,11 @@ class ExperimentId {
   }
 
   uint32_t operator()() const { return value; }
-  uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+  uint32_t count() const { return value & (~ID_PREFIX_MASK); }
  private:
   uint32_t value;
 };
+
 
 struct MetricSeries {
   MetricId metric;
@@ -214,6 +225,7 @@ class FrameRetrace : public IFrameRetrace {
 
  public:
   FrameRetrace();
+  ~FrameRetrace();
   void openFile(const std::string &filename,
                 uint32_t frameNumber,
                 OnFrameRetrace *callback);

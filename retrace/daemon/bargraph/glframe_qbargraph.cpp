@@ -27,14 +27,19 @@
 #include "glframe_qbargraph.hpp"
 
 #include <QtOpenGL>
+#include <QList>
+#include <qtextstream.h>
 
 #include <algorithm>
 #include <set>
 #include <vector>
 
-using glretrace::QBarGraphRenderer;
+#include "glframe_retrace_model.hpp"
+
 using glretrace::BarGraphView;
 using glretrace::BarMetrics;
+using glretrace::FrameRetraceModel;
+using glretrace::QBarGraphRenderer;
 
 QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
   m_graph.subscribe(this);
@@ -66,6 +71,14 @@ QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
               this, &QBarGraphRenderer::onSelect);
       connect(this, &QBarGraphRenderer::barSelect,
               s, &QSelection::select);
+    }
+  }
+
+  if (!model) {
+    FrameRetraceModel *m = v->getModel();
+    if (m) {
+      model = m;
+      m->subscribe(this);
     }
   }
 
@@ -107,9 +120,12 @@ QBarGraphRenderer::createFramebufferObject(const QSize & size) {
 void
 QBarGraphRenderer::onMetrics(QList<BarMetrics> metrics) {
   std::vector<BarMetrics> m;
-  for (auto metric : metrics)
+  for (auto metric : metrics) {
+    metric.metric2 = 0;
     m.push_back(metric);
+  }
   m_graph.setBars(m);
+  update();
 }
 
 QQuickFramebufferObject::Renderer *
@@ -117,7 +133,8 @@ BarGraphView::createRenderer() const {
   return new QBarGraphRenderer();
 }
 
-BarGraphView::BarGraphView() : mouse_area(4), clicked(false), selection(NULL) {
+BarGraphView::BarGraphView() : mouse_area(4), clicked(false),
+                               selection(NULL), model(NULL) {
 }
 
 void
