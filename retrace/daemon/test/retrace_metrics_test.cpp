@@ -57,9 +57,14 @@ class MetricsCallback : public OnFrameRetrace {
     names = n;
   }
   void onMetrics(const MetricSeries &metricData,
-                 ExperimentId experimentCount) {}
+                 ExperimentId experimentCount) {
+    data = metricData;
+    experiment_count = experimentCount;
+  }
   std::vector<MetricId> ids;
   std::vector<std::string> names;
+  MetricSeries data;
+  ExperimentId experiment_count;
 };
 
 TEST(Metrics, ReadMetrics) {
@@ -74,6 +79,71 @@ TEST(Metrics, ReadMetrics) {
     EXPECT_EQ(mets.find(id), mets.end());
     mets.insert(id);
   }
+}
+
+static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.test_trace";
+
+TEST(Metrics, SingleMetricData) {
+  retrace::setUp();
+  GlFunctions::Init();
+  TestContext c;
+  MetricsCallback cb;
+  PerfMetrics p(&cb);
+  if (!cb.ids.size())
+    return;
+  bool found = false;
+  for (int i = 0; i < cb.ids.size(); ++i) {
+    if (cb.names[i] == "GPU Time Elapsed") {
+      found = true;
+      p.selectMetric(cb.ids[i]);
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
+
+  FrameRetrace rt;
+  rt.openFile(test_file, 7, &cb);
+  p.begin(RenderId(1));
+  rt.retraceRenderTarget(RenderId(1), 0, glretrace::NORMAL_RENDER,
+                         glretrace::STOP_AT_RENDER, &cb);
+  p.end();
+  p.publish(ExperimentId(1), &cb);
+  EXPECT_EQ(cb.experiment_count.count(), 1);
+  for (float d : cb.data.data) {
+    std::cout << "data: " << d << std::endl;
+    EXPECT_GT(d, 0.0);
+  }
+  retrace::cleanUp();
+}
+
+TEST(Metrics, FrameMetricData) {
+  retrace::setUp();
+  GlFunctions::Init();
+  TestContext c;
+  MetricsCallback cb;
+  PerfMetrics p(&cb);
+  if (!cb.ids.size())
+    return;
+  MetricId id;
+  for (int i = 0; i < cb.ids.size(); ++i) {
+    if (cb.names[i] == "GPU Time Elapsed") {
+      id = cb.ids[i];
+      break;
+    }
+  }
+  EXPECT_GT(id(), 0);
+
+  FrameRetrace rt;
+  rt.openFile(test_file, 7, &cb);
+  const std::vector<MetricId> mets = { id };
+  const ExperimentId experiment(1);
+  rt.retraceMetrics(mets, experiment, &cb);
+  EXPECT_EQ(cb.experiment_count.count(), 1);
+  for (float d : cb.data.data) {
+    std::cout << "data: " << d << std::endl;
+    EXPECT_GT(d, 0.0);
+  }
+  retrace::cleanUp();
 }
 
 }  // namespace glretrace

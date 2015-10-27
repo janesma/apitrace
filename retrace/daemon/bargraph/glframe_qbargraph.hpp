@@ -38,6 +38,7 @@
 
 namespace glretrace {
 
+class FrameRetraceModel;
 class QBarGraphRenderer : public QObject,
                           public QQuickFramebufferObject::Renderer,
                           public glretrace::BarGraphSubscriber,
@@ -59,6 +60,7 @@ class QBarGraphRenderer : public QObject,
   BarGraphRenderer m_graph;
   std::vector<int> current_selection;
   QSelection *selection;
+  FrameRetraceModel *model;
 };
 
 // exposes qml properties and signals to integrate the bar graph into
@@ -68,6 +70,8 @@ class BarGraphView : public QQuickFramebufferObject,
   Q_OBJECT
   Q_PROPERTY(glretrace::QSelection* selection
              READ getSelection WRITE setSelection)
+  Q_PROPERTY(glretrace::FrameRetraceModel* model
+             READ getModel WRITE setModel)
  public:
   BarGraphView();
   QQuickFramebufferObject::Renderer *createRenderer() const;
@@ -77,9 +81,13 @@ class BarGraphView : public QQuickFramebufferObject,
   QSelection *getSelection() { return selection; }
   void setSelection(QSelection *s) { selection = s; update(); }
 
+  FrameRetraceModel *getModel() { return model; }
+  void setModel(FrameRetraceModel *m) { model = m; update(); }
+
   std::vector<float> mouse_area;
   bool clicked;
   QSelection *selection;
+  FrameRetraceModel *model;
 };
 
 }  // namespace glretrace
