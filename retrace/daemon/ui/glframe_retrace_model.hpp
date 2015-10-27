@@ -27,6 +27,9 @@
 #ifndef _GLFRAME_RETRACE_MODEL_HPP_
 #define _GLFRAME_RETRACE_MODEL_HPP_
 
+#include <QQuickImageProvider>   // NOLINT
+#include <QtConcurrentRun>   // NOLINT
+
 #include <QObject>
 #include <QList>
 #include <QString>
@@ -38,6 +41,7 @@
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_stub.hpp"
 #include "glframe_os.hpp"
+#include "glframe_bargraph.hpp"
 
 namespace glretrace {
 
@@ -77,7 +81,7 @@ class QMetric : public QObject {
   QString m_name;
 };
 
-
+class QBarGraphRenderer;
 class FrameRetraceModel : public QObject,
                           public OnFrameRetrace {
   Q_OBJECT
@@ -98,6 +102,8 @@ class FrameRetraceModel : public QObject,
  public:
   FrameRetraceModel();
   ~FrameRetraceModel();
+
+  virtual void subscribe(QBarGraphRenderer *graph);
 
   Q_INVOKABLE void setFrame(const QString &filename, int framenumber);
   Q_INVOKABLE void retrace(int start);
@@ -122,7 +128,7 @@ class FrameRetraceModel : public QObject,
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names);
   void onMetrics(const MetricSeries &metricData,
-                 ExperimentId experimentCount) {}
+                 ExperimentId experimentCount);
   QString vsIR() const { ScopedLock s(m_protect); return m_vs_ir; }
   QString fsIR() const { ScopedLock s(m_protect); return m_fs_ir; }
   QString vsSource() const { ScopedLock s(m_protect); return m_vs_shader; }
@@ -137,6 +143,7 @@ class FrameRetraceModel : public QObject,
  signals:
   void onShaders();
   void onQMetricList();
+  void onQMetricData(QList<glretrace::BarMetrics> metrics);
   void onRenders();
   void onRenderTarget();
   void onOpenPercent();

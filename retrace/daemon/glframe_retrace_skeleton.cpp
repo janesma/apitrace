@@ -229,4 +229,13 @@ FrameRetraceSkeleton::onMetricList(const std::vector<MetricId> &ids,
 void
 FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
                                 ExperimentId experimentCount) {
+  RetraceResponse proto_response;
+  auto metrics_response = proto_response.mutable_metricsdata();
+  metrics_response->set_experiment_count(experimentCount());
+  ApiTrace::MetricSeries *s = metrics_response->add_metric_data();
+  s->set_metric_id(metricData.metric());
+  for (auto d : metricData.data) {
+    s->add_data(d);
+  }
+  writeResponse(m_socket, proto_response, &m_buf);
 }

@@ -56,16 +56,14 @@ struct MetricDescription {
 class PerfMetric : public NoCopy, NoAssign {
  public:
   PerfMetric(int query_id, int counter_num);
-  ~PerfMetric() { }
   MetricId id() const;
   const std::string &name() const;
-  float getMetric(const std::vector<unsigned char> &data);
+  float getMetric(const std::vector<unsigned char> &data) const;
  private:
   const int m_query_id, m_counter_num;
   GLuint m_offset, m_data_size, m_type,
     m_data_type;
   std::string m_name, m_description;
-  std::vector<float> m_data;
 };
 
 }  // namespace
@@ -97,13 +95,12 @@ class PerfMetricGroup : public NoCopy, NoAssign {
   std::vector<unsigned int> m_free_query_handles;
 };
 
-PerfMetrics::PerfMetrics(OnFrameRetrace *cb) {
+PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
   GLuint query_id;
   GlFunctions::GetFirstPerfQueryIdINTEL(&query_id);
   if (query_id == -1)
     return;
 
-  assert(query_id < 256);
   if (query_id == 0)
     return;
   std::vector<unsigned int> query_ids;
@@ -119,15 +116,19 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) {
   std::map<std::string, MetricId> known_metrics;
 
   std::vector<MetricDescription> metrics;
+  int group_index = 0;
   for (auto i : query_ids) {
     PerfMetricGroup *g = new PerfMetricGroup(i);
     groups.push_back(g);
     metrics.clear();
     g->metrics(&metrics);
     for (auto &d : metrics) {
-      if (known_metrics.find(d.name) == known_metrics.end())
+      if (known_metrics.find(d.name) == known_metrics.end()) {
         known_metrics[d.name] = d.id;
+        metric_map[d.id] = group_index;
+      }
     }
+    ++group_index;
   }
   std::vector<MetricId> ids;
   std::vector<std::string> names;
@@ -136,6 +137,12 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) {
     ids.push_back(i.second);
   }
   cb->onMetricList(ids, names);
+}
+
+PerfMetrics::~PerfMetrics() {
+  for (auto g : groups)
+    delete g;
+  groups.clear();
 }
 
 PerfMetricGroup::PerfMetricGroup(int query_id) : m_query_id(query_id) {
@@ -158,12 +165,69 @@ PerfMetricGroup::PerfMetricGroup(int query_id) : m_query_id(query_id) {
   }
 }
 
+PerfMetricGroup::~PerfMetricGroup() {
+  for (auto free_query : m_free_query_handles) {
+    GlFunctions::DeletePerfQueryINTEL(free_query);
+  }
+  m_free_query_handles.clear();
+  assert(m_extant_query_handles.empty());
+  for (auto m : m_metrics)
+    delete m.second;
+  m_metrics.clear();
+}
+
 void
 PerfMetricGroup::metrics(std::vector<MetricDescription> *m) const {
   for (auto &i : m_metrics) {
     m->push_back(MetricDescription(i.first, i.second->name()));
   }
 }
+
+void
+PerfMetricGroup::begin(RenderId render) {
+  if (m_free_query_handles.empty()) {
+    GLuint query_handle;
+    GlFunctions::CreatePerfQueryINTEL(m_query_id, &query_handle);
+    m_free_query_handles.push_back(query_handle);
+  }
+  GLuint query_handle = m_free_query_handles.back();
+  m_free_query_handles.pop_back();
+  GlFunctions::BeginPerfQueryINTEL(query_handle);
+  m_extant_query_handles[render] = query_handle;
+}
+
+void
+PerfMetricGroup::publish(MetricId metric,
+                         ExperimentId experimentCount,
+                         OnFrameRetrace *callback) {
+  MetricSeries out_data;
+  out_data.metric = metric;
+  out_data.data.reserve(m_extant_query_handles.size());
+  for (auto extant_query : m_extant_query_handles) {
+    memset(m_data_buf.data(), 0, m_data_buf.size());
+    GLuint bytes_written;
+    GlFunctions::GetPerfQueryDataINTEL(extant_query.second,
+                                       GL_PERFQUERY_WAIT_INTEL,
+                                       m_data_size, m_data_buf.data(),
+                                       &bytes_written);
+    assert(bytes_written == m_data_size);
+    assert(m_metrics.find(metric) != m_metrics.end());
+
+    // TODO(majanes) verify order of m_extant_query_handles is by
+    // RenderId
+    out_data.data.push_back(m_metrics[metric]->getMetric(m_data_buf));
+
+    m_free_query_handles.push_back(extant_query.second);
+    m_extant_query_handles.clear();
+  }
+  callback->onMetrics(out_data, experimentCount);
+}
+
+void
+PerfMetricGroup::end(RenderId render) {
+  GlFunctions::EndPerfQueryINTEL(m_extant_query_handles[render]);
+}
+
 
 PerfMetric::PerfMetric(int query_id,
                        int counter_num) : m_query_id(query_id),
@@ -190,10 +254,72 @@ PerfMetric::PerfMetric(int query_id,
 
 MetricId
 PerfMetric::id() const {
-  return MetricId(m_query_id << 16 | m_counter_num);
+  return MetricId(m_query_id, m_counter_num);
 }
 
 const std::string &
 PerfMetric::name() const {
   return m_name;
+}
+
+float
+PerfMetric::getMetric(const std::vector<unsigned char> &data) const {
+  const unsigned char *p_value = data.data() + m_offset;
+  float fval;
+  switch (m_data_type) {
+    case GL_PERFQUERY_COUNTER_DATA_UINT32_INTEL: {
+      assert(m_data_size == 4);
+      const uint32_t val = *reinterpret_cast<const uint32_t *>(p_value);
+      fval = static_cast<float>(val);
+      break;
+    }
+    case GL_PERFQUERY_COUNTER_DATA_UINT64_INTEL: {
+      assert(m_data_size == 8);
+      const uint64_t val = *reinterpret_cast<const uint64_t *>(p_value);
+      fval = static_cast<float>(val);
+      break;
+    }
+    case GL_PERFQUERY_COUNTER_DATA_FLOAT_INTEL: {
+      assert(m_data_size == 4);
+      fval = *reinterpret_cast<const float *>(p_value);
+      break;
+    }
+    case GL_PERFQUERY_COUNTER_DATA_DOUBLE_INTEL: {
+      assert(m_data_size == 8);
+      const double val = *reinterpret_cast<const double *>(p_value);
+      fval = static_cast<float>(val);
+      break;
+    }
+    case GL_PERFQUERY_COUNTER_DATA_BOOL32_INTEL:
+      assert(m_data_size == 4);
+      assert(false);
+      break;
+    default:
+      assert(false);
+  }
+  return fval;
+}
+
+void
+PerfMetrics::selectMetric(MetricId metric) {
+  assert(metric_map.find(metric) != metric_map.end());
+  current_metric = metric;
+  current_group = groups[metric_map[metric]];
+}
+
+void
+PerfMetrics::publish(ExperimentId experimentCount,
+                     OnFrameRetrace *callback) {
+  current_group->publish(current_metric, experimentCount, callback);
+}
+
+void
+PerfMetrics::begin(RenderId render) {
+  current_group->begin(render);
+  current_render = render;
+}
+
+void
+PerfMetrics::end() {
+  current_group->end(current_render);
 }

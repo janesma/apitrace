@@ -105,6 +105,10 @@ class PlayAndCleanUpCall {
 };
 
 FrameRetrace::FrameRetrace() {}
+FrameRetrace::~FrameRetrace() {
+  delete(metrics);
+  parser->close();
+}
 
 void
 FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
@@ -296,4 +300,27 @@ void
 FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
                              ExperimentId experimentCount,
                              OnFrameRetrace *callback) const {
+  for (const auto &id : ids) {
+    metrics->selectMetric(id);
+    parser->setBookmark(frame_start.start);
+
+    int render_count = 0;
+    metrics->begin(RenderId(render_count));
+    trace::Call *call;
+    while ((call = parser->parse_call())) {
+      PlayAndCleanUpCall c(call, NULL, false);
+      if (call->flags & trace::CALL_FLAG_RENDER) {
+        metrics->end();
+        ++render_count;
+        metrics->begin(RenderId(render_count));
+        continue;
+      }
+
+      if (call->flags & trace::CALL_FLAG_END_FRAME) {
+        metrics->end();
+        metrics->publish(experimentCount, callback);
+        break;
+      }
+    }
+  }
 }

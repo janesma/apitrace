@@ -30,6 +30,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
+#include <QList>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 
@@ -69,6 +70,8 @@ int fork_retracer() {
   return sock.GetPort();
 }
 
+Q_DECLARE_METATYPE(QList<glretrace::BarMetrics>)
+
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -79,6 +82,7 @@ int main(int argc, char *argv[]) {
   FrameRetraceStub::Init(port);
   QGuiApplication app(argc, argv);
 
+  qRegisterMetaType<QList<glretrace::BarMetrics> >();
   qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0,
                                               "QRenderBookmark");
   qmlRegisterType<glretrace::QMetric>("ApiTrace", 1, 0,

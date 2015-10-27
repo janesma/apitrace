@@ -23,17 +23,19 @@
  *
  **************************************************************************/
 
-// this has to be first, yuck
-#include <QQuickImageProvider>
-#include <QtConcurrentRun>
-
-#include <sstream>
-#include <string>
-#include <vector>
-
+#include <qtextstream.h>
 #include "glframe_retrace_model.hpp"
 
+// this has to be first, yuck
+#include <QQuickImageProvider>   // NOLINT
+#include <QtConcurrentRun>   // NOLINT
 
+#include <sstream>  // NOLINT
+#include <string> // NOLINT
+#include <vector> // NOLINT
+
+
+#include "glframe_qbargraph.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_images.hpp"
 
@@ -41,6 +43,7 @@ using glretrace::FrameRetraceModel;
 using glretrace::FrameState;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
+using glretrace::QBarGraphRenderer;
 
 FrameRetraceModel::FrameRetraceModel() : m_open_percent(0) {
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
@@ -160,6 +163,18 @@ FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
 }
 
 void
+FrameRetraceModel::onMetrics(const MetricSeries &metricData,
+                             ExperimentId experimentCount) {
+  QList<BarMetrics> metrics;
+  for (auto i : metricData.data) {
+    BarMetrics m;
+    m.metric1 = i;
+    metrics.push_back(m);
+  }
+  emit onQMetricData(metrics);
+}
+
+void
 FrameRetraceModel::onUpdateMetricList() {
   m_metrics_model.clear();
   ScopedLock s(m_protect);
@@ -176,4 +191,10 @@ FrameRetraceModel::setMetric(int index, int id) {
   m_active_metrics[index] = MetricId(id);
   m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
                            this);
+}
+
+void
+FrameRetraceModel::subscribe(QBarGraphRenderer *graph) {
+  connect(this, &FrameRetraceModel::onQMetricData,
+          graph, &QBarGraphRenderer::onMetrics);
 }

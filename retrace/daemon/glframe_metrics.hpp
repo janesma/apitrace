@@ -41,15 +41,20 @@ class PerfMetricGroup;
 class PerfMetrics : public NoCopy, NoAssign {
  public:
   explicit PerfMetrics(OnFrameRetrace *cb);
+  ~PerfMetrics();
   void selectMetric(MetricId metric);
   void begin(RenderId render);
   void end();
-  void publish(MetricId metric,
-               ExperimentId experimentCount,
+  void publish(ExperimentId experimentCount,
                OnFrameRetrace *callback);
  private:
   std::vector<PerfMetricGroup *> groups;
+  // indicates offset in groups of PerfMetricGroup reporting MetricId
   std::map<MetricId, int> metric_map;
+  // indicates the group that will handle subsequent begin/end calls
+  PerfMetricGroup *current_group;
+  MetricId current_metric;
+  RenderId current_render;
 };
 
 }  // namespace glretrace

@@ -23,7 +23,7 @@ message OpenFileStatus {
 }
 
 message MetricsList {
-  repeated uint32 metric_ids = 1;
+  repeated uint64 metric_ids = 1;
   repeated string metric_names = 2;
 }
 
@@ -45,7 +45,7 @@ message ShaderAssemblyRequest {
 }
 
 message MetricsRequest {
-  repeated uint32 metric_ids = 1;
+  repeated uint64 metric_ids = 1;
   required uint32 experiment_count = 2;
 }
 
@@ -60,7 +60,7 @@ message ShaderAssemblyResponse {
 }
 
 message MetricSeries {
-  required uint32 metric_id = 1;
+  required uint64 metric_id = 1;
   repeated float data = 2;
 }
 
