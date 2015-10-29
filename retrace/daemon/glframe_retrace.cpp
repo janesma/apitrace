@@ -39,6 +39,7 @@
 #include "glframe_metrics.hpp"
 #include "glretrace.hpp"
 #include "trace_dump.hpp"
+#include "glstate.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
@@ -204,9 +205,9 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
     PlayAndCleanUpCall c(call, NULL);
   }
 
-  // Image *i = glstate::getDrawBufferImage();
+  Image *i = glstate::getDrawBufferImage();
   std::stringstream png;
-  // i->writePNG(png);
+  i->writePNG(png);
 
   // debugging these images showed that Qt GL context interferes
   // with playback.

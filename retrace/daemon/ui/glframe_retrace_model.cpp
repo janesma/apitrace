@@ -34,7 +34,6 @@
 #include <string> // NOLINT
 #include <vector> // NOLINT
 
-
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_images.hpp"
@@ -44,8 +43,10 @@ using glretrace::FrameState;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QBarGraphRenderer;
+using glretrace::QSelection;
 
-FrameRetraceModel::FrameRetraceModel() : m_open_percent(0) {
+FrameRetraceModel::FrameRetraceModel() : m_selection(NULL),
+                                         m_open_percent(0) {
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
           this, &glretrace::FrameRetraceModel::onUpdateMetricList);
 }
@@ -197,4 +198,21 @@ void
 FrameRetraceModel::subscribe(QBarGraphRenderer *graph) {
   connect(this, &FrameRetraceModel::onQMetricData,
           graph, &QBarGraphRenderer::onMetrics);
+}
+
+QSelection *
+FrameRetraceModel::selection() {
+  return m_selection;
+}
+
+void
+FrameRetraceModel::setSelection(QSelection *s) {
+  m_selection = s;
+  connect(s, &QSelection::onSelect,
+          this, &FrameRetraceModel::onSelect);
+}
+
+void
+FrameRetraceModel::onSelect(QList<int> selection) {
+  retrace(selection.back());
 }
