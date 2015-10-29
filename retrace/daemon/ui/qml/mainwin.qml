@@ -10,8 +10,13 @@ ApplicationWindow {
     visible: true
     id: mainWindow
 
+    Selection {
+        id: selection
+    }
+
     FrameRetrace {
         id : frameRetrace
+        selection: selection
         onOpenPercentChanged: {
             if (openPercent < 100) {
                 progressBar.percentComplete = openPercent;
@@ -20,10 +25,6 @@ ApplicationWindow {
             progressBar.visible = false;
             mainUI.visible = true;
         }
-    }
-
-    Selection {
-        id: selection
     }
 
     Item {
@@ -188,59 +189,6 @@ ApplicationWindow {
             Layout.fillHeight: true
         }
 
-        // ListView {
-        //     id: metricList
-        //     Layout.preferredHeight: 50
-        //     Layout.alignment: Qt.AlignTop
-        //     Layout.fillWidth: true
-        //     Layout.fillHeight: true
-        //     model: frameRetrace.metricsList
-        //     delegate: Rectangle {
-        //         id: metricDel
-        //         height :metricText.height * 1.5
-        //         width : metricText.width
-        //         color: "transparent"  // necessary for the highlight to show
-        //         Text {
-        //             id: metricText
-        //             text: model.name
-        //         }
-        //     }
-        // }
-        // ListView {
-        //     id: renderList
-        //     clip: false
-        //     Layout.preferredWidth: 50
-        //     Layout.alignment: Qt.AlignTop
-        //     Layout.fillWidth: true
-        //     Layout.fillHeight: true
-        //     model: frameRetrace.renders
-        //     focus: true
-        //     highlight: highlightBar
-        //     highlightFollowsCurrentItem : false
-        //     onCurrentItemChanged : {
-        //         frameRetrace.retrace(currentIndex)
-        //         renderList.visible = false
-        //         renderList.visible = true
-        //     }
-        //     delegate: Rectangle {
-        //         id: renderDel
-        //         height : renderNum.height * 1.5
-        //         width : renderList.width
-        //         color: "transparent"  // necessary for the highlight to show
-        //         Text {
-        //             id: renderNum
-        //             text: model.index
-        //         }
-        //         MouseArea {
-        //             anchors.fill: parent
-        //             onPressed : {
-        //                 renderList.currentIndex = index
-        //                 frameRetrace.retrace(index)
-        //                 renderList.focus = true
-        //             }
-        //         }
-        //     }
-        // }
         TabView {
             Layout.preferredWidth: 400
             Layout.alignment: Qt.AlignTop

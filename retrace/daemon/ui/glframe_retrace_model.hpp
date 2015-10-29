@@ -42,10 +42,12 @@
 #include "glframe_retrace_stub.hpp"
 #include "glframe_os.hpp"
 #include "glframe_bargraph.hpp"
+#include "glframe_qselection.hpp"
 
 namespace glretrace {
 
 class FrameRetrace;
+class QSelection;
 
 class QRenderBookmark : public QObject {
   Q_OBJECT
@@ -88,7 +90,9 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(QQmlListProperty<glretrace::QRenderBookmark> renders
              READ renders NOTIFY onRenders)
   Q_PROPERTY(QQmlListProperty<glretrace::QMetric> metricList
-             READ metricList NOTIFY onQMetricList)
+             READ metricList NOTIFY onQMetricList);
+  Q_PROPERTY(glretrace::QSelection* selection
+             READ selection WRITE setSelection);
   Q_PROPERTY(QString vsIR READ vsIR NOTIFY onShaders)
   Q_PROPERTY(QString fsIR READ fsIR NOTIFY onShaders)
   Q_PROPERTY(QString vsSource READ vsSource NOTIFY onShaders)
@@ -110,6 +114,8 @@ class FrameRetraceModel : public QObject,
   Q_INVOKABLE void setMetric(int index, int id);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
+  QSelection *selection();
+  void setSelection(QSelection *s);
 
   void onFileOpening(bool finished,
                      uint32_t percent_complete);
@@ -140,6 +146,8 @@ class FrameRetraceModel : public QObject,
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
  public slots:
   void onUpdateMetricList();
+  void onSelect(QList<int> selection);
+
  signals:
   void onShaders();
   void onQMetricList();
@@ -155,6 +163,7 @@ class FrameRetraceModel : public QObject,
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   FrameState *m_state;
+  QSelection *m_selection;
   QList<QRenderBookmark *> m_renders_model;
   QList<QMetric *> m_metrics_model;
   QString m_vs_ir, m_fs_ir, m_vs_shader, m_fs_shader,

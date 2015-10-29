@@ -43,6 +43,7 @@
 #include "trace_parser.hpp"
 
 #include "glstate_images.hpp"
+#include "glstate.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
