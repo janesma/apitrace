@@ -113,7 +113,7 @@ StateTrack::parse(const std::string &output) {
       *current_target = NULL;
   std::stringstream line_split(output);
   while (std::getline(line_split, line, '\n')) {
-    int line_shader;
+    int line_shader = -1;
     int matches = sscanf(line.c_str(),
                          "GLSL IR for native vertex shader %d:", &line_shader);
     if (matches > 0)
