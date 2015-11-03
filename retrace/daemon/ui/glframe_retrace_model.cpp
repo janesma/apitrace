@@ -52,7 +52,11 @@ FrameRetraceModel::FrameRetraceModel() : m_selection(NULL),
 }
 
 FrameRetraceModel::~FrameRetraceModel() {
-  std::cout << "~FrameRetraceModel\n";
+  ScopedLock s(m_protect);
+  if (m_state) {
+    delete m_state;
+    m_state = NULL;
+  }
 }
 
 FrameState *frame_state_off_thread(std::string filename,
@@ -166,6 +170,7 @@ FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
 void
 FrameRetraceModel::onMetrics(const MetricSeries &metricData,
                              ExperimentId experimentCount) {
+  ScopedLock s(m_protect);
   QList<BarMetrics> metrics;
   for (auto i : metricData.data) {
     BarMetrics m;
@@ -177,8 +182,8 @@ FrameRetraceModel::onMetrics(const MetricSeries &metricData,
 
 void
 FrameRetraceModel::onUpdateMetricList() {
-  m_metrics_model.clear();
   ScopedLock s(m_protect);
+  m_metrics_model.clear();
   assert(t_ids.size() == t_names.size());
   for (int i = 0; i < t_ids.size(); ++i)
     m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
@@ -196,17 +201,20 @@ FrameRetraceModel::setMetric(int index, int id) {
 
 void
 FrameRetraceModel::subscribe(QBarGraphRenderer *graph) {
+  ScopedLock s(m_protect);
   connect(this, &FrameRetraceModel::onQMetricData,
           graph, &QBarGraphRenderer::onMetrics);
 }
 
 QSelection *
 FrameRetraceModel::selection() {
+  ScopedLock s(m_protect);
   return m_selection;
 }
 
 void
 FrameRetraceModel::setSelection(QSelection *s) {
+  ScopedLock st(m_protect);
   m_selection = s;
   connect(s, &QSelection::onSelect,
           this, &FrameRetraceModel::onSelect);
@@ -214,5 +222,6 @@ FrameRetraceModel::setSelection(QSelection *s) {
 
 void
 FrameRetraceModel::onSelect(QList<int> selection) {
+  ScopedLock s(m_protect);
   retrace(selection.back());
 }
