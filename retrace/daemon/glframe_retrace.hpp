@@ -26,6 +26,7 @@
 #ifndef _GLFRAME_RETRACE_HPP_
 #define _GLFRAME_RETRACE_HPP_
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -221,7 +222,14 @@ class FrameRetrace : public IFrameRetrace {
   std::vector<RenderBookmark> renders;
 
   StateTrack tracker;
-  PerfMetrics *metrics;
+
+  // key is context
+  std::map<uint64_t, PerfMetrics *> metrics;
+  uint64_t initial_frame_context;
+
+  void handleContext(trace::Call *call, OnFrameRetrace* cb);
+  bool changesContext(trace::Call *call) const;
+  uint64_t getContext(trace::Call *call);
 
  public:
   FrameRetrace();

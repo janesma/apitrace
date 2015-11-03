@@ -107,7 +107,9 @@ class PlayAndCleanUpCall {
 
 FrameRetrace::FrameRetrace() {}
 FrameRetrace::~FrameRetrace() {
-  delete(metrics);
+  for (auto i : metrics)
+    delete(i.second);
+  metrics.clear();
   parser->close();
 }
 
@@ -131,6 +133,7 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
   int current_frame = 0;
   while ((call = parser->parse_call()) && current_frame < framenumber) {
     PlayAndCleanUpCall c(call, &tracker, false);
+    handleContext(call, callback);
     if (call->flags & trace::CALL_FLAG_END_FRAME) {
       ++current_frame;
       callback->onFileOpening(false, current_frame * 100 / framenumber);
@@ -146,7 +149,7 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
   // play through the frame, recording renders and call counts
   while ((call = parser->parse_call())) {
     PlayAndCleanUpCall c(call, &tracker, false);
-
+    assert(!changesContext(call));
     ++frame_start.numberOfCalls;
     ++(renders.back().numberOfCalls);
 
@@ -163,8 +166,17 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
       break;
     }
   }
-  metrics = new PerfMetrics(callback);
   callback->onFileOpening(true, 100);
+}
+
+void
+FrameRetrace::handleContext(Call *call, OnFrameRetrace *cb) {
+  if (!changesContext(call))
+    return;
+
+  initial_frame_context = getContext(call);
+  if (metrics.find(initial_frame_context) == metrics.end())
+    metrics[initial_frame_context] = new PerfMetrics(cb);
 }
 
 int
@@ -301,27 +313,45 @@ void
 FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
                              ExperimentId experimentCount,
                              OnFrameRetrace *callback) const {
+  auto i = metrics.find(initial_frame_context);
+  assert(i != metrics.end());
+  PerfMetrics *m = i->second;
   for (const auto &id : ids) {
-    metrics->selectMetric(id);
+    m->selectMetric(id);
     parser->setBookmark(frame_start.start);
 
     int render_count = 0;
-    metrics->begin(RenderId(render_count));
+    m->begin(RenderId(render_count));
     trace::Call *call;
     while ((call = parser->parse_call())) {
+      assert(!changesContext(call));
       PlayAndCleanUpCall c(call, NULL, false);
       if (call->flags & trace::CALL_FLAG_RENDER) {
-        metrics->end();
+        m->end();
         ++render_count;
-        metrics->begin(RenderId(render_count));
+        m->begin(RenderId(render_count));
         continue;
       }
 
       if (call->flags & trace::CALL_FLAG_END_FRAME) {
-        metrics->end();
-        metrics->publish(experimentCount, callback);
+        m->end();
+        m->publish(experimentCount, callback);
         break;
       }
     }
   }
+}
+
+
+bool
+FrameRetrace::changesContext(trace::Call *call) const {
+  if (strncmp(call->name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
+    return true;
+  return false;
+}
+
+uint64_t
+FrameRetrace::getContext(trace::Call *call) {
+  assert(changesContext(call));
+  return call->arg(2).toUIntPtr();
 }
