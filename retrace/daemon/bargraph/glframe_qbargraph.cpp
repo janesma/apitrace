@@ -35,11 +35,13 @@
 #include <vector>
 
 #include "glframe_retrace_model.hpp"
+#include "glframe_os.hpp"
 
 using glretrace::BarGraphView;
 using glretrace::BarMetrics;
 using glretrace::FrameRetraceModel;
 using glretrace::QBarGraphRenderer;
+using glretrace::QSelection;
 
 QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
   m_graph.subscribe(this);
@@ -152,3 +154,27 @@ BarGraphView::mouseDrag(float x1, float y1, float x2, float y2) {
   update();
 }
 
+
+QSelection *
+BarGraphView::getSelection() {
+  ScopedLock s(m_protect);
+  return selection;
+}
+void
+BarGraphView::setSelection(QSelection *s) {
+  ScopedLock sl(m_protect);
+  selection = s;
+  update();
+}
+
+FrameRetraceModel *
+BarGraphView::getModel() {
+  ScopedLock s(m_protect);
+  return model;
+}
+
+void
+BarGraphView::setModel(FrameRetraceModel *m) {
+  ScopedLock s(m_protect);
+  model = m; update();
+}

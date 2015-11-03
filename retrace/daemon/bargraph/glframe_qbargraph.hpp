@@ -30,6 +30,7 @@
 
 #include <QtQuick/QQuickFramebufferObject>
 
+#include <mutex>
 #include <vector>
 
 #include "glframe_bargraph.hpp"
@@ -78,14 +79,17 @@ class BarGraphView : public QQuickFramebufferObject,
   Q_INVOKABLE void mouseRelease();
   Q_INVOKABLE void mouseDrag(float x1, float y1, float x2, float y2);
 
-  QSelection *getSelection() { return selection; }
-  void setSelection(QSelection *s) { selection = s; update(); }
+  QSelection *getSelection();
+  void setSelection(QSelection *s);
 
-  FrameRetraceModel *getModel() { return model; }
-  void setModel(FrameRetraceModel *m) { model = m; update(); }
+  FrameRetraceModel *getModel();
+  void setModel(FrameRetraceModel *m);
 
   std::vector<float> mouse_area;
   bool clicked;
+
+ private:
+  mutable std::mutex m_protect;
   QSelection *selection;
   FrameRetraceModel *model;
 };
