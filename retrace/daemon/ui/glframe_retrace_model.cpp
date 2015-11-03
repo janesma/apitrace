@@ -46,7 +46,8 @@ using glretrace::QBarGraphRenderer;
 using glretrace::QSelection;
 
 FrameRetraceModel::FrameRetraceModel() : m_selection(NULL),
-                                         m_open_percent(0) {
+                                         m_open_percent(0),
+                                         m_max_metric(0) {
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
           this, &glretrace::FrameRetraceModel::onUpdateMetricList);
 }
@@ -122,7 +123,6 @@ FrameRetraceModel::onShaderCompile(RenderId renderId,
 
 void
 FrameRetraceModel::retrace(int start) {
-  ScopedLock s(m_protect);
   m_retrace.retraceShaderAssembly(RenderId(start), this);
   m_retrace.retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
                                 glretrace::STOP_AT_RENDER, this);
@@ -171,12 +171,16 @@ void
 FrameRetraceModel::onMetrics(const MetricSeries &metricData,
                              ExperimentId experimentCount) {
   ScopedLock s(m_protect);
+  m_max_metric = 0.0;
   QList<BarMetrics> metrics;
   for (auto i : metricData.data) {
     BarMetrics m;
     m.metric1 = i;
+    if (i > m_max_metric)
+      m_max_metric = i;
     metrics.push_back(m);
   }
+  emit onMaxMetric();
   emit onQMetricData(metrics);
 }
 
