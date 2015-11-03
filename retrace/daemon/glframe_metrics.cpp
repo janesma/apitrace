@@ -218,9 +218,10 @@ PerfMetricGroup::publish(MetricId metric,
     out_data.data.push_back(m_metrics[metric]->getMetric(m_data_buf));
 
     m_free_query_handles.push_back(extant_query.second);
-    m_extant_query_handles.clear();
   }
-  callback->onMetrics(out_data, experimentCount);
+  m_extant_query_handles.clear();
+  if (callback)
+    callback->onMetrics(out_data, experimentCount);
 }
 
 void
