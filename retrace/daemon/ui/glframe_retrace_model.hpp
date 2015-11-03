@@ -103,6 +103,7 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(QString renderTargetImage READ renderTargetImage
              NOTIFY onRenderTarget)
   Q_PROPERTY(int openPercent READ openPercent NOTIFY onOpenPercent)
+  Q_PROPERTY(float maxMetric READ maxMetric NOTIFY onMaxMetric)
  public:
   FrameRetraceModel();
   ~FrameRetraceModel();
@@ -110,7 +111,6 @@ class FrameRetraceModel : public QObject,
   virtual void subscribe(QBarGraphRenderer *graph);
 
   Q_INVOKABLE void setFrame(const QString &filename, int framenumber);
-  Q_INVOKABLE void retrace(int start);
   Q_INVOKABLE void setMetric(int index, int id);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
@@ -144,6 +144,7 @@ class FrameRetraceModel : public QObject,
   QString fsSimd16() const { ScopedLock s(m_protect); return m_fs_simd16; }
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
+  float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
  public slots:
   void onUpdateMetricList();
   void onSelect(QList<int> selection);
@@ -155,11 +156,14 @@ class FrameRetraceModel : public QObject,
   void onRenders();
   void onRenderTarget();
   void onOpenPercent();
+  void onMaxMetric();
 
   // this signal transfers onMetricList to be handled in the UI
   // thread.  The handler generates QObjects which are passed to qml
   void updateMetricList();
  private:
+  void retrace(int start);
+
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   FrameState *m_state;
@@ -176,6 +180,7 @@ class FrameRetraceModel : public QObject,
   std::vector<std::string> t_names;
 
   std::vector<MetricId> m_active_metrics;
+  float m_max_metric;
 };
 
 }  // namespace glretrace

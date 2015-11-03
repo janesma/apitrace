@@ -43,7 +43,9 @@ using glretrace::FrameRetraceModel;
 using glretrace::QBarGraphRenderer;
 using glretrace::QSelection;
 
-QBarGraphRenderer::QBarGraphRenderer() : m_graph(true) {
+QBarGraphRenderer::QBarGraphRenderer() : m_graph(true),
+                                         selection(NULL),
+                                         model(NULL) {
   m_graph.subscribe(this);
   std::vector<BarMetrics> metrics(4);
   metrics[0].metric1 = 1;
@@ -176,5 +178,7 @@ BarGraphView::getModel() {
 void
 BarGraphView::setModel(FrameRetraceModel *m) {
   ScopedLock s(m_protect);
-  model = m; update();
+  model = m;
+  update();
+  emit onModel();
 }

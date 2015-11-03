@@ -72,7 +72,7 @@ class BarGraphView : public QQuickFramebufferObject,
   Q_PROPERTY(glretrace::QSelection* selection
              READ getSelection WRITE setSelection)
   Q_PROPERTY(glretrace::FrameRetraceModel* model
-             READ getModel WRITE setModel)
+             READ getModel WRITE setModel NOTIFY onModel)
  public:
   BarGraphView();
   QQuickFramebufferObject::Renderer *createRenderer() const;
@@ -87,6 +87,8 @@ class BarGraphView : public QQuickFramebufferObject,
 
   std::vector<float> mouse_area;
   bool clicked;
+ signals:
+  void onModel();
 
  private:
   mutable std::mutex m_protect;
