@@ -3,6 +3,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.1
 import ApiTrace 1.0
+import Qt.labs.settings 1.0
 
 ApplicationWindow {
     width: 600
@@ -59,6 +60,10 @@ ApplicationWindow {
                 focus: true
                 id: textInput
                 text: ""
+
+                Settings {
+                    property alias file_name: textInput.text
+                }
             }
         }
         Rectangle {
@@ -116,6 +121,9 @@ ApplicationWindow {
                 focus: true
                 id: frameInput
                 text: ""
+                Settings {
+                    property alias frame_number: frameInput.text
+                }
             }
         }
         Button {

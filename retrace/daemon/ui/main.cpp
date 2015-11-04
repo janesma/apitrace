@@ -81,6 +81,9 @@ int main(int argc, char *argv[]) {
 
   FrameRetraceStub::Init(port);
   QGuiApplication app(argc, argv);
+  app.setOrganizationName("Open Source Technology Center");
+  app.setOrganizationDomain("intel.com");
+  app.setApplicationName("frame_retrace");
 
   qRegisterMetaType<QList<glretrace::BarMetrics> >();
   qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0,
