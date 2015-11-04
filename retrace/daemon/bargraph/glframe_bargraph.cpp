@@ -236,11 +236,6 @@ BarGraphRenderer::render() {
   GL::BindBuffer(GL_ARRAY_BUFFER, vbo);
   GL_CHECK();
 
-  // buffer data to vbo
-  GL::BufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
-                 vertices.data(), GL_STATIC_DRAW);
-  GL_CHECK();
-
   // enable vbo
   GL::EnableVertexAttribArray(att_coord);
   GL_CHECK();
@@ -254,6 +249,33 @@ BarGraphRenderer::render() {
                           GL_FALSE,            // take our values as-is
                           0,                   // no space between values
                           0);                  // use the vbo
+  GL_CHECK();
+
+
+  // draw gridlines
+  static std::vector<Vertex> grid_lines(8);
+  for (int i = 0; i < 8; i += 2) {
+    grid_lines[i].x = 0;
+    grid_lines[i].y = max_y * (0.2 + i * 0.1);
+    grid_lines[i+1].x = total_x;
+    grid_lines[i+1].y = max_y * (0.2 + i * 0.1);
+  }
+  const float grey_color[4] = { 0.2, 0.2, 0.2, 0.6 };
+  GL::Uniform4f(uni_bar_color, grey_color[0], grey_color[1],
+                grey_color[2], grey_color[3]);
+  GL_CHECK();
+  GL::BufferData(GL_ARRAY_BUFFER, grid_lines.size() * sizeof(Vertex),
+                 grid_lines.data(), GL_STATIC_DRAW);
+  GL_CHECK();
+  for (int i = 0; i < 4; ++i) {
+    GL::DrawArrays(GL_LINE_STRIP, i*2, 2);
+    GL_CHECK();
+  }
+  // GL::Disable(GL_BLEND);
+
+  // buffer vertex data to vbo
+  GL::BufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
+                 vertices.data(), GL_STATIC_DRAW);
   GL_CHECK();
 
   // these indices encircle the first bar.
