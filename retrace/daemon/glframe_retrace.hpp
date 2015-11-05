@@ -111,6 +111,7 @@ class MetricId {
   uint32_t group() const { return value >> 16; }
   uint32_t counter() const { return (value & 0x0FFFF); }
   bool operator<(const MetricId &o) const { return value < o.value; }
+  bool operator==(const MetricId &o) const { return value == o.value; }
  private:
   // low 16 bits are the counter number
   // middle 32 bits are the group

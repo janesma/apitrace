@@ -48,6 +48,7 @@ using glretrace::QSelection;
 FrameRetraceModel::FrameRetraceModel() : m_selection(NULL),
                                          m_open_percent(0),
                                          m_max_metric(0) {
+  m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
           this, &glretrace::FrameRetraceModel::onUpdateMetricList);
 }
@@ -151,6 +152,7 @@ FrameRetraceModel::onFileOpening(bool finished,
     emit onRenders();
 
     m_open_percent = 101;
+    setMetric(0, 0);
   }
   if (m_open_percent == percent_complete)
     return;
@@ -187,6 +189,8 @@ FrameRetraceModel::onMetrics(const MetricSeries &metricData,
 void
 FrameRetraceModel::onUpdateMetricList() {
   ScopedLock s(m_protect);
+  for (auto i : m_metrics_model)
+    delete i;
   m_metrics_model.clear();
   assert(t_ids.size() == t_names.size());
   for (int i = 0; i < t_ids.size(); ++i)
@@ -196,6 +200,9 @@ FrameRetraceModel::onUpdateMetricList() {
 
 void
 FrameRetraceModel::setMetric(int index, int id) {
+  if (m_open_percent < 100)
+    // file not open yet
+    return;
   if (index >= m_active_metrics.size())
     m_active_metrics.resize(index+1);
   m_active_metrics[index] = MetricId(id);
