@@ -316,29 +316,38 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
   auto i = metrics.find(initial_frame_context);
   assert(i != metrics.end());
   PerfMetrics *m = i->second;
+  const int render_count = getRenderCount();
   for (const auto &id : ids) {
+    const MetricId nullMetric(0);
+    if (id == nullMetric) {
+      // no metrics selected
+      MetricSeries metricData;
+      metricData.metric = nullMetric;
+      for (int i = 0; i < render_count; ++i)
+        metricData.data.push_back(1.0);
+      callback->onMetrics(metricData, experimentCount);
+      continue;
+    }
     m->selectMetric(id);
     parser->setBookmark(frame_start.start);
 
-    int render_count = 0;
-    m->begin(RenderId(render_count));
+    int current_render = 0;
+    m->begin(RenderId(current_render));
     trace::Call *call;
-    while ((call = parser->parse_call())) {
+    while (current_render < render_count) {
+      call = parser->parse_call();
       assert(!changesContext(call));
       PlayAndCleanUpCall c(call, NULL, false);
       if (call->flags & trace::CALL_FLAG_RENDER) {
         m->end();
-        ++render_count;
-        m->begin(RenderId(render_count));
-        continue;
+        ++current_render;
+        if (current_render == render_count)
+          break;
+        m->begin(RenderId(current_render));
       }
-
-      if (call->flags & trace::CALL_FLAG_END_FRAME) {
-        m->end();
-        m->publish(experimentCount, callback);
-        break;
-      }
+      assert(!(call->flags & trace::CALL_FLAG_END_FRAME));
     }
+    m->publish(experimentCount, callback);
   }
 }
 
