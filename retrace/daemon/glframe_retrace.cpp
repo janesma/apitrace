@@ -281,7 +281,9 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
                              tmp_tracker.currentFragmentShader(),
                              tmp_tracker.currentFragmentIr(),
                              tmp_tracker.currentFragmentSimd8(),
-                             tmp_tracker.currentFragmentSimd16());
+                             tmp_tracker.currentFragmentSimd16(),
+                             tmp_tracker.currentFragmentSSA(),
+                             tmp_tracker.currentFragmentNIR());
 }
 
 FrameState::FrameState(const std::string &filename,

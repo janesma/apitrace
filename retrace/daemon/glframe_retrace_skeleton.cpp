@@ -166,7 +166,9 @@ FrameRetraceSkeleton::onShaderAssembly(RenderId renderId,
                                        const std::string &fragment_shader,
                                        const std::string &fragment_ir,
                                        const std::string &fragment_simd8,
-                                       const std::string &fragment_simd16) {
+                                       const std::string &fragment_simd16,
+                                       const std::string &fragment_nir_ssa,
+                                       const std::string &fragment_nir_final) {
   RetraceResponse proto_response;
   auto shader = proto_response.mutable_shaderassembly();
   shader->set_vertex_shader(vertex_shader);
@@ -176,6 +178,8 @@ FrameRetraceSkeleton::onShaderAssembly(RenderId renderId,
   shader->set_fragment_ir(fragment_ir);
   shader->set_fragment_simd8(fragment_simd8);
   shader->set_fragment_simd16(fragment_simd16);
+  shader->set_fragment_ssa(fragment_nir_ssa);
+  shader->set_fragment_nir(fragment_nir_final);
   writeResponse(m_socket, proto_response, &m_buf);
 }
 
