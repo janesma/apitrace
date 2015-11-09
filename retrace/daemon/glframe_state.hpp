@@ -51,6 +51,8 @@ class StateTrack {
   std::string currentFragmentIr() const;
   std::string currentFragmentSimd8() const;
   std::string currentFragmentSimd16() const;
+  std::string currentFragmentSSA() const;
+  std::string currentFragmentNIR() const;
 
  private:
   class TrackMap {
@@ -80,6 +82,8 @@ class StateTrack {
   std::map<int, std::string> program_to_fragment_shader_ir;
   std::map<int, std::string> program_to_fragment_shader_simd8;
   std::map<int, std::string> program_to_fragment_shader_simd16;
+  std::map<int, std::string> program_to_fragment_shader_ssa;
+  std::map<int, std::string> program_to_fragment_shader_nir;
 };
 }  // namespace glretrace
 #endif
