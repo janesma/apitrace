@@ -120,19 +120,11 @@ StateTrack::parse(const std::string &output) {
     if (matches > 0)
       current_target = &vs_ir;
 
-    if (matches <= 0) {
-      matches = sscanf(line.c_str(),
-                       "NIR (SSA form) for fragment shader:");
-      if (matches > 0)
-        current_target = &fs_nir_ssa;
-    }
+    if (0 == strcmp(line.c_str(), "NIR (SSA form) for fragment shader:"))
+      current_target = &fs_nir_ssa;
 
-    if (matches <= 0) {
-      matches = sscanf(line.c_str(),
-                       "NIR (final form) for fragment shader:");
-      if (matches > 0)
-        current_target = &fs_nir_final;
-    }
+    if (0 == strcmp(line.c_str(), "NIR (final form) for fragment shader:"))
+      current_target = &fs_nir_final;
 
     if (matches <= 0) {
       matches = sscanf(line.c_str(),
@@ -253,6 +245,22 @@ std::string
 StateTrack::currentFragmentSimd16() const {
   auto sh = program_to_fragment_shader_simd16.find(current_program);
   if (sh == program_to_fragment_shader_simd16.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentFragmentSSA() const {
+  auto sh = program_to_fragment_shader_ssa.find(current_program);
+  if (sh == program_to_fragment_shader_ssa.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentFragmentNIR() const {
+  auto sh = program_to_fragment_shader_nir.find(current_program);
+  if (sh == program_to_fragment_shader_nir.end())
     return "";
   return sh->second;
 }

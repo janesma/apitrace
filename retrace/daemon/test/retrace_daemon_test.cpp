@@ -57,7 +57,9 @@ class NullCallback : public OnFrameRetrace {
                         const std::string &fragemnt_shader,
                         const std::string &fragemnt_ir,
                         const std::string &fragemnt_simd8,
-                        const std::string &fragemnt_simd16) {}
+                        const std::string &fragemnt_simd16,
+                        const std::string &fragment_nir_ssa,
+                        const std::string &fragment_nir_final) {}
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, int status,

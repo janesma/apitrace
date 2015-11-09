@@ -95,7 +95,9 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const std::string &fragment_shader,
                                     const std::string &fragment_ir,
                                     const std::string &fragment_simd8,
-                                    const std::string &fragment_simd16) {
+                                    const std::string &fragment_simd16,
+                                    const std::string &fragment_nir_ssa,
+                                    const std::string &fragment_nir_final) {
   ScopedLock s(m_protect);
   m_vs_ir = vertex_ir.c_str();
   m_fs_ir = fragment_ir.c_str();
@@ -104,6 +106,8 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
   m_vs_vec4 = vertex_vec4.c_str();
   m_fs_simd8 = fragment_simd8.c_str();
   m_fs_simd16 = fragment_simd16.c_str();
+  m_fs_ssa = fragment_nir_ssa.c_str();
+  m_fs_nir = fragment_nir_final.c_str();
   emit onShaders();
 }
 
