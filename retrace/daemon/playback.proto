@@ -57,6 +57,8 @@ message ShaderAssemblyResponse {
   required string fragment_ir = 5;
   required string fragment_simd8 = 6;
   required string fragment_simd16 = 7;
+  required string fragment_ssa = 8;
+  required string fragment_nir = 9;
 }
 
 message MetricSeries {

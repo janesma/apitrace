@@ -290,6 +290,28 @@ ApplicationWindow {
                             }
                         }
                     }
+                    Tab {
+                        title: "SSA"
+                        Flickable {
+                            contentWidth: fsSSA.width; contentHeight: fsSSA.height
+                            clip: true
+                            Text {
+                                id: fsSSA
+                                text: frameRetrace.fsSSA
+                            }
+                        }
+                    }
+                    Tab {
+                        title: "NIR"
+                        Flickable {
+                            contentWidth: fsNIR.width; contentHeight: fsNIR.height
+                            clip: true
+                            Text {
+                                id: fsNIR
+                                text: frameRetrace.fsNIR
+                            }
+                        }
+                    }
                 }
             }
             Tab {

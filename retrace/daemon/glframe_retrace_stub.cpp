@@ -171,7 +171,9 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
         shader.fragment_shader(),
         shader.fragment_ir(),
         shader.fragment_simd8(),
-        shader.fragment_simd16());
+        shader.fragment_simd16(),
+        shader.fragment_ssa(),
+        shader.fragment_nir());
   }
 
  private:

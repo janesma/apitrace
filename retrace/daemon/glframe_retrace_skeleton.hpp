@@ -58,7 +58,9 @@ class FrameRetraceSkeleton : public Thread,
                                 const std::string &fragment_shader,
                                 const std::string &fragment_ir,
                                 const std::string &fragment_simd8,
-                                const std::string &fragment_simd16);
+                                const std::string &fragment_simd16,
+                                const std::string &fragment_nir_ssa,
+                                const std::string &fragment_nir_final);
   virtual void onFileOpening(bool finished,
                              uint32_t percent_complete);
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
