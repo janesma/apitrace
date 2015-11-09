@@ -48,10 +48,10 @@ using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::ArrayOutputStream;
 
 FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock)
-    : Thread("retrace_skeleton"), m_socket(sock) {
-  m_frame = new FrameRetrace();
-  // m_frame = new FrameRetrace("/home/majanes/.steam/steam/steamapps"
-  // "/common/dota/dota_linux.2.trace", 1800);
+    : Thread("retrace_skeleton"), m_socket(sock),
+      m_frame(new FrameRetrace),
+      m_remaining_metrics_requests(0),
+      m_multi_metrics_response(new RetraceResponse) {
 }
 
 void
@@ -106,6 +106,7 @@ FrameRetraceSkeleton::Run() {
           assert(request.has_metrics());
           auto met = request.metrics();
           std::vector<MetricId> ids;
+          m_remaining_metrics_requests = met.metric_ids().size();
           for (int i : met.metric_ids())
             ids.push_back(MetricId(i));
           m_frame->retraceMetrics(ids,
@@ -229,13 +230,20 @@ FrameRetraceSkeleton::onMetricList(const std::vector<MetricId> &ids,
 void
 FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
                                 ExperimentId experimentCount) {
-  RetraceResponse proto_response;
-  auto metrics_response = proto_response.mutable_metricsdata();
+  auto metrics_response = m_multi_metrics_response->mutable_metricsdata();
   metrics_response->set_experiment_count(experimentCount());
   ApiTrace::MetricSeries *s = metrics_response->add_metric_data();
   s->set_metric_id(metricData.metric());
   for (auto d : metricData.data) {
     s->add_data(d);
   }
-  writeResponse(m_socket, proto_response, &m_buf);
+
+  --m_remaining_metrics_requests;
+  if (m_remaining_metrics_requests > 0)
+    return;
+
+  // else
+  writeResponse(m_socket, *m_multi_metrics_response, &m_buf);
+  m_remaining_metrics_requests = 0;
+  m_multi_metrics_response->Clear();
 }

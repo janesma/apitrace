@@ -32,16 +32,35 @@ Item {
     
     ColumnLayout {
         anchors.fill: parent
-        ComboBox {
+        Item {
             Layout.alignment: Qt.AlignTop
             Layout.preferredHeight: 40
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: metricNames()
-            onCurrentIndexChanged : {
-                var currentId = metricId(model[currentIndex]);
-                if (currentId)
-                    metric_model.setMetric(0, currentId);
+            id: comboBoxes
+            ComboBox {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                width: parent.width / 2
+                model: metricNames()
+                onCurrentIndexChanged : {
+                    var currentId = metricId(model[currentIndex]);
+                    if (currentId)
+                        metric_model.setMetric(0, currentId);
+                }
+            }
+            ComboBox {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                width: parent.width / 2
+                model: metricNames()
+                onCurrentIndexChanged : {
+                    var currentId = metricId(model[currentIndex]);
+                    if (currentId)
+                        metric_model.setMetric(1, currentId);
+                }
             }
         }
         Item {
