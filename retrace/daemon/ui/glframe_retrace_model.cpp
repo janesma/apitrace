@@ -153,6 +153,7 @@ FrameRetraceModel::onFileOpening(bool finished,
 
     m_open_percent = 101;
     setMetric(0, 0);
+    setMetric(1, 0);
   }
   if (m_open_percent == percent_complete)
     return;
@@ -173,17 +174,23 @@ void
 FrameRetraceModel::onMetrics(const MetricSeries &metricData,
                              ExperimentId experimentCount) {
   ScopedLock s(m_protect);
-  m_max_metric = 0.0;
-  QList<BarMetrics> metrics;
+  bool vertical_metric = false;
+  if (metricData.metric == m_active_metrics[0])
+    vertical_metric = true;
+  if (vertical_metric)
+    m_max_metric = 0.0;
+  assert(m_metrics.size() <= metricData.data.size());
+  while (m_metrics.size() < metricData.data.size())
+    m_metrics.append(BarMetrics());
+  auto bar = m_metrics.begin();
   for (auto i : metricData.data) {
-    BarMetrics m;
-    m.metric1 = i;
-    if (i > m_max_metric)
+    vertical_metric ? bar->metric1 = i : bar->metric2 = i;
+    if (vertical_metric && i > m_max_metric)
       m_max_metric = i;
-    metrics.push_back(m);
+    ++bar;
   }
   emit onMaxMetric();
-  emit onQMetricData(metrics);
+  emit onQMetricData(m_metrics);
 }
 
 void
@@ -205,6 +212,8 @@ FrameRetraceModel::setMetric(int index, int id) {
     return;
   if (index >= m_active_metrics.size())
     m_active_metrics.resize(index+1);
+  if (m_active_metrics[index] == MetricId(id))
+    return;
   m_active_metrics[index] = MetricId(id);
   m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
                            this);

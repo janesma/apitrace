@@ -170,6 +170,8 @@ class FrameRetraceModel : public QObject,
   QSelection *m_selection;
   QList<QRenderBookmark *> m_renders_model;
   QList<QMetric *> m_metrics_model;
+  QList<BarMetrics> m_metrics;
+
   QString m_vs_ir, m_fs_ir, m_vs_shader, m_fs_shader,
     m_vs_vec4, m_fs_simd8, m_fs_simd16;
   int m_open_percent;
