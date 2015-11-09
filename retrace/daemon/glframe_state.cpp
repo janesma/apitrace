@@ -110,10 +110,11 @@ StateTrack::parse(const std::string &output) {
     return;
 
   std::string fs_ir, fs_simd8, fs_simd16, vs_ir, vs_vec4, line,
+      fs_nir_ssa, fs_nir_final,
       *current_target = NULL;
   std::stringstream line_split(output);
+  int line_shader = -1;
   while (std::getline(line_split, line, '\n')) {
-    int line_shader = -1;
     int matches = sscanf(line.c_str(),
                          "GLSL IR for native vertex shader %d:", &line_shader);
     if (matches > 0)
@@ -121,7 +122,28 @@ StateTrack::parse(const std::string &output) {
 
     if (matches <= 0) {
       matches = sscanf(line.c_str(),
+                       "NIR (SSA form) for fragment shader:");
+      if (matches > 0)
+        current_target = &fs_nir_ssa;
+    }
+
+    if (matches <= 0) {
+      matches = sscanf(line.c_str(),
+                       "NIR (final form) for fragment shader:");
+      if (matches > 0)
+        current_target = &fs_nir_final;
+    }
+
+    if (matches <= 0) {
+      matches = sscanf(line.c_str(),
                        "Native code for unnamed vertex shader %d:",
+                       &line_shader);
+      if (matches > 0)
+        current_target = &vs_vec4;
+    }
+    if (matches <= 0) {
+      matches = sscanf(line.c_str(),
+                       "Native code for meta clear vertex shader %d:",
                        &line_shader);
       if (matches > 0)
         current_target = &vs_vec4;
@@ -154,13 +176,15 @@ StateTrack::parse(const std::string &output) {
         *current_target += line_copy + "\n";
       }
     }
-    if (line_shader != current_program)
-      // this is probably a shader that mesa uses
-      current_target = NULL;
     if (current_target) {
       *current_target += line + "\n";
     }
   }
+
+  if (line_shader != current_program)
+    // this is probably a shader that mesa uses
+    return;
+
   if (fs_ir.length() > 0)
     program_to_fragment_shader_ir[current_program] = fs_ir;
   if (fs_simd8.length() > 0)
@@ -171,6 +195,10 @@ StateTrack::parse(const std::string &output) {
     program_to_vertex_shader_ir[current_program] = vs_ir;
   if (vs_vec4.length() > 0)
     program_to_vertex_shader_vec4[current_program] = vs_vec4;
+  if (fs_nir_final.length() > 0)
+    program_to_fragment_shader_nir[current_program] = fs_nir_final;
+  if (fs_nir_ssa.length() > 0)
+    program_to_fragment_shader_ssa[current_program] = fs_nir_ssa;
 }
 
 std::string
