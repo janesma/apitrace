@@ -125,7 +125,6 @@ void
 QBarGraphRenderer::onMetrics(QList<BarMetrics> metrics) {
   std::vector<BarMetrics> m;
   for (auto metric : metrics) {
-    metric.metric2 = 0;
     m.push_back(metric);
   }
   m_graph.setBars(m);

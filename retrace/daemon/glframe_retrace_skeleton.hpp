@@ -32,6 +32,10 @@
 #include "glframe_thread.hpp"
 #include "glframe_retrace.hpp"
 
+namespace ApiTrace {
+class RetraceResponse;
+}  // namespace ApiTrace
+
 namespace glretrace {
 class Socket;
 class FrameRetrace;
@@ -69,6 +73,10 @@ class FrameRetraceSkeleton : public Thread,
   Socket *m_socket;
   std::vector<unsigned char> m_buf;
   FrameRetrace *m_frame;
+  int m_remaining_metrics_requests;
+
+  // for aggregating metrics callbacks on a series of requests
+  ApiTrace::RetraceResponse *m_multi_metrics_response;
 };
 
 }  // namespace glretrace
