@@ -49,6 +49,18 @@ Item {
                     if (currentId)
                         metric_model.setMetric(0, currentId);
                 }
+                Component.onCompleted : {
+                    metric_model.onQMetricList.connect(selectGpuDuration)
+                }
+                function selectGpuDuration() {
+                    for (var i = 0; i < metric_model.metricList.length; ++i) {
+                        if (metric_model.metricList[i].name == "GPU Time Elapsed") {
+                            metric_model.setMetric(0, metric_model.metricList[i].id);
+                            currentIndex = i;
+                            return;
+                        }
+                    }
+                }
             }
             ComboBox {
                 anchors.top: parent.top
