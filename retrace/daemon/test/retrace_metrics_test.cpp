@@ -119,13 +119,15 @@ TEST(Metrics, SingleMetricData) {
 }
 
 TEST(Metrics, FrameMetricData) {
-  retrace::setUp();
   GlFunctions::Init();
-  TestContext c;
   MetricsCallback cb;
-  PerfMetrics p(&cb);
-  if (!cb.ids.size())
+
+  FrameRetrace rt;
+  rt.openFile(test_file, 7, &cb);
+  if (!cb.ids.size()) {
+    retrace::cleanUp();
     return;
+  }
   MetricId id;
   for (int i = 0; i < cb.ids.size(); ++i) {
     if (cb.names[i] == "GPU Time Elapsed") {
@@ -134,9 +136,6 @@ TEST(Metrics, FrameMetricData) {
     }
   }
   EXPECT_GT(id(), 0);
-
-  FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
   const std::vector<MetricId> mets = { id };
   const ExperimentId experiment(1);
   rt.retraceMetrics(mets, experiment, &cb);

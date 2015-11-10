@@ -106,6 +106,7 @@ FrameRetrace::~FrameRetrace() {
     delete(i.second);
   metrics.clear();
   parser.close();
+  retrace::cleanUp();
 }
 
 void
