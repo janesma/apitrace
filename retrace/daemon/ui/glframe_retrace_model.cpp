@@ -156,8 +156,12 @@ FrameRetraceModel::onFileOpening(bool finished,
     emit onRenders();
 
     m_open_percent = 101;
-    setMetric(0, 0);
-    setMetric(1, 0);
+
+    // trace initial metrics (GPU Time Elapsed, if available)
+    std::vector<MetricId> t_metrics(1);
+    t_metrics[0] = m_active_metrics[0];
+    m_retrace.retraceMetrics(t_metrics, ExperimentId(0),
+                             this);
   }
   if (m_open_percent == percent_complete)
     return;
@@ -212,16 +216,16 @@ FrameRetraceModel::onUpdateMetricList() {
 
 void
 FrameRetraceModel::setMetric(int index, int id) {
-  if (m_open_percent < 100)
-    // file not open yet
-    return;
-
   if (index >= m_active_metrics.size())
     m_active_metrics.resize(index+1);
 
   if (m_active_metrics[index] == MetricId(id))
     return;
   m_active_metrics[index] = MetricId(id);
+
+  if (m_open_percent < 100)
+    // file not open yet
+    return;
 
   // clear bar data, so stale data will not be displayed.  It may be
   // than one of the metrics we are requesting is "No metric"
