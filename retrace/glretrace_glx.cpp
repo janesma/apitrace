@@ -299,3 +299,13 @@ const retrace::Entry glretrace::glx_callbacks[] = {
     {NULL, NULL},
 };
 
+namespace glws {
+void glretrace_glx_cleanup(void) {
+  for (auto i : drawable_map)
+    delete i.second;
+  drawable_map.clear();
+  for (auto i : context_map)
+    delete i.second;
+  context_map.clear();
+}
+}

@@ -681,5 +681,7 @@ retrace::waitForInput(void) {
 
 void
 retrace::cleanUp(void) {
+    glws::glretrace_glx_cleanup();
+    glws::glretrace_ws_cleanup();
     glws::cleanup();
 }

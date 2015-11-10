@@ -163,6 +163,9 @@ init(void);
 void
 cleanup(void);
 
+void glretrace_ws_cleanup();
+void glretrace_glx_cleanup(void);
+
 Visual *
 createVisual(bool doubleBuffer, unsigned samples, Profile profile);
 

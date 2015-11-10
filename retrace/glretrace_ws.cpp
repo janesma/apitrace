@@ -321,3 +321,12 @@ parseContextAttribList(const trace::Value *attribs)
 
 
 } /* namespace glretrace */
+
+namespace glws {
+void
+glretrace_ws_cleanup() {
+  for (auto i : glretrace::visuals)
+    delete i.second;
+  glretrace::visuals.clear();
+}
+}
