@@ -216,6 +216,11 @@ template class std::vector<BarGraphRenderer::Vertex>;
 
 void
 BarGraphRenderer::render() {
+  GL::Enable(GL_BLEND);
+  GL_CHECK();
+  GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  GL_CHECK();
+
   GL::ClearColor(1.0, 1.0, 1.0, 1.0);
   GL_CHECK();
   GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -311,11 +316,6 @@ BarGraphRenderer::render() {
       (mouse_area[1].x > 0) ||
       (mouse_area[1].y > 0)) {
     // mouse selection is active, draw a selection rectangle
-
-    GL::Enable(GL_BLEND);
-    GL_CHECK();
-    GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    GL_CHECK();
 
     // buffer data to vbo
     GL::BufferData(GL_ARRAY_BUFFER, mouse_vertices.size() * sizeof(Vertex),
