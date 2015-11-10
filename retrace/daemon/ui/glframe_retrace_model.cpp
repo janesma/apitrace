@@ -203,6 +203,7 @@ FrameRetraceModel::onUpdateMetricList() {
   for (auto i : m_metrics_model)
     delete i;
   m_metrics_model.clear();
+  m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
   assert(t_ids.size() == t_names.size());
   for (int i = 0; i < t_ids.size(); ++i)
     m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
@@ -214,12 +215,27 @@ FrameRetraceModel::setMetric(int index, int id) {
   if (m_open_percent < 100)
     // file not open yet
     return;
+
   if (index >= m_active_metrics.size())
     m_active_metrics.resize(index+1);
+
   if (m_active_metrics[index] == MetricId(id))
     return;
   m_active_metrics[index] = MetricId(id);
-  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+
+  // clear bar data, so stale data will not be displayed.  It may be
+  // than one of the metrics we are requesting is "No metric"
+  for (auto &bar : m_metrics) {
+    bar.metric1 = 0;
+    bar.metric2 = 0;
+  }
+
+  std::vector<MetricId> t_metrics = m_active_metrics;
+  if (t_metrics[1] == MetricId(0))
+    // don't replay a null metric for the widths, it makes the bars contiguous.
+    t_metrics.resize(1);
+
+  m_retrace.retraceMetrics(t_metrics, ExperimentId(0),
                            this);
 }
 
