@@ -38,11 +38,19 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             id: comboBoxes
-            ComboBox {
+            Text {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
-                width: parent.width / 2
+                id: vertLabel
+                text: "Vertical Metric: "
+            }
+            ComboBox {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: vertLabel.right
+                width: (parent.width / 2) - vertLabel.width
+                id: vertMetric
                 model: metricNames()
                 onCurrentIndexChanged : {
                     var currentId = metricId(model[currentIndex]);
@@ -62,11 +70,18 @@ Item {
                     }
                 }
             }
+            Text {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: vertMetric.right
+                id: horizLabel
+                text: "Horizontal Metric: "
+            }
             ComboBox {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                anchors.right: parent.right
-                width: parent.width / 2
+                anchors.left: horizLabel.right
+                width: (parent.width / 2) - horizLabel.width
                 model: metricNames()
                 onCurrentIndexChanged : {
                     var currentId = metricId(model[currentIndex]);

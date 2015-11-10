@@ -98,13 +98,14 @@ int main(int argc, char *argv[]) {
 
   glretrace::FrameImages::Create();
 
-  QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
-  engine.addImageProvider("myimageprovider",
-                          glretrace::FrameImages::instance());
-  int ret = app.exec();
-
+  int ret = -1;
+  {
+    QQmlApplicationEngine engine(QUrl("qrc:///qml/mainwin.qml"));
+    engine.addImageProvider("myimageprovider",
+                            glretrace::FrameImages::instance());
+    ret = app.exec();
+  }
   FrameRetraceStub::Shutdown();
   ::google::protobuf::ShutdownProtobufLibrary();
-  glretrace::FrameImages::Destroy();
   return ret;
 }
