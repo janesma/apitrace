@@ -45,7 +45,8 @@ using glretrace::QRenderBookmark;
 using glretrace::QBarGraphRenderer;
 using glretrace::QSelection;
 
-FrameRetraceModel::FrameRetraceModel() : m_selection(NULL),
+FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
+                                         m_selection(NULL),
                                          m_open_percent(0),
                                          m_max_metric(0) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
