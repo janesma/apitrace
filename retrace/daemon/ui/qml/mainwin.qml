@@ -327,6 +327,9 @@ ApplicationWindow {
                         }
                         CheckBox {
                             text: "Stop at render"
+                            onCheckedChanged: {
+                                frameRetrace.stopAtRender = checked;
+                            }
                         }
                     }
                     Item {

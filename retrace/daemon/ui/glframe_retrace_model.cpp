@@ -132,6 +132,8 @@ FrameRetraceModel::retrace_rendertarget() {
   RenderOptions opt = DEFAULT_RENDER;
   if (m_clear_before_render)
     opt = (RenderOptions) (opt | CLEAR_BEFORE_RENDER);
+  if (m_stop_at_render)
+    opt = (RenderOptions) (opt | STOP_AT_RENDER);
   m_retrace.retraceRenderTarget(RenderId(m_cached_selection.back()),
                                 0, glretrace::NORMAL_RENDER,
                                 opt, this);
@@ -292,5 +294,18 @@ void
 FrameRetraceModel::setClearBeforeRender(bool v) {
   ScopedLock s(m_protect);
   m_clear_before_render = v;
+  retrace_rendertarget();
+}
+
+bool
+FrameRetraceModel::stopAtRender() const {
+  ScopedLock s(m_protect);
+  return m_stop_at_render;
+}
+
+void
+FrameRetraceModel::setStopAtRender(bool v) {
+  ScopedLock s(m_protect);
+  m_stop_at_render = v;
   retrace_rendertarget();
 }

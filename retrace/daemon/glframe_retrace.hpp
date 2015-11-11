@@ -90,6 +90,7 @@ class RenderId {
   uint32_t operator()() const { return value; }
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
   bool operator<(const RenderId &o) const { return value < o.value; }
+  bool operator>(const RenderId &o) const { return value > o.value; }
  private:
   uint32_t value;
 };
@@ -231,9 +232,13 @@ class FrameRetrace : public IFrameRetrace {
   std::map<uint64_t, PerfMetrics *> metrics;
   uint64_t initial_frame_context;
 
+  // each entry is the last render in an RT region
+  std::vector<RenderId> render_target_regions;
+
   void handleContext(trace::Call *call, OnFrameRetrace* cb);
   bool changesContext(trace::Call *call) const;
   uint64_t getContext(trace::Call *call);
+  RenderId lastRenderForRTRegion(RenderId render) const;
 
  public:
   FrameRetrace();
