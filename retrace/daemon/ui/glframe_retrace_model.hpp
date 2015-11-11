@@ -108,6 +108,8 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(float maxMetric READ maxMetric NOTIFY onMaxMetric)
   Q_PROPERTY(bool clearBeforeRender READ clearBeforeRender
              WRITE setClearBeforeRender)
+  Q_PROPERTY(bool stopAtRender READ stopAtRender
+             WRITE setStopAtRender)
  public:
   FrameRetraceModel();
   ~FrameRetraceModel();
@@ -155,6 +157,8 @@ class FrameRetraceModel : public QObject,
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
+  bool stopAtRender() const;
+  void setStopAtRender(bool v);
  public slots:
   void onUpdateMetricList();
   void onSelect(QList<int> selection);
@@ -195,7 +199,7 @@ class FrameRetraceModel : public QObject,
 
   std::vector<MetricId> m_active_metrics;
   float m_max_metric;
-  bool m_clear_before_render;
+  bool m_clear_before_render, m_stop_at_render;
 };
 
 }  // namespace glretrace

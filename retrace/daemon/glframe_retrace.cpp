@@ -44,12 +44,15 @@
 
 #include "glstate_images.hpp"
 #include "glstate.hpp"
+#include "glstate_internal.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
 using glretrace::FrameState;
+using glretrace::GlFunctions;
 using glretrace::MetricId;
 using glretrace::OnFrameRetrace;
+using glretrace::RenderId;
 using glretrace::StateTrack;
 using trace::Call;
 using retrace::parser;
@@ -114,6 +117,16 @@ FrameRetrace::~FrameRetrace() {
   retrace::cleanUp();
 }
 
+int currentRenderBuffer() {
+  glstate::Context context;
+  const GLenum framebuffer_binding = context.ES ?
+                                     GL_FRAMEBUFFER_BINDING :
+                                     GL_DRAW_FRAMEBUFFER_BINDING;
+  GLint draw_framebuffer = 0;
+  GlFunctions::GetIntegerv(framebuffer_binding, &draw_framebuffer);
+  return draw_framebuffer;
+}
+
 void
 FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
                        OnFrameRetrace *callback) {
@@ -147,12 +160,21 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
   renders.push_back(RenderBookmark());
   parser->getBookmark(renders.back().start);
 
+  int current_render_buffer = currentRenderBuffer();
   // play through the frame, recording renders and call counts
   while ((call = parser->parse_call())) {
     PlayAndCleanUpCall c(call, &tracker, false);
     assert(!changesContext(call));
     ++frame_start.numberOfCalls;
     ++(renders.back().numberOfCalls);
+
+    const int new_render_buffer = currentRenderBuffer();
+    if (new_render_buffer != current_render_buffer) {
+      if (renders.size() > 1)  // don't record the very first draw as
+                               // ending a render target
+        render_target_regions.push_back(RenderId(renders.size() - 1));
+      current_render_buffer = new_render_buffer;
+    }
 
     if (current_frame > framenumber) {
       return;
@@ -208,8 +230,8 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
   }
 
   if (options & glretrace::CLEAR_BEFORE_RENDER)
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-            GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    GlFunctions::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+                       GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // play up to the end of the render
   for (int render_calls = 0; render_calls < render.numberOfCalls;
@@ -219,7 +241,23 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
       break;
 
     ++played_calls;
+    ++current_call;
     PlayAndCleanUpCall c(call, NULL);
+  }
+
+  if (!(options & glretrace::STOP_AT_RENDER)) {
+    // play to the end of the render target
+
+    const RenderId last_render = lastRenderForRTRegion(renderId);
+    const RenderBookmark &last_render_bm = renders[last_render.index()];
+    const int next_render_call = last_render_bm.start.next_call_no +
+                                 last_render_bm.numberOfCalls;
+    while ((current_call < next_render_call) &&
+           (call = parser->parse_call())) {
+      ++played_calls;
+      ++current_call;
+      PlayAndCleanUpCall c(call, NULL);
+    }
   }
 
   Image *i = glstate::getDrawBufferImage(0);
@@ -359,4 +397,12 @@ uint64_t
 FrameRetrace::getContext(trace::Call *call) {
   assert(changesContext(call));
   return call->arg(2).toUIntPtr();
+}
+
+RenderId
+FrameRetrace::lastRenderForRTRegion(RenderId render) const {
+  for (auto rt_render : render_target_regions)
+    if (rt_render > render)
+      return rt_render;
+  return render_target_regions.back();
 }
