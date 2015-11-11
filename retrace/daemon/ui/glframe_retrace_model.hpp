@@ -106,6 +106,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onRenderTarget)
   Q_PROPERTY(int openPercent READ openPercent NOTIFY onOpenPercent)
   Q_PROPERTY(float maxMetric READ maxMetric NOTIFY onMaxMetric)
+  Q_PROPERTY(bool clearBeforeRender READ clearBeforeRender
+             WRITE setClearBeforeRender)
  public:
   FrameRetraceModel();
   ~FrameRetraceModel();
@@ -151,6 +153,8 @@ class FrameRetraceModel : public QObject,
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
+  bool clearBeforeRender() const;
+  void setClearBeforeRender(bool v);
  public slots:
   void onUpdateMetricList();
   void onSelect(QList<int> selection);
@@ -168,12 +172,14 @@ class FrameRetraceModel : public QObject,
   // thread.  The handler generates QObjects which are passed to qml
   void updateMetricList();
  private:
-  void retrace(int start);
+  void retrace_rendertarget();
+  void retrace_shader_assemblies();
 
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   FrameState *m_state;
   QSelection *m_selection;
+  QList<int> m_cached_selection;
   QList<QRenderBookmark *> m_renders_model;
   QList<QMetric *> m_metrics_model;
   QList<BarMetrics> m_metrics;
@@ -189,6 +195,7 @@ class FrameRetraceModel : public QObject,
 
   std::vector<MetricId> m_active_metrics;
   float m_max_metric;
+  bool m_clear_before_render;
 };
 
 }  // namespace glretrace

@@ -47,6 +47,7 @@ enum RenderTargetType {
 };
 
 enum RenderOptions {
+  DEFAULT_RENDER = 0x0,
   STOP_AT_RENDER = 0x1,
   CLEAR_BEFORE_RENDER = 0x2,
 };
