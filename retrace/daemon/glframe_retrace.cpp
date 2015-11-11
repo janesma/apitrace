@@ -207,10 +207,9 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
     PlayAndCleanUpCall c(call, NULL);
   }
 
-  // TODO(majanes)
-  // if (options & glretrace::CLEAR_BEFORE_RENDER)
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-          GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  if (options & glretrace::CLEAR_BEFORE_RENDER)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
+            GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // play up to the end of the render
   for (int render_calls = 0; render_calls < render.numberOfCalls;
@@ -226,12 +225,6 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
   Image *i = glstate::getDrawBufferImage(0);
   std::stringstream png;
   i->writePNG(png);
-
-  // debugging these images showed that Qt GL context interferes
-  // with playback.
-  // std::stringstream fn;
-  // fn << "/tmp/foo" << renderId.index() << ".png";
-  // i->writePNG(fn.str().c_str());
 
   std::vector<unsigned char> d;
   const int bytes = png.str().size();

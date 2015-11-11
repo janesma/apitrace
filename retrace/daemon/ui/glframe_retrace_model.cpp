@@ -128,10 +128,19 @@ FrameRetraceModel::onShaderCompile(RenderId renderId,
                                    std::string errorString) {}
 
 void
-FrameRetraceModel::retrace(int start) {
-  m_retrace.retraceShaderAssembly(RenderId(start), this);
-  m_retrace.retraceRenderTarget(RenderId(start), 0, glretrace::NORMAL_RENDER,
-                                glretrace::STOP_AT_RENDER, this);
+FrameRetraceModel::retrace_rendertarget() {
+  RenderOptions opt = DEFAULT_RENDER;
+  if (m_clear_before_render)
+    opt = (RenderOptions) (opt | CLEAR_BEFORE_RENDER);
+  m_retrace.retraceRenderTarget(RenderId(m_cached_selection.back()),
+                                0, glretrace::NORMAL_RENDER,
+                                opt, this);
+}
+
+void
+FrameRetraceModel::retrace_shader_assemblies() {
+  m_retrace.retraceShaderAssembly(RenderId(m_cached_selection.back()),
+                                  this);
 }
 
 
@@ -268,5 +277,20 @@ FrameRetraceModel::setSelection(QSelection *s) {
 void
 FrameRetraceModel::onSelect(QList<int> selection) {
   ScopedLock s(m_protect);
-  retrace(selection.back());
+  m_cached_selection = selection;
+  retrace_rendertarget();
+  retrace_shader_assemblies();
+}
+
+bool
+FrameRetraceModel::clearBeforeRender() const {
+  ScopedLock s(m_protect);
+  return m_clear_before_render;
+}
+
+void
+FrameRetraceModel::setClearBeforeRender(bool v) {
+  ScopedLock s(m_protect);
+  m_clear_before_render = v;
+  retrace_rendertarget();
 }
