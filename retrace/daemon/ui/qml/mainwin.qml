@@ -316,12 +316,31 @@ ApplicationWindow {
             }
             Tab {
                 title: "RenderTarget"
-                Image {
-                    id: rtDisplayImage
-                    anchors.fill: parent
-                    fillMode: Image.PreserveAspectFit
-                    source: frameRetrace.renderTargetImage
-                    cache: false
+                Row {
+                    Column {
+                        id: renderOptions
+                        CheckBox {
+                            text: "Clear before render"
+                            onCheckedChanged: {
+                                frameRetrace.clearBeforeRender = checked;
+                            }
+                        }
+                        CheckBox {
+                            text: "Stop at render"
+                        }
+                    }
+                    Item {
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: parent.width - renderOptions.width
+                        Image {
+                            id: rtDisplayImage
+                            anchors.fill: parent
+                            fillMode: Image.PreserveAspectFit
+                            source: frameRetrace.renderTargetImage
+                            cache: false
+                        }
+                    }
                 }
             }
         }
