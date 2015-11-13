@@ -60,10 +60,29 @@ StateTrack::TrackMap::track(StateTrack *tracker, const Call &call) {
   (tracker->*funptr)(call);
 }
 
+bool
+changesContext(const trace::Call &call) {
+  if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
+    return true;
+  return false;
+}
+
+uint64_t
+getContext(const trace::Call &call) {
+  assert(changesContext(call));
+  // there ought to be a const variant for this
+  return const_cast<trace::Call &>(call).arg(2).toUIntPtr();
+}
+
 // TODO(majanes): use a lookup table
 void
 StateTrack::track(const Call &call) {
   lookup.track(this, call);
+
+  if (changesContext(call))
+    current_context = getContext(call);
+
+  parse();
 }
 
 void
@@ -105,7 +124,8 @@ StateTrack::trackUseProgram(const trace::Call &call) {
 }
 
 void
-StateTrack::parse(const std::string &output) {
+StateTrack::parse() {
+  const std::string output = m_poller->poll();
   if (output.size() == 0)
     return;
 
@@ -264,3 +284,7 @@ StateTrack::currentFragmentNIR() const {
     return "";
   return sh->second;
 }
+
+void
+StateTrack::flush() { m_poller->poll(); }
+
