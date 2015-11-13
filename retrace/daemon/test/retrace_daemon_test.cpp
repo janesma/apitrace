@@ -30,8 +30,10 @@
 #include <vector>
 
 #include "glframe_retrace.hpp"
+#include "glframe_glhelper.hpp"
 
 using glretrace::ExperimentId;
+using glretrace::GlFunctions;
 using glretrace::FrameRetrace;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
@@ -71,6 +73,7 @@ class NullCallback : public OnFrameRetrace {
 
 TEST(Daemon, LoadFile) {
   retrace::setUp();
+  GlFunctions::Init();
 
   NullCallback cb;
 

@@ -206,29 +206,8 @@ class FrameState {
 };
 
 class PerfMetrics;
+class RetraceRender;
 class FrameRetrace : public IFrameRetrace {
- private:
-  // these are global
-  // trace::Parser parser;
-  // retrace::Retracer retracer;
-
-  trace::RenderBookmark frame_start;
-  std::vector<trace::RenderBookmark> renders;
-
-  StateTrack tracker;
-
-  // key is context
-  std::map<uint64_t, PerfMetrics *> metrics;
-  uint64_t initial_frame_context;
-
-  // each entry is the last render in an RT region
-  std::vector<RenderId> render_target_regions;
-
-  void handleContext(trace::Call *call, OnFrameRetrace* cb);
-  bool changesContext(trace::Call *call) const;
-  uint64_t getContext(trace::Call *call);
-  RenderId lastRenderForRTRegion(RenderId render) const;
-
  public:
   FrameRetrace();
   ~FrameRetrace();
@@ -256,6 +235,20 @@ class FrameRetrace : public IFrameRetrace {
   //                 const std::string &fs,
   //                 OnFrameRetrace *callback);
   // void revertModifications();
+ private:
+  // these are global
+  // trace::Parser parser;
+  // retrace::Retracer retracer;
+
+  trace::RenderBookmark frame_start;
+  std::vector<RetraceRender*> m_renders;
+  StateTrack m_tracker;
+  PerfMetrics * m_metrics;
+
+  // each entry is the last render in an RT region
+  std::vector<RenderId> render_target_regions;
+
+  RenderId lastRenderForRTRegion(RenderId render) const;
 };
 
 } /* namespace glretrace */

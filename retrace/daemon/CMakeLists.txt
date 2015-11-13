@@ -36,6 +36,8 @@ set (RETRACE_SOURCES
   glframe_os.hpp
   glframe_retrace.cpp
   glframe_retrace.hpp
+  glframe_retrace_render.cpp
+  glframe_retrace_render.hpp
   glframe_retrace_skeleton.cpp
   glframe_retrace_skeleton.hpp
   glframe_retrace_stub.cpp
