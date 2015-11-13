@@ -37,14 +37,16 @@
 
 #include "glframe_glhelper.hpp"
 #include "glframe_metrics.hpp"
+#include "glframe_retrace_render.hpp"
 #include "glretrace.hpp"
-#include "glws.hpp"
-#include "trace_dump.hpp"
-#include "trace_parser.hpp"
+// #include "glws.hpp"
+// #include "trace_dump.hpp"
+// #include "trace_parser.hpp"
 
-#include "glstate_images.hpp"
+// #include "glstate_images.hpp"
 #include "glstate.hpp"
 #include "glstate_internal.hpp"
+#include "trace_dump.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
@@ -52,6 +54,7 @@ using glretrace::FrameState;
 using glretrace::GlFunctions;
 using glretrace::MetricId;
 using glretrace::OnFrameRetrace;
+using glretrace::OutputPoller;
 using glretrace::RenderId;
 using glretrace::StateTrack;
 using trace::Call;
@@ -62,7 +65,7 @@ using trace::Call;
 extern retrace::Retracer retracer;
 
 
-class StdErrRedirect {
+class StdErrRedirect : public OutputPoller {
  public:
   StdErrRedirect() {
     pipe2(out_pipe, O_NONBLOCK);
@@ -81,38 +84,28 @@ class StdErrRedirect {
     }
     return ret;
   }
+  ~StdErrRedirect() {
+    close(out_pipe[2]);
+  }
+
  private:
   int out_pipe[2];
   std::vector<char> buf;
 };
 
-static StdErrRedirect assemblyOutput;
-
-class PlayAndCleanUpCall {
+class NoRedirect : public OutputPoller {
  public:
-  PlayAndCleanUpCall(Call *c, StateTrack *tracker, bool dump = true)
-      : call(c) {
-    assemblyOutput.poll();
-
-    retracer.retrace(*call);
-
-    if (tracker) {
-      tracker->track(*c);
-      tracker->parse(assemblyOutput.poll());
-    }
-  }
-  ~PlayAndCleanUpCall() {
-    delete call;
-  }
- private:
-  Call *call;
+  std::string poll() { return ""; }
 };
 
-FrameRetrace::FrameRetrace() {}
+static StdErrRedirect assemblyOutput;
+
+FrameRetrace::FrameRetrace()
+    : m_tracker(&assemblyOutput) {
+}
+
 FrameRetrace::~FrameRetrace() {
-  for (auto i : metrics)
-    delete(i.second);
-  metrics.clear();
+  delete m_metrics;
   parser->close();
   retrace::cleanUp();
 }
@@ -146,9 +139,11 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
   trace::Call *call;
   int current_frame = 0;
   while ((call = parser->parse_call()) && current_frame < framenumber) {
-    PlayAndCleanUpCall c(call, &tracker, false);
-    handleContext(call, callback);
-    if (call->flags & trace::CALL_FLAG_END_FRAME) {
+    retracer.retrace(*call);
+    m_tracker.track(*call);
+    const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
+    delete call;
+    if (frame_boundary) {
       ++current_frame;
       callback->onFileOpening(false, current_frame * 100 / framenumber);
       if (current_frame == framenumber)
@@ -156,57 +151,37 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
     }
   }
 
+  m_metrics = new PerfMetrics(callback);
   parser->getBookmark(frame_start.start);
-  renders.push_back(RenderBookmark());
-  parser->getBookmark(renders.back().start);
-
   int current_render_buffer = currentRenderBuffer();
+
   // play through the frame, recording renders and call counts
-  while ((call = parser->parse_call())) {
-    PlayAndCleanUpCall c(call, &tracker, false);
-    assert(!changesContext(call));
-    ++frame_start.numberOfCalls;
-    ++(renders.back().numberOfCalls);
+  while (true) {
+    auto r = new RetraceRender(parser, &retracer, &m_tracker);
+    if (r->endsFrame()) {
+      delete r;
+      break;
+    }
+    m_renders.push_back(r);
 
     const int new_render_buffer = currentRenderBuffer();
     if (new_render_buffer != current_render_buffer) {
-      if (renders.size() > 1)  // don't record the very first draw as
+      if (m_renders.size() > 1)  // don't record the very first draw as
                                // ending a render target
-        render_target_regions.push_back(RenderId(renders.size() - 1));
+        render_target_regions.push_back(RenderId(m_renders.size() - 1));
       current_render_buffer = new_render_buffer;
     }
-
-    if (current_frame > framenumber) {
-      return;
-    }
-    if (call->flags & trace::CALL_FLAG_RENDER) {
-      renders.push_back(RenderBookmark());
-      parser->getBookmark(renders.back().start);
-    }
-
-    if (call->flags & trace::CALL_FLAG_END_FRAME) {
-      renders.pop_back();
-      break;
-    }
   }
+
+  // record the final render as ending a render target region
+  render_target_regions.push_back(RenderId(m_renders.size() - 1));
   callback->onFileOpening(true, 100);
-}
-
-void
-FrameRetrace::handleContext(Call *call, OnFrameRetrace *cb) {
-  if (!changesContext(call))
-    return;
-
-  initial_frame_context = getContext(call);
-  if (metrics.find(initial_frame_context) == metrics.end())
-    metrics[initial_frame_context] = new PerfMetrics(cb);
 }
 
 int
 FrameRetrace::getRenderCount() const {
-  return renders.size();
+  return m_renders.size();
 }
-
 
 void
 FrameRetrace::retraceRenderTarget(RenderId renderId,
@@ -214,50 +189,26 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
                                   RenderTargetType type,
                                   RenderOptions options,
                                   OnFrameRetrace *callback) const {
-  trace::Call *call;
-  const RenderBookmark &render = renders[renderId.index()];
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
-  int played_calls = 0;
 
   // play up to the beginning of the render
-  int current_call = frame_start.start.next_call_no;
-  while ((current_call < render.start.next_call_no) &&
-         (call = parser->parse_call())) {
-    ++played_calls;
-    ++current_call;
-    PlayAndCleanUpCall c(call, NULL);
-  }
+  for (int i = 0; i < renderId.index(); ++i)
+    m_renders[i]->retraceRenderTarget();
 
   if (options & glretrace::CLEAR_BEFORE_RENDER)
     GlFunctions::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
                        GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // play up to the end of the render
-  for (int render_calls = 0; render_calls < render.numberOfCalls;
-       ++render_calls) {
-    call = parser->parse_call();
-    if (!call)
-      break;
-
-    ++played_calls;
-    ++current_call;
-    PlayAndCleanUpCall c(call, NULL);
-  }
+  m_renders[renderId.index()]->retraceRenderTarget();
 
   if (!(options & glretrace::STOP_AT_RENDER)) {
     // play to the end of the render target
 
     const RenderId last_render = lastRenderForRTRegion(renderId);
-    const RenderBookmark &last_render_bm = renders[last_render.index()];
-    const int next_render_call = last_render_bm.start.next_call_no +
-                                 last_render_bm.numberOfCalls;
-    while ((current_call < next_render_call) &&
-           (call = parser->parse_call())) {
-      ++played_calls;
-      ++current_call;
-      PlayAndCleanUpCall c(call, NULL);
-    }
+    for (int i = renderId.index() + 1; i <= last_render.index(); ++i)
+      m_renders[i]->retraceRenderTarget();
   }
 
   Image *i = glstate::getDrawBufferImage(0);
@@ -277,34 +228,14 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
 void
 FrameRetrace::retraceShaderAssembly(RenderId renderId,
                                     OnFrameRetrace *callback) {
-  const RenderBookmark &render = renders[renderId.index()];
-  trace::Call *call;
-  StateTrack tmp_tracker = tracker;
-  tmp_tracker.reset();
-
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
-  int played_calls = 0;
-
-  // play up to the beginning of the render
-  int current_call = frame_start.start.next_call_no;
-  while ((current_call < render.start.next_call_no) &&
-         (call = parser->parse_call())) {
-    ++played_calls;
-    ++current_call;
-    PlayAndCleanUpCall c(call, &tmp_tracker, true);
-  }
+  StateTrack tmp_tracker = m_tracker;
+  tmp_tracker.reset();
 
   // play up to the end of the render
-  for (int render_calls = 0; render_calls < render.numberOfCalls;
-       ++render_calls) {
-    call = parser->parse_call();
-    if (!call)
-      break;
-
-    ++played_calls;
-    PlayAndCleanUpCall c(call, &tmp_tracker, true);
-  }
+  for (int i = 0; i <= renderId.index(); ++i)
+    m_renders[i]->retrace(&tmp_tracker);
 
   callback->onShaderAssembly(renderId,
                              tmp_tracker.currentVertexShader(),
@@ -347,9 +278,8 @@ void
 FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
                              ExperimentId experimentCount,
                              OnFrameRetrace *callback) const {
-  auto i = metrics.find(initial_frame_context);
-  assert(i != metrics.end());
-  PerfMetrics *m = i->second;
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
   const int render_count = getRenderCount();
   for (const auto &id : ids) {
     const MetricId nullMetric(0);
@@ -362,42 +292,18 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
       callback->onMetrics(metricData, experimentCount);
       continue;
     }
-    m->selectMetric(id);
-    parser->setBookmark(frame_start.start);
 
-    int current_render = 0;
-    m->begin(RenderId(current_render));
-    trace::Call *call;
-    while (current_render < render_count) {
-      call = parser->parse_call();
-      assert(!changesContext(call));
-      PlayAndCleanUpCall c(call, NULL, false);
-      if (call->flags & trace::CALL_FLAG_RENDER) {
-        m->end();
-        ++current_render;
-        if (current_render == render_count)
-          break;
-        m->begin(RenderId(current_render));
-      }
-      assert(!(call->flags & trace::CALL_FLAG_END_FRAME));
+    m_metrics->selectMetric(id);
+    for (int i = 0; i < m_renders.size(); ++i) {
+      m_metrics->begin(RenderId(i));
+      m_renders[i]->retrace();
+      m_metrics->end();
     }
-    m->publish(experimentCount, callback);
+    m_metrics->publish(experimentCount, callback);
   }
 }
 
 
-bool
-FrameRetrace::changesContext(trace::Call *call) const {
-  if (strncmp(call->name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
-    return true;
-  return false;
-}
-
-uint64_t
-FrameRetrace::getContext(trace::Call *call) {
-  assert(changesContext(call));
-  return call->arg(2).toUIntPtr();
-}
 
 RenderId
 FrameRetrace::lastRenderForRTRegion(RenderId render) const {

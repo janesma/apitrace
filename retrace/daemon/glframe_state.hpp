@@ -36,13 +36,19 @@ class Call;
 
 namespace glretrace {
 
+class OutputPoller {
+ public:
+  virtual std::string poll() = 0;
+  virtual ~OutputPoller() {}
+};
+
 // tracks subset of gl state for frameretrace purposes
 class StateTrack {
  public:
-  StateTrack() {}
+  explicit StateTrack(OutputPoller *p) : m_poller(p) {}
   ~StateTrack() {}
   void track(const trace::Call &call);
-  void parse(const std::string &output);
+  void flush();
   void reset() { current_program = 0; }
   std::string currentVertexShader() const;
   std::string currentVertexIr() const;
@@ -53,6 +59,7 @@ class StateTrack {
   std::string currentFragmentSimd16() const;
   std::string currentFragmentSSA() const;
   std::string currentFragmentNIR() const;
+  uint64_t currentContext() const { return current_context; }
 
  private:
   class TrackMap {
@@ -69,8 +76,11 @@ class StateTrack {
   void trackShaderSource(const trace::Call &);
   void trackLinkProgram(const trace::Call &);
   void trackUseProgram(const trace::Call &);
+  void parse();
 
+  OutputPoller *m_poller;
   int current_program;
+  uint64_t current_context;
   std::map<int, std::string> shader_to_source;
   std::map<int, int> shader_to_type;
 
