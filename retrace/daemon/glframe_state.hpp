@@ -60,6 +60,8 @@ class StateTrack {
   std::string currentFragmentSSA() const;
   std::string currentFragmentNIR() const;
   uint64_t currentContext() const { return current_context; }
+  int useProgram(const std::string &vs, const std::string &fs);
+  void useProgram(int program);
 
  private:
   class TrackMap {
@@ -71,18 +73,28 @@ class StateTrack {
     std::map <std::string, MemberFunType> lookup;
   };
   static TrackMap lookup;
+  class ProgramKey {
+   public:
+    ProgramKey(const std::string &v, const std::string &f);
+    bool operator<(const ProgramKey &o) const;
+   private:
+    std::string vs; std::string fs;
+  };
+
+  void parse();
   void trackAttachShader(const trace::Call &);
   void trackCreateShader(const trace::Call &);
   void trackShaderSource(const trace::Call &);
   void trackLinkProgram(const trace::Call &);
   void trackUseProgram(const trace::Call &);
-  void parse();
 
   OutputPoller *m_poller;
   int current_program;
   uint64_t current_context;
   std::map<int, std::string> shader_to_source;
   std::map<int, int> shader_to_type;
+  std::map<std::string, int> source_to_shader;
+  std::map<ProgramKey, int> m_sources_to_program;
 
   // for these maps, key is program
   std::map<int, std::string> program_to_vertex_shader_source;
