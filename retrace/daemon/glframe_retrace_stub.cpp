@@ -338,17 +338,16 @@ FrameRetraceStub::openFile(const std::string &filename,
   thread->push(new RetraceOpenFileRequest(filename, frameNumber, callback));
 }
 
-
-
 void
 FrameRetraceStub::retraceRenderTarget(RenderId renderId,
                                       int render_target_number,
                                       RenderTargetType type,
                                       RenderOptions options,
-                                      OnFrameRetrace *callback) const {
+                                      OnFrameRetrace *callback) {
   thread->push(new RetraceRenderTargetRequest(renderId, render_target_number,
                                               type, options, callback));
 }
+
 void
 FrameRetraceStub::retraceShaderAssembly(RenderId renderId,
                                         OnFrameRetrace *callback) {

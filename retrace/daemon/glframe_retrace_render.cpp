@@ -25,10 +25,14 @@
 
 #include "glframe_retrace_render.hpp"
 
+#include <string>
+
+#include "glframe_glhelper.hpp"
 #include "glframe_state.hpp"
 #include "retrace.hpp"
 #include "trace_parser.hpp"
 
+using glretrace::GlFunctions;
 using glretrace::RetraceRender;
 using glretrace::StateTrack;
 
@@ -57,6 +61,10 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     if (render || m_end_of_frame)
       break;
   }
+  m_original_vs = tracker->currentVertexShader();
+  m_modified_vs = m_original_vs;
+  m_original_fs = tracker->currentFragmentShader();
+  m_modified_fs = m_original_fs;
 }
 
 void
@@ -66,16 +74,22 @@ RetraceRender::retraceRenderTarget() const {
   m_parser->getBookmark(bm);
   assert(bm.offset == m_bookmark.start.offset);
 
-  // play up to the end of the render
-  for (int calls = 0; calls < m_bookmark.numberOfCalls; ++calls) {
+  // play up to but not past the end of the render
+  for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
-
-    // TODO(majanes): select the simple shader program if necessary
-
     m_retracer->retrace(*call);
     delete(call);
   }
+
+  // override the RT shader
+  GlFunctions::UseProgram(m_rt_program);
+
+  // retrace the final render
+  trace::Call *call = m_parser->parse_call();
+  assert(call);
+  m_retracer->retrace(*call);
+  delete(call);
 }
 
 
@@ -86,18 +100,44 @@ RetraceRender::retrace(StateTrack *tracker) const {
   m_parser->getBookmark(bm);
   assert(bm.offset == m_bookmark.start.offset);
 
-  // play up to the end of the render
-  for (int calls = 0; calls < m_bookmark.numberOfCalls; ++calls) {
-    if (tracker)
-      tracker->flush();
+  if (tracker)
+    tracker->flush();
+
+  // play up to but not past the end of the render
+  for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
-
-    // TODO(majanes): select the simple shader program if necessary
-
     m_retracer->retrace(*call);
     if (tracker)
       tracker->track(*call);
     delete(call);
   }
+
+  // select the shader override if necessary
+  if (m_retrace_program) {
+    GlFunctions::UseProgram(m_retrace_program);
+    if (tracker) {
+      tracker->useProgram(m_retrace_program);
+    }
+  }
+
+  // retrace the final render
+  trace::Call *call = m_parser->parse_call();
+  assert(call);
+  m_retracer->retrace(*call);
+  if (tracker)
+    tracker->track(*call);
+  delete(call);
+}
+
+
+void
+RetraceRender::highlightRenderTarget(StateTrack *tracker, bool enable) {
+  static const std::string simple_fs =
+      "void main(void) {\n"
+      "  gl_FragColor = vec4(1,0,1,1);\n"
+      "}";
+  m_rt_program = tracker->useProgram(m_modified_vs,
+                                     enable ? simple_fs : m_modified_fs);
+  GlFunctions::UseProgram(m_rt_program);
 }

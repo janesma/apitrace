@@ -110,6 +110,8 @@ class FrameRetraceModel : public QObject,
              WRITE setClearBeforeRender)
   Q_PROPERTY(bool stopAtRender READ stopAtRender
              WRITE setStopAtRender)
+  Q_PROPERTY(bool highlightRender READ highlightRender
+             WRITE setHighlightRender)
  public:
   FrameRetraceModel();
   ~FrameRetraceModel();
@@ -159,6 +161,8 @@ class FrameRetraceModel : public QObject,
   void setClearBeforeRender(bool v);
   bool stopAtRender() const;
   void setStopAtRender(bool v);
+  bool highlightRender() const;
+  void setHighlightRender(bool v);
  public slots:
   void onUpdateMetricList();
   void onSelect(QList<int> selection);
@@ -199,7 +203,7 @@ class FrameRetraceModel : public QObject,
 
   std::vector<MetricId> m_active_metrics;
   float m_max_metric;
-  bool m_clear_before_render, m_stop_at_render;
+  bool m_clear_before_render, m_stop_at_render, m_highlight_render;
 };
 
 }  // namespace glretrace

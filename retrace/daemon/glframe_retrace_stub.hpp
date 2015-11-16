@@ -49,7 +49,7 @@ class FrameRetraceStub : public IFrameRetrace {
                                    int render_target_number,
                                    RenderTargetType type,
                                    RenderOptions options,
-                                   OnFrameRetrace *callback) const;
+                                   OnFrameRetrace *callback);
   virtual void retraceShaderAssembly(RenderId renderId,
                                      OnFrameRetrace *callback);
   virtual void retraceMetrics(const std::vector<MetricId> &ids,

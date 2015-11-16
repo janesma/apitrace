@@ -195,7 +195,7 @@ class IFrameRetrace {
                                    int render_target_number,
                                    RenderTargetType type,
                                    RenderOptions options,
-                                   OnFrameRetrace *callback) const = 0;
+                                   OnFrameRetrace *callback) = 0;
   virtual void retraceShaderAssembly(RenderId renderId,
                                      OnFrameRetrace *callback) = 0;
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
@@ -233,7 +233,7 @@ class FrameRetrace : public IFrameRetrace {
                            int render_target_number,
                            RenderTargetType type,
                            RenderOptions options,
-                           OnFrameRetrace *callback) const;
+                           OnFrameRetrace *callback);
   void retraceShaderAssembly(RenderId renderId,
                              OnFrameRetrace *callback);
   void retraceMetrics(const std::vector<MetricId> &ids,

@@ -99,6 +99,7 @@ class NoRedirect : public OutputPoller {
 };
 
 static StdErrRedirect assemblyOutput;
+// static NoRedirect assemblyOutput;
 
 FrameRetrace::FrameRetrace()
     : m_tracker(&assemblyOutput) {
@@ -188,9 +189,12 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
                                   int render_target_number,
                                   RenderTargetType type,
                                   RenderOptions options,
-                                  OnFrameRetrace *callback) const {
+                                  OnFrameRetrace *callback) {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
+
+  m_renders[renderId.index()]->highlightRenderTarget(&m_tracker,
+                                                     type == HIGHLIGHT_RENDER);
 
   // play up to the beginning of the render
   for (int i = 0; i < renderId.index(); ++i)
