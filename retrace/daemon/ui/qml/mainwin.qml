@@ -331,6 +331,12 @@ ApplicationWindow {
                                 frameRetrace.stopAtRender = checked;
                             }
                         }
+                        CheckBox {
+                            text: "Highlight selected render"
+                            onCheckedChanged: {
+                                frameRetrace.highlightRender = checked;
+                            }
+                        }
                     }
                     Item {
                         anchors.top: parent.top

@@ -134,8 +134,11 @@ FrameRetraceModel::retrace_rendertarget() {
     opt = (RenderOptions) (opt | CLEAR_BEFORE_RENDER);
   if (m_stop_at_render)
     opt = (RenderOptions) (opt | STOP_AT_RENDER);
+  RenderTargetType rt_type = glretrace::NORMAL_RENDER;
+  if (m_highlight_render)
+    rt_type = HIGHLIGHT_RENDER;
   m_retrace.retraceRenderTarget(RenderId(m_cached_selection.back()),
-                                0, glretrace::NORMAL_RENDER,
+                                0, rt_type,
                                 opt, this);
 }
 
@@ -307,5 +310,18 @@ void
 FrameRetraceModel::setStopAtRender(bool v) {
   ScopedLock s(m_protect);
   m_stop_at_render = v;
+  retrace_rendertarget();
+}
+
+bool
+FrameRetraceModel::highlightRender() const {
+  ScopedLock s(m_protect);
+  return m_highlight_render;
+}
+
+void
+FrameRetraceModel::setHighlightRender(bool v) {
+  ScopedLock s(m_protect);
+  m_highlight_render = v;
   retrace_rendertarget();
 }

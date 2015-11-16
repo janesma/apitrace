@@ -31,8 +31,9 @@
 #include <sstream>
 #include <string>
 
-#include "trace_model.hpp"
 #include "GLES2/gl2.h"
+#include "trace_model.hpp"
+#include "glframe_glhelper.hpp"
 
 using glretrace::StateTrack;
 using trace::Call;
@@ -93,6 +94,14 @@ StateTrack::trackAttachShader(const Call &call) {
     program_to_fragment_shader_source[program] = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_VERTEX_SHADER)
     program_to_vertex_shader_source[program] = shader_to_source[shader];
+
+  auto vs = program_to_vertex_shader_source.find(program);
+  if (vs == program_to_vertex_shader_source.end())
+    return;
+  auto fs = program_to_fragment_shader_source.find(program);
+  if (fs == program_to_fragment_shader_source.end())
+    return;
+  m_sources_to_program[ProgramKey(vs->second, fs->second)] = program;
 }
 
 void
@@ -111,6 +120,7 @@ StateTrack::trackShaderSource(const Call &call) {
     text += line->toString();
   }
   shader_to_source[shader] = text;
+  source_to_shader[text] = shader;
 }
 
 void
@@ -288,3 +298,81 @@ StateTrack::currentFragmentNIR() const {
 void
 StateTrack::flush() { m_poller->poll(); }
 
+StateTrack::ProgramKey::ProgramKey(const std::string &v,
+                               const std::string &f)
+    : vs(v), fs(f) {}
+
+bool
+StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
+  if (vs < o.vs)
+    return true;
+  if (vs > o.vs)
+    return false;
+  if (fs < o.fs)
+    return true;
+  return false;
+}
+
+int
+StateTrack::useProgram(const std::string &vs, const std::string &fs) {
+  const ProgramKey k(vs, fs);
+  auto i = m_sources_to_program.find(k);
+  if (i != m_sources_to_program.end())
+    return i->second;
+
+  // TODO(majanes) assert if ids are being reused
+  const GLuint pid = GlFunctions::CreateProgram();
+  GL_CHECK();
+  assert(program_to_fragment_shader_source.find(pid)
+         == program_to_fragment_shader_source.end());
+  current_program = pid;
+  flush();
+  auto vshader = source_to_shader.find(vs);
+  if (vshader == source_to_shader.end()) {
+    // have to compile the vs
+    const GLint len = vs.size();
+    const GLchar *vsstr = vs.c_str();
+    const GLuint vsid = GlFunctions::CreateShader(GL_VERTEX_SHADER);
+    GlFunctions::ShaderSource(vsid, 1, &vsstr, &len);
+    GL_CHECK();
+    GlFunctions::CompileShader(vsid);
+    GL_CHECK();
+    // TODO(majanes) check error and poll
+    source_to_shader[vs] = vsid;
+    vshader = source_to_shader.find(vs);
+    program_to_vertex_shader_source[pid] = vs;
+  }
+
+  auto fshader = source_to_shader.find(fs);
+  if (fshader == source_to_shader.end()) {
+    // have to compile the fs
+    const GLint len = fs.size();
+    const GLchar *fsstr = fs.c_str();
+    const GLuint fsid = GlFunctions::CreateShader(GL_FRAGMENT_SHADER);
+    GlFunctions::ShaderSource(fsid, 1, &fsstr, &len);
+    GL_CHECK();
+    GlFunctions::CompileShader(fsid);
+    GL_CHECK();
+    // TODO(majanes) check error and poll
+    source_to_shader[fs] = fsid;
+    fshader = source_to_shader.find(fs);
+    program_to_fragment_shader_source[pid] = fs;
+  }
+
+  GlFunctions::AttachShader(pid, fshader->second);
+  GL_CHECK();
+  GlFunctions::AttachShader(pid, vshader->second);
+  GL_CHECK();
+  GlFunctions::LinkProgram(pid);
+  GL_CHECK();
+
+  // TODO(majanes) check error
+  parse();
+  return pid;
+}
+
+void
+StateTrack::useProgram(int program) {
+  current_program = program;
+  parse();
+}

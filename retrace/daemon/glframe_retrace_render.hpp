@@ -26,6 +26,7 @@
 #ifndef _GLFRAME_RETRACE_RENDER_HPP_
 #define _GLFRAME_RETRACE_RENDER_HPP_
 
+#include <string>
 #include <vector>
 
 #include "glframe_retrace.hpp"
@@ -53,17 +54,21 @@ class RetraceRender {
   void retraceRenderTarget() const;
   void retrace(StateTrack *tracker = NULL) const;
   bool endsFrame() const { return m_end_of_frame; }
-  void overrideProgram(int program);
-  void overrideRenderTargetProgram(int program);
+  void overrideVertexShader(StateTrack *tracker, bool enable,
+                            const std::string &vs);
+  void overrideFragmentShader(StateTrack *tracker, bool enable,
+                              const std::string &fs);
+  void highlightRenderTarget(StateTrack *tracker, bool enable);
+  void revertShaders();
 
  private:
   trace::AbstractParser *m_parser;
   retrace::Retracer *m_retracer;
   RenderBookmark m_bookmark;
-  int m_program;
-  int m_rt_program;
-  int m_override_program;
-  bool m_end_of_frame;
+  std::string m_original_vs, m_original_fs,
+    m_modified_fs, m_modified_vs;
+  int m_rt_program, m_retrace_program;
+  bool m_end_of_frame, m_highlight_rt;
 };
 
 }  // namespace glretrace
