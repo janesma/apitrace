@@ -177,12 +177,14 @@ class OnFrameRetrace {
                                 const std::string &fragment_nir_final) = 0;
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
                               const uvec & pngImageData) = 0;
-  virtual void onShaderCompile(RenderId renderId, int status,
-                               std::string errorString) = 0;
   virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names) = 0;
   virtual void onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount) = 0;
+  virtual void onShaderCompile(RenderId renderId,
+                               ExperimentId experimentCount,
+                               bool status,
+                               const std::string &errorString) = 0;
 };
 
 class IFrameRetrace {
@@ -195,12 +197,17 @@ class IFrameRetrace {
                                    int render_target_number,
                                    RenderTargetType type,
                                    RenderOptions options,
-                                   OnFrameRetrace *callback) = 0;
+                                   OnFrameRetrace *callback) const = 0;
   virtual void retraceShaderAssembly(RenderId renderId,
                                      OnFrameRetrace *callback) = 0;
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const = 0;
+  virtual void replaceShaders(RenderId renderId,
+                             ExperimentId experimentCount,
+                             const std::string &vs,
+                             const std::string &fs,
+                             OnFrameRetrace *callback) = 0;
 };
 
 class FrameState {
@@ -233,12 +240,17 @@ class FrameRetrace : public IFrameRetrace {
                            int render_target_number,
                            RenderTargetType type,
                            RenderOptions options,
-                           OnFrameRetrace *callback);
+                           OnFrameRetrace *callback) const;
   void retraceShaderAssembly(RenderId renderId,
                              OnFrameRetrace *callback);
   void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const;
+  void replaceShaders(RenderId renderId,
+                     ExperimentId experimentCount,
+                     const std::string &vs,
+                     const std::string &fs,
+                     OnFrameRetrace *callback);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);

@@ -42,6 +42,11 @@ bool changesContext(const trace::Call * const call) {
   return false;
 }
 
+static const std::string simple_fs =
+    "void main(void) {\n"
+    "  gl_FragColor = vec4(1,0,1,1);\n"
+    "}";
+
 RetraceRender::RetraceRender(trace::AbstractParser *parser,
                              retrace::Retracer *retracer,
                              StateTrack *tracker) : m_parser(parser),
@@ -65,10 +70,13 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
   m_modified_vs = m_original_vs;
   m_original_fs = tracker->currentFragmentShader();
   m_modified_fs = m_original_fs;
+
+  m_rt_program = tracker->useProgram(m_modified_vs,
+                                     simple_fs);
 }
 
 void
-RetraceRender::retraceRenderTarget() const {
+RetraceRender::retraceRenderTarget(RenderTargetType type) const {
   // check that the parser is in correct state
   trace::ParseBookmark bm;
   m_parser->getBookmark(bm);
@@ -82,8 +90,10 @@ RetraceRender::retraceRenderTarget() const {
     delete(call);
   }
 
-  // override the RT shader
-  GlFunctions::UseProgram(m_rt_program);
+  if (type == HIGHLIGHT_RENDER)
+    GlFunctions::UseProgram(m_rt_program);
+  else if (m_retrace_program)
+    GlFunctions::UseProgram(m_retrace_program);
 
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
@@ -131,13 +141,18 @@ RetraceRender::retrace(StateTrack *tracker) const {
 }
 
 
-void
-RetraceRender::highlightRenderTarget(StateTrack *tracker, bool enable) {
-  static const std::string simple_fs =
-      "void main(void) {\n"
-      "  gl_FragColor = vec4(1,0,1,1);\n"
-      "}";
-  m_rt_program = tracker->useProgram(m_modified_vs,
-                                     enable ? simple_fs : m_modified_fs);
-  GlFunctions::UseProgram(m_rt_program);
+bool
+RetraceRender::replaceShaders(StateTrack *tracker,
+                              const std::string &vs,
+                              const std::string &fs,
+                              std::string *message) {
+  const int result = tracker->useProgram(vs, fs, message);
+  if (result == -1)
+    return false;
+
+  // else
+  m_retrace_program = result;
+  *message = "";
+  m_rt_program = tracker->useProgram(vs, simple_fs, message);
+  return true;
 }

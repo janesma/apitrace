@@ -51,14 +51,17 @@ class RetraceRender {
   RetraceRender(trace::AbstractParser *parser,
                 retrace::Retracer *retracer,
                 StateTrack *tracker);
-  void retraceRenderTarget() const;
+  void retraceRenderTarget(RenderTargetType type) const;
   void retrace(StateTrack *tracker = NULL) const;
   bool endsFrame() const { return m_end_of_frame; }
+  bool replaceShaders(StateTrack *tracker,
+                     const std::string &vs,
+                     const std::string &fs,
+                     std::string *message);
   void overrideVertexShader(StateTrack *tracker, bool enable,
                             const std::string &vs);
   void overrideFragmentShader(StateTrack *tracker, bool enable,
                               const std::string &fs);
-  void highlightRenderTarget(StateTrack *tracker, bool enable);
   void revertShaders();
 
  private:

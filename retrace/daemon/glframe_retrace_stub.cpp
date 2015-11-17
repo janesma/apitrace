@@ -343,7 +343,7 @@ FrameRetraceStub::retraceRenderTarget(RenderId renderId,
                                       int render_target_number,
                                       RenderTargetType type,
                                       RenderOptions options,
-                                      OnFrameRetrace *callback) {
+                                      OnFrameRetrace *callback) const {
   thread->push(new RetraceRenderTargetRequest(renderId, render_target_number,
                                               type, options, callback));
 }
@@ -359,4 +359,12 @@ FrameRetraceStub::retraceMetrics(const std::vector<MetricId> &ids,
                                  ExperimentId experimentCount,
                                  OnFrameRetrace *callback) const {
   thread->push(new RetraceMetricsRequest(ids, experimentCount, callback));
+}
+
+void
+FrameRetraceStub::replaceShaders(RenderId renderId,
+                             ExperimentId experimentCount,
+                             const std::string &vs,
+                             const std::string &fs,
+                                 OnFrameRetrace *callback) {
 }

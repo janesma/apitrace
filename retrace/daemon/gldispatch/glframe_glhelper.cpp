@@ -72,6 +72,8 @@ static void *pDeletePerfQueryINTEL = NULL;
 static void *pBeginPerfQueryINTEL = NULL;
 static void *pEndPerfQueryINTEL = NULL;
 static void *pGetPerfQueryDataINTEL = NULL;
+static void *pGetProgramiv = NULL;
+static void *pGetProgramInfoLog = NULL;
 
 }  // namespace
 
@@ -163,6 +165,10 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pEndPerfQueryINTEL);
   pGetPerfQueryDataINTEL = GetProcAddress("glGetPerfQueryDataINTEL");
   assert(pGetPerfQueryDataINTEL);
+  pGetProgramiv = GetProcAddress("glGetProgramiv");
+  assert(pGetProgramiv);
+  pGetProgramInfoLog = GetProcAddress("glGetProgramInfoLog");
+  assert(pGetProgramInfoLog);
 }
 
 GLuint
@@ -458,4 +464,19 @@ GlFunctions::GetPerfQueryDataINTEL(GLuint queryHandle, GLuint flags,
   ((GETPERFQUERYDATAINTEL) pGetPerfQueryDataINTEL)(queryHandle, flags,
                                                    dataSize, data,
                                                    bytesWritten);
+}
+
+void
+GlFunctions::GetProgramiv(GLuint program, GLenum pname, GLint *params) {
+  typedef void (*GETPROGRAMIV)(GLuint program, GLenum pname, GLint *params);
+  ((GETPROGRAMIV) pGetProgramiv)(program, pname, params);
+}
+
+void
+GlFunctions::GetProgramInfoLog(GLuint program, GLsizei bufSize,
+                               GLsizei *length, GLchar *infoLog) {
+  typedef void (*GETPROGRAMINFOLOG)(GLuint program, GLsizei bufSize,
+                                    GLsizei *length, GLchar *infoLog);
+  ((GETPROGRAMINFOLOG) pGetProgramInfoLog)(program, bufSize,
+                                           length, infoLog);
 }

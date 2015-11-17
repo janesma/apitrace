@@ -189,30 +189,27 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
                                   int render_target_number,
                                   RenderTargetType type,
                                   RenderOptions options,
-                                  OnFrameRetrace *callback) {
+                                  OnFrameRetrace *callback) const {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
 
-  m_renders[renderId.index()]->highlightRenderTarget(&m_tracker,
-                                                     type == HIGHLIGHT_RENDER);
-
   // play up to the beginning of the render
   for (int i = 0; i < renderId.index(); ++i)
-    m_renders[i]->retraceRenderTarget();
+    m_renders[i]->retraceRenderTarget(NORMAL_RENDER);
 
   if (options & glretrace::CLEAR_BEFORE_RENDER)
     GlFunctions::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
                        GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // play up to the end of the render
-  m_renders[renderId.index()]->retraceRenderTarget();
+  m_renders[renderId.index()]->retraceRenderTarget(type);
 
   if (!(options & glretrace::STOP_AT_RENDER)) {
     // play to the end of the render target
 
     const RenderId last_render = lastRenderForRTRegion(renderId);
     for (int i = renderId.index() + 1; i <= last_render.index(); ++i)
-      m_renders[i]->retraceRenderTarget();
+      m_renders[i]->retraceRenderTarget(NORMAL_RENDER);
   }
 
   Image *i = glstate::getDrawBufferImage(0);
@@ -315,4 +312,18 @@ FrameRetrace::lastRenderForRTRegion(RenderId render) const {
     if (rt_render > render)
       return rt_render;
   return render_target_regions.back();
+}
+
+void
+FrameRetrace::replaceShaders(RenderId renderId,
+                             ExperimentId experimentCount,
+                             const std::string &vs,
+                             const std::string &fs,
+                             OnFrameRetrace *callback) {
+  std::string message;
+  const bool result = m_renders[renderId.index()]->replaceShaders(&m_tracker,
+                                                                  vs, fs,
+                                                                  &message);
+  callback->onShaderCompile(renderId, experimentCount,
+                            result, message);
 }

@@ -60,7 +60,8 @@ class StateTrack {
   std::string currentFragmentSSA() const;
   std::string currentFragmentNIR() const;
   uint64_t currentContext() const { return current_context; }
-  int useProgram(const std::string &vs, const std::string &fs);
+  int useProgram(const std::string &vs, const std::string &fs,
+                 std::string *message = NULL);
   void useProgram(int program);
 
  private:

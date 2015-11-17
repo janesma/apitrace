@@ -215,8 +215,10 @@ FrameRetraceSkeleton::onRenderTarget(RenderId renderId,
 }
 
 void
-FrameRetraceSkeleton::onShaderCompile(RenderId renderId, int status,
-                                      std::string errorString) {
+FrameRetraceSkeleton::onShaderCompile(RenderId renderId,
+                                      ExperimentId experimentCount,
+                                      bool status,
+                                      const std::string &errorString) {
 }
 
 void
