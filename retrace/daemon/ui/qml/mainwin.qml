@@ -197,6 +197,20 @@ ApplicationWindow {
             Layout.fillHeight: true
         }
 
+        Button {
+            id: vsCompileButton
+            visible: false
+            text: "Compile"
+            property var vsText: frameRetrace.vsSource
+            property var fsText: frameRetrace.fsSource
+            onClicked: {
+                visible = false
+                console.log(vsText)
+                console.log(fsText)
+            }
+            Component.onCompleted: { visible = false; }
+        }
+
         TabView {
             Layout.preferredWidth: 400
             Layout.alignment: Qt.AlignTop
@@ -213,6 +227,7 @@ ApplicationWindow {
                             TextEdit {
                                 id: vsSource
                                 text: frameRetrace.vsSource
+                                onTextChanged: { vsCompileButton.vsText = text; vsCompileButton.visible=true; }
                             }
                         }
                     }
@@ -254,6 +269,7 @@ ApplicationWindow {
                             TextEdit {
                                 id: fsSource
                                 text: frameRetrace.fsSource
+                                onTextChanged: { vsCompileButton.fsText = text; vsCompileButton.visible=true; }
                             }
                         }
                     }
