@@ -33,6 +33,7 @@
 #include <GLES2/gl2.h>
 #include <GL/gl.h>
 
+#include <string>
 #include <vector>
 
 namespace glretrace {
@@ -107,6 +108,9 @@ class GlFunctions {
   static void GetPerfQueryDataINTEL(GLuint queryHandle, GLuint flags,
                                     GLsizei dataSize, GLvoid *data,
                                     GLuint *bytesWritten);
+  static void GetProgramiv(GLuint program, GLenum pname, GLint *params);
+  static void GetProgramInfoLog(GLuint program, GLsizei bufSize,
+                                GLsizei *length, GLchar *infoLog);
 
  private:
   GlFunctions();
@@ -122,7 +126,7 @@ inline void CheckError(const char * file, int line) {
   printf("ERROR: %x %s:%i\n", error, file, line);
 }
 
-inline void PrintCompileError(GLint shader) {
+inline void GetCompileError(GLint shader, std::string *message) {
   GLint status;
   GL::GetShaderiv(shader, GL_COMPILE_STATUS, &status);
   if (status == GL_TRUE)
@@ -131,7 +135,25 @@ inline void PrintCompileError(GLint shader) {
   std::vector<char> log(MAXLEN);
   GLsizei len;
   GL::GetShaderInfoLog(shader,  MAXLEN,  &len, log.data());
-  printf("ERROR -- compile failed: %s\n", log.data());
+  *message = log.data();
+}
+
+inline void GetLinkError(GLint program, std::string *message) {
+  GLint status;
+  GL::GetProgramiv(program, GL_LINK_STATUS, &status);
+  if (status == GL_TRUE)
+    return;
+  static const int MAXLEN = 1024;
+  std::vector<char> log(MAXLEN);
+  GLsizei len;
+  GL::GetProgramInfoLog(program, MAXLEN, &len, log.data());
+  *message = log.data();
+}
+
+inline void PrintCompileError(GLint shader) {
+  std::string message;
+  GetCompileError(shader, &message);
+  printf("ERROR -- compile failed: %s\n", message.c_str());
 }
 
 }  // namespace glretrace

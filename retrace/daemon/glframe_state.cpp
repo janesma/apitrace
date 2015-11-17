@@ -314,7 +314,9 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
 }
 
 int
-StateTrack::useProgram(const std::string &vs, const std::string &fs) {
+StateTrack::useProgram(const std::string &vs,
+                       const std::string &fs,
+                       std::string *message) {
   const ProgramKey k(vs, fs);
   auto i = m_sources_to_program.find(k);
   if (i != m_sources_to_program.end())
@@ -336,6 +338,11 @@ StateTrack::useProgram(const std::string &vs, const std::string &fs) {
     GlFunctions::ShaderSource(vsid, 1, &vsstr, &len);
     GL_CHECK();
     GlFunctions::CompileShader(vsid);
+    const int error = GlFunctions::GetError();
+    if (GL_NO_ERROR != error) {
+      GetCompileError(vsid, message);
+      return -1;
+    }
     GL_CHECK();
     // TODO(majanes) check error and poll
     source_to_shader[vs] = vsid;
@@ -352,6 +359,11 @@ StateTrack::useProgram(const std::string &vs, const std::string &fs) {
     GlFunctions::ShaderSource(fsid, 1, &fsstr, &len);
     GL_CHECK();
     GlFunctions::CompileShader(fsid);
+    const int error = GlFunctions::GetError();
+    if (GL_NO_ERROR != error) {
+      GetCompileError(fsid, message);
+      return -1;
+    }
     GL_CHECK();
     // TODO(majanes) check error and poll
     source_to_shader[fs] = fsid;
@@ -364,6 +376,11 @@ StateTrack::useProgram(const std::string &vs, const std::string &fs) {
   GlFunctions::AttachShader(pid, vshader->second);
   GL_CHECK();
   GlFunctions::LinkProgram(pid);
+  const int error = GlFunctions::GetError();
+  if (GL_NO_ERROR != error) {
+    GetLinkError(pid, message);
+    return -1;
+  }
   GL_CHECK();
 
   // TODO(majanes) check error

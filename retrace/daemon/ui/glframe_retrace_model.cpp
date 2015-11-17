@@ -124,8 +124,9 @@ FrameRetraceModel::onRenderTarget(RenderId renderId,
 
 void
 FrameRetraceModel::onShaderCompile(RenderId renderId,
-                                   int status,
-                                   std::string errorString) {}
+                                   ExperimentId experimentCount,
+                                   bool status,
+                                   const std::string &errorString) {}
 
 void
 FrameRetraceModel::retrace_rendertarget() {

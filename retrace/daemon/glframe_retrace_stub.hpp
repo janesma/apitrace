@@ -49,13 +49,17 @@ class FrameRetraceStub : public IFrameRetrace {
                                    int render_target_number,
                                    RenderTargetType type,
                                    RenderOptions options,
-                                   OnFrameRetrace *callback);
+                                   OnFrameRetrace *callback) const;
   virtual void retraceShaderAssembly(RenderId renderId,
                                      OnFrameRetrace *callback);
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const;
- private:
+  virtual void replaceShaders(RenderId renderId,
+                             ExperimentId experimentCount,
+                             const std::string &vs,
+                             const std::string &fs,
+                             OnFrameRetrace *callback);
 };
 }  // namespace glretrace
 
