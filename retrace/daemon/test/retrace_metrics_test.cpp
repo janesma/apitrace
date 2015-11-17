@@ -51,8 +51,9 @@ class MetricsCallback : public OnFrameRetrace {
                         const std::string &fragment_nir_final) {}
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
-  void onShaderCompile(RenderId renderId, int status,
-                       std::string errorString) {}
+  void onShaderCompile(RenderId renderId, ExperimentId experimentCount,
+                       bool status,
+                       const std::string &errorString) {}
   void onMetricList(const std::vector<MetricId> &i,
                     const std::vector<std::string> &n) {
     ids = i;
@@ -72,6 +73,7 @@ class MetricsCallback : public OnFrameRetrace {
 TEST(Metrics, ReadMetrics) {
   GlFunctions::Init();
   TestContext c;
+
   MetricsCallback cb;
   PerfMetrics p(&cb);
   EXPECT_EQ(cb.ids.size(), cb.names.size());

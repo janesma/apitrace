@@ -64,8 +64,9 @@ class NullCallback : public OnFrameRetrace {
                         const std::string &fragment_nir_final) {}
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
-  void onShaderCompile(RenderId renderId, int status,
-                       std::string errorString) {}
+  void onShaderCompile(RenderId renderId, ExperimentId count,
+                       bool status,
+                       const std::string &errorString) {}
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names) {}
   void onMetrics(const MetricSeries &metricData,
