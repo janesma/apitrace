@@ -34,6 +34,8 @@ set (RETRACE_SOURCES
   glframe_metrics.cpp
   glframe_metrics.hpp
   glframe_os.hpp
+  glframe_logger.cpp
+  glframe_logger.hpp
   glframe_retrace.cpp
   glframe_retrace.hpp
   glframe_retrace_render.cpp
