@@ -7,6 +7,7 @@ include_directories (
 
 set (DAEMON_TEST_SRC
   retrace_daemon_test.cpp
+  retrace_log_test.cpp
   retrace_metrics_test.cpp
   main_test.cpp
   )
