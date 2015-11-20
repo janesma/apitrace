@@ -37,6 +37,7 @@ using glretrace::WARN;
 
 TEST(Logger, ReadWrite) {
   Logger::Create("/tmp");
+  Logger::Begin();
   std::string s("This is a test message");
   GRLOG(ERROR, s.c_str());
   Logger::Flush();
@@ -49,6 +50,7 @@ TEST(Logger, ReadWrite) {
 
 TEST(Logger, RepeatLog) {
   Logger::Create("/tmp");
+  Logger::Begin();
   std::string m;
   ssize_t p;
   unsigned int seed = 1;
