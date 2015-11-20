@@ -50,7 +50,11 @@ static const std::string simple_fs =
 RetraceRender::RetraceRender(trace::AbstractParser *parser,
                              retrace::Retracer *retracer,
                              StateTrack *tracker) : m_parser(parser),
-                                                    m_retracer(retracer) {
+                                                    m_retracer(retracer),
+                                                    m_rt_program(0),
+                                                    m_retrace_program(0),
+                                                    m_end_of_frame(false),
+                                                    m_highlight_rt(false) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   while ((call = parser->parse_call())) {
@@ -66,13 +70,16 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     if (render || m_end_of_frame)
       break;
   }
+  const int p = tracker->CurrentProgram();
   m_original_vs = tracker->currentVertexShader();
   m_modified_vs = m_original_vs;
   m_original_fs = tracker->currentFragmentShader();
   m_modified_fs = m_original_fs;
 
+  // generate the highlight rt program, for later use
   m_rt_program = tracker->useProgram(m_modified_vs,
                                      simple_fs);
+  tracker->useProgram(p);
 }
 
 void
