@@ -38,6 +38,7 @@
 
 #include "glframe_glhelper.hpp"
 #include "glframe_os.hpp"
+#include "glframe_logger.hpp"
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
@@ -49,6 +50,7 @@ using glretrace::FrameRetraceModel;
 using glretrace::FrameRetraceSkeleton;
 using glretrace::FrameRetraceStub;
 using glretrace::GlFunctions;
+using glretrace::Logger;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::ServerSocket;
@@ -63,8 +65,10 @@ int fork_retracer() {
   }
   if (pid == 0) {
     // child: create retrace skeleton
+    Logger::Begin();
     FrameRetraceSkeleton skel(sock.Accept());
     skel.Run();
+    Logger::Destroy();
     exit(0);  // exit() is unreliable here, so _exit must be used
   }
   return sock.GetPort();
@@ -76,8 +80,11 @@ int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   GlFunctions::Init();
+  Logger::Create("/tmp");
+  Logger::SetSeverity(glretrace::WARN);
 
   const int port = fork_retracer();
+  Logger::Begin();
 
   FrameRetraceStub::Init(port);
   QGuiApplication app(argc, argv);
@@ -107,5 +114,6 @@ int main(int argc, char *argv[]) {
   }
   FrameRetraceStub::Shutdown();
   ::google::protobuf::ShutdownProtobufLibrary();
+  Logger::Destroy();
   return ret;
 }

@@ -50,6 +50,7 @@ class StateTrack {
   void track(const trace::Call &call);
   void flush();
   void reset() { current_program = 0; }
+  int CurrentProgram() const { return current_program; }
   std::string currentVertexShader() const;
   std::string currentVertexIr() const;
   std::string currentVertexVec4() const;
