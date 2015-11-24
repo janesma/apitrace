@@ -34,14 +34,22 @@
 #include "GLES2/gl2.h"
 #include "trace_model.hpp"
 #include "glframe_glhelper.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::StateTrack;
+using glretrace::WARN;
 using trace::Call;
 using trace::Array;
 
 static std::map<std::string, bool> ignore_strings;
 
 StateTrack::TrackMap StateTrack::lookup;
+
+StateTrack::StateTrack(OutputPoller *p)
+    : m_poller(p),
+      current_program(0),
+      current_context(0) {
+}
 
 StateTrack::TrackMap::TrackMap() {
   lookup["glAttachShader"] = &StateTrack::trackAttachShader;
@@ -338,17 +346,16 @@ StateTrack::useProgram(const std::string &vs,
     GlFunctions::ShaderSource(vsid, 1, &vsstr, &len);
     GL_CHECK();
     GlFunctions::CompileShader(vsid);
-    const int error = GlFunctions::GetError();
-    if (GL_NO_ERROR != error) {
-      GetCompileError(vsid, message);
+    GetCompileError(vsid, message);
+    if (message->size() > 0) {
       return -1;
     }
     GL_CHECK();
     // TODO(majanes) check error and poll
     source_to_shader[vs] = vsid;
     vshader = source_to_shader.find(vs);
-    program_to_vertex_shader_source[pid] = vs;
   }
+  program_to_vertex_shader_source[pid] = vs;
 
   auto fshader = source_to_shader.find(fs);
   if (fshader == source_to_shader.end()) {
@@ -362,14 +369,15 @@ StateTrack::useProgram(const std::string &vs,
     const int error = GlFunctions::GetError();
     if (GL_NO_ERROR != error) {
       GetCompileError(fsid, message);
+      GRLOGF(WARN, "compile error: %s", message->c_str());
       return -1;
     }
     GL_CHECK();
     // TODO(majanes) check error and poll
     source_to_shader[fs] = fsid;
     fshader = source_to_shader.find(fs);
-    program_to_fragment_shader_source[pid] = fs;
   }
+  program_to_fragment_shader_source[pid] = fs;
 
   GlFunctions::AttachShader(pid, fshader->second);
   GL_CHECK();

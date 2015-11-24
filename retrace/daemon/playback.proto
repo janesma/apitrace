@@ -10,6 +10,7 @@ enum RequestType {
   RENDER_TARGET_REQUEST = 2;
   SHADER_ASSEMBLY_REQUEST = 3;
   METRICS_REQUEST = 4;
+  REPLACE_SHADERS_REQUEST = 5;
 };
 
 message OpenFileRequest {
@@ -71,12 +72,27 @@ message MetricsResponse {
   required uint32 experiment_count = 2;
 }
 
+message ReplaceShadersRequest {
+  required uint32 render_id = 1;
+  required uint32 experiment_count = 2;
+  required string vs = 3;
+  required string fs = 4;
+}
+
+message ReplaceShadersResponse {
+  required uint32 render_id = 1;
+  required uint32 experiment_count = 2;
+  required bool status = 3;
+  required string message = 4;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
   optional ShaderAssemblyRequest shaderAssembly = 3;
   optional OpenFileRequest fileOpen = 4;
   optional MetricsRequest metrics = 5;
+  optional ReplaceShadersRequest shaders = 6;
 }
 
 message RetraceResponse {
@@ -85,4 +101,5 @@ message RetraceResponse {
   optional OpenFileStatus fileStatus = 3;
   optional MetricsList metricsList = 4;
   optional MetricsResponse metricsData = 5;
+  optional ReplaceShadersResponse shadersData = 6;
 }

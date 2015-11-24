@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include "retrace_test.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_retrace.hpp"
@@ -70,8 +71,7 @@ class MetricsCallback : public OnFrameRetrace {
   ExperimentId experiment_count;
 };
 
-TEST(Metrics, ReadMetrics) {
-  GlFunctions::Init();
+TEST_F(RetraceTest, ReadMetrics) {
   TestContext c;
 
   MetricsCallback cb;
@@ -87,7 +87,7 @@ TEST(Metrics, ReadMetrics) {
 
 static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.test_trace";
 
-TEST(Metrics, SingleMetricData) {
+TEST_F(RetraceTest, SingleMetricData) {
   retrace::setUp();
   GlFunctions::Init();
   TestContext c;
@@ -120,7 +120,7 @@ TEST(Metrics, SingleMetricData) {
   retrace::cleanUp();
 }
 
-TEST(Metrics, FrameMetricData) {
+TEST_F(RetraceTest, FrameMetricData) {
   GlFunctions::Init();
   MetricsCallback cb;
 
