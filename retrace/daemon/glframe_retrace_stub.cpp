@@ -260,6 +260,38 @@ class RetraceMetricsRequest : public IRetraceRequest {
   OnFrameRetrace *m_callback;
 };
 
+class ReplaceShadersRequest : public IRetraceRequest {
+ public:
+  ReplaceShadersRequest(RenderId renderId,
+                                 ExperimentId experimentCount,
+                                 const std::string &vs,
+                                 const std::string &fs,
+                                 OnFrameRetrace *cb)
+      : m_callback(cb) {
+    auto shaderRequest = m_proto_msg.mutable_shaders();
+    shaderRequest->set_render_id(renderId());
+    shaderRequest->set_experiment_count(experimentCount());
+    shaderRequest->set_vs(vs);
+    shaderRequest->set_fs(fs);
+    m_proto_msg.set_requesttype(ApiTrace::REPLACE_SHADERS_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    RetraceResponse response;
+    s->retrace(m_proto_msg, &response);
+    assert(response.has_shadersdata());
+    auto shaders_response = response.shadersdata();
+
+    const ExperimentId eid(shaders_response.experiment_count());
+    const RenderId rid(shaders_response.render_id());
+    m_callback->onShaderCompile(rid, eid, shaders_response.status(),
+                                shaders_response.message());
+  }
+
+ private:
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -363,8 +395,10 @@ FrameRetraceStub::retraceMetrics(const std::vector<MetricId> &ids,
 
 void
 FrameRetraceStub::replaceShaders(RenderId renderId,
-                             ExperimentId experimentCount,
-                             const std::string &vs,
-                             const std::string &fs,
+                                 ExperimentId experimentCount,
+                                 const std::string &vs,
+                                 const std::string &fs,
                                  OnFrameRetrace *callback) {
+  thread->push(new ReplaceShadersRequest(renderId, experimentCount,
+                                         vs, fs, callback));
 }

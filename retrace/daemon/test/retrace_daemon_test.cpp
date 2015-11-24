@@ -31,8 +31,10 @@
 
 #include "glws.hpp"
 
+#include "retrace_test.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_glhelper.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::GlFunctions;
@@ -41,6 +43,7 @@ using glretrace::MetricId;
 using glretrace::MetricSeries;
 using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
+using glretrace::Logger;
 using glretrace::RenderTargetType;
 
 TEST(Build, Cmake) {
@@ -56,25 +59,29 @@ class NullCallback : public OnFrameRetrace {
                         const std::string &vertex_shader,
                         const std::string &vertex_ir,
                         const std::string &vertex_vec4,
-                        const std::string &fragemnt_shader,
-                        const std::string &fragemnt_ir,
-                        const std::string &fragemnt_simd8,
-                        const std::string &fragemnt_simd16,
+                        const std::string &fragment_shader,
+                        const std::string &fragment_ir,
+                        const std::string &fragment_simd8,
+                        const std::string &fragment_simd16,
                         const std::string &fragment_nir_ssa,
-                        const std::string &fragment_nir_final) {}
+                        const std::string &fragment_nir_final) {
+    fs = fragment_shader;
+  }
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, ExperimentId count,
                        bool status,
-                       const std::string &errorString) {}
+                       const std::string &errorString) {
+    compile_error = errorString;
+  }
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names) {}
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount) {}
+  std::string compile_error, fs;
 };
 
-
-TEST(Daemon, LoadFile) {
+TEST_F(RetraceTest, LoadFile) {
   retrace::setUp();
   GlFunctions::Init();
 
@@ -88,5 +95,23 @@ TEST(Daemon, LoadFile) {
     rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
                            glretrace::STOP_AT_RENDER, &cb);
   }
-  retrace::cleanUp();
+}
+
+TEST_F(RetraceTest, ReplaceShaders) {
+  NullCallback cb;
+  FrameRetrace rt;
+  rt.openFile(test_file, 7, &cb);
+  rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", &cb);
+  EXPECT_GT(cb.compile_error.size(), 0);
+
+  rt.retraceShaderAssembly(RenderId(1), &cb);
+  EXPECT_GT(cb.fs.size(), 0);
+  std::string vs("attribute vec2 coord2d;\n"
+                 "varying vec2 v_TexCoordinate;\n"
+                 "void main(void) {\n"
+                 "  gl_Position = vec4(coord2d.x, -1.0 * coord2d.y, 0, 1);\n"
+                 "  v_TexCoordinate = vec2(coord2d.x, coord2d.y);\n"
+                 "}\n");
+  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs, &cb);
+  EXPECT_EQ(cb.compile_error.size(), 0);
 }

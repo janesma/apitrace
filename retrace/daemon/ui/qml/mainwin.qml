@@ -205,8 +205,7 @@ ApplicationWindow {
             property var fsText: frameRetrace.fsSource
             onClicked: {
                 visible = false
-                console.log(vsText)
-                console.log(fsText)
+                frameRetrace.overrideShaders(vsText, fsText);
             }
             Component.onCompleted: { visible = false; }
         }

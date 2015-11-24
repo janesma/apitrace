@@ -36,6 +36,7 @@
 #include <vector>
 
 #include "glframe_glhelper.hpp"
+#include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_retrace_render.hpp"
 #include "glretrace.hpp"
@@ -57,8 +58,7 @@ using glretrace::OnFrameRetrace;
 using glretrace::OutputPoller;
 using glretrace::RenderId;
 using glretrace::StateTrack;
-using trace::Call;
-using retrace::parser;
+using glretrace::WARN;
 using image::Image;
 using retrace::parser;
 using trace::Call;
@@ -320,10 +320,13 @@ FrameRetrace::replaceShaders(RenderId renderId,
                              const std::string &vs,
                              const std::string &fs,
                              OnFrameRetrace *callback) {
+  GRLOGF(DEBUG, "%s\n%s", vs.c_str(), fs.c_str());
   std::string message;
   const bool result = m_renders[renderId.index()]->replaceShaders(&m_tracker,
                                                                   vs, fs,
                                                                   &message);
+  if (!result)
+    GRLOGF(WARN, "compile failed: %s", message.c_str());
   callback->onShaderCompile(renderId, experimentCount,
                             result, message);
 }
