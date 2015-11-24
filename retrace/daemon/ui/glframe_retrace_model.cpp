@@ -37,9 +37,11 @@
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_images.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::FrameRetraceModel;
 using glretrace::FrameState;
+using glretrace::DEBUG;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QBarGraphRenderer;
@@ -325,4 +327,17 @@ FrameRetraceModel::setHighlightRender(bool v) {
   ScopedLock s(m_protect);
   m_highlight_render = v;
   retrace_rendertarget();
+}
+
+void
+FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs) {
+  ScopedLock s(m_protect);
+  const std::string &vss = vs.toStdString(), &fss = fs.toStdString();
+  GRLOGF(DEBUG, "vs: %s\nfs: %s", vss.c_str(), fss.c_str());
+  m_retrace.replaceShaders(RenderId(m_cached_selection.back()),
+                           ExperimentId(0), vss, fss, this);
+  retrace_rendertarget();
+  retrace_shader_assemblies();
+  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+                           this);
 }

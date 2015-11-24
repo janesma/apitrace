@@ -40,6 +40,7 @@ using glretrace::FrameRetrace;
 using glretrace::RenderTargetType;
 using glretrace::RenderOptions;
 using glretrace::Socket;
+using glretrace::RenderId;
 using ApiTrace::RetraceResponse;
 using ApiTrace::RetraceRequest;
 using google::protobuf::io::ArrayInputStream;
@@ -120,6 +121,17 @@ FrameRetraceSkeleton::Run() {
           auto shader = request.shaderassembly();
           m_frame->retraceShaderAssembly(glretrace::RenderId(shader.renderid()),
                                          this);
+          break;
+        }
+      case ApiTrace::REPLACE_SHADERS_REQUEST:
+        {
+          assert(request.has_shaders());
+          auto shader = request.shaders();
+          m_frame->replaceShaders(RenderId(shader.render_id()),
+                                  ExperimentId(shader.experiment_count()),
+                                  shader.vs(),
+                                  shader.fs(),
+                                  this);
           break;
         }
     }
@@ -219,6 +231,13 @@ FrameRetraceSkeleton::onShaderCompile(RenderId renderId,
                                       ExperimentId experimentCount,
                                       bool status,
                                       const std::string &errorString) {
+  RetraceResponse proto_response;
+  auto shader = proto_response.mutable_shadersdata();
+  shader->set_render_id(renderId());
+  shader->set_experiment_count(experimentCount());
+  shader->set_status(status);
+  shader->set_message(errorString);
+  writeResponse(m_socket, proto_response, &m_buf);
 }
 
 void

@@ -28,10 +28,12 @@
 #include <string>
 
 #include "glframe_glhelper.hpp"
+#include "glframe_logger.hpp"
 #include "glframe_state.hpp"
 #include "retrace.hpp"
 #include "trace_parser.hpp"
 
+using glretrace::DEBUG;
 using glretrace::GlFunctions;
 using glretrace::RetraceRender;
 using glretrace::StateTrack;
@@ -153,13 +155,17 @@ RetraceRender::replaceShaders(StateTrack *tracker,
                               const std::string &vs,
                               const std::string &fs,
                               std::string *message) {
+  GRLOGF(DEBUG, "RetraceRender: %s \n %s", vs.c_str(), fs.c_str());
   const int result = tracker->useProgram(vs, fs, message);
   if (result == -1)
     return false;
 
   // else
+  m_modified_vs = vs;
+  m_modified_fs = fs;
   m_retrace_program = result;
   *message = "";
   m_rt_program = tracker->useProgram(vs, simple_fs, message);
+  tracker->useProgram(result);
   return true;
 }

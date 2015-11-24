@@ -45,7 +45,7 @@ class OutputPoller {
 // tracks subset of gl state for frameretrace purposes
 class StateTrack {
  public:
-  explicit StateTrack(OutputPoller *p) : m_poller(p) {}
+  explicit StateTrack(OutputPoller *p);
   ~StateTrack() {}
   void track(const trace::Call &call);
   void flush();
