@@ -28,7 +28,10 @@
 #include "glframe_glhelper.hpp"
 
 #include <assert.h>
+#ifdef WIN32
+#else
 #include <dlfcn.h>
+#endif
 
 using glretrace::GlFunctions;
 
@@ -83,9 +86,14 @@ GlFunctions::Init(void *lookup_fn) {
     return;
 
   if (!lookup_fn) {
+#ifdef WIN32
+    HMODULE lib_handle = LoadLibrary("libGLESv2.dll");
+    lookup_fn = GetProcAddress(lib_handle, "wglGetProcAddress");
+#else
     void *lib_handle = NULL;
     lib_handle = dlopen("libGL.so", RTLD_LAZY | RTLD_GLOBAL);
     lookup_fn = dlsym(lib_handle, "glXGetProcAddress");
+#endif
     assert(lookup_fn);
   }
   typedef void* (* GETPROCADDRESS) (const char *procName);
