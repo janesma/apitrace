@@ -87,8 +87,8 @@ GlFunctions::Init(void *lookup_fn) {
 
   if (!lookup_fn) {
 #ifdef WIN32
-	HMODULE lib_handle = LoadLibrary("libGLESv2.dll");
-	lookup_fn = GetProcAddress(lib_handle, "wglGetProcAddress");
+    HMODULE lib_handle = LoadLibrary("libGLESv2.dll");
+    lookup_fn = GetProcAddress(lib_handle, "wglGetProcAddress");
 #else
     void *lib_handle = NULL;
     lib_handle = dlopen("libGL.so", RTLD_LAZY | RTLD_GLOBAL);
