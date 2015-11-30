@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 
 #include <GL/gl.h>
 
@@ -37,6 +38,8 @@
 #include "glframe_glhelper.hpp"
 
 using glretrace::BarGraphRenderer;
+using glretrace::BarGraphSubscriber;
+using glretrace::BarMetrics;
 
 const char *
 BarGraphRenderer::vshader =
