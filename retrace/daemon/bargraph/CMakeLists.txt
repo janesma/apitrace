@@ -51,5 +51,8 @@ add_library(retrace_bargraph STATIC
 
 qt5_use_modules(retrace_bargraph Core Gui OpenGL Concurrent Quick) 
 
-add_subdirectory(test)
+if (NOT WIN32)
+    add_subdirectory(test)
+endif()
+
 add_subdirectory(ui)
