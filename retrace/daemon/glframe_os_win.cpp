@@ -25,10 +25,13 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#include <windows.h>
+
+#include <sstream>
+
 namespace glretrace {
 
-int execv(const char *path, char *const argv[])
-{
+int execv(const char *path, char *const argv[]) {
     std::stringstream cmdLine;
     cmdLine << path;
     char *i = argv[0];
@@ -42,10 +45,9 @@ int execv(const char *path, char *const argv[])
         NULL,
         false,
         0,
-        NULL, //_In_opt_    LPVOID                lpEnvironment,
-        NULL, //_In_opt_    LPCTSTR               lpCurrentDirectory,
-        NULL, //_In_        LPSTARTUPINFO         lpStartupInfo,
-        NULL  //_Out_       LPPROCESS_INFORMATION lpProcessInformation
-        );
+        NULL,  // _In_opt_    LPVOID                lpEnvironment,
+        NULL,  // _In_opt_    LPCTSTR               lpCurrentDirectory,
+        NULL,  // _In_        LPSTARTUPINFO         lpStartupInfo,
+        NULL);   // _Out_       LPPROCESS_INFORMATION lpProcessInformation
 }
-}
+}  // namespace glretrace
