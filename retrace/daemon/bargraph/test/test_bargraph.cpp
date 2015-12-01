@@ -49,8 +49,6 @@ using glretrace::SelectionObserver;
 using glretrace::TestContext;
 
 TEST(BarGraph, Create) {
-  GlFunctions::Init();
-  TestContext c;
   BarGraphRenderer r;
 }
 

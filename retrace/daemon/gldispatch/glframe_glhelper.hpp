@@ -153,7 +153,8 @@ inline void GetLinkError(GLint program, std::string *message) {
 inline void PrintCompileError(GLint shader) {
   std::string message;
   GetCompileError(shader, &message);
-  printf("ERROR -- compile failed: %s\n", message.c_str());
+  if (message.size() > 0)
+    printf("ERROR -- compile failed: %s\n", message.c_str());
 }
 
 }  // namespace glretrace
