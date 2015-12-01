@@ -27,8 +27,16 @@
 
 #include <gtest/gtest.h>
 #include <google/protobuf/stubs/common.h>
+#include <QApplication>
+#include <QGLWidget>
 
 int main(int argc, char **argv) {
+  // boilerplate for ensuring a GL context exists.  Required for
+  // bargraph.
+  QApplication app(argc, argv);
+  QGLWidget tmpwidget;
+  tmpwidget.makeCurrent();
+
   ::testing::InitGoogleTest(&argc, argv);
   const int r = RUN_ALL_TESTS();
   return r;

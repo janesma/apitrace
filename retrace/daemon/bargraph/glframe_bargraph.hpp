@@ -28,9 +28,10 @@
 #ifndef _GLFRAME_BARGRAPH_HPP_
 #define _GLFRAME_BARGRAPH_HPP_
 
-#include <GLES2/gl2.h>
+#include <QOpenGLFunctions>
 
 #include <set>
+#include <string>
 #include <vector>
 
 namespace glretrace {
@@ -57,7 +58,7 @@ class BarGraphSubscriber {
 //     - mouse area
 //     - bars
 //   - Independent of Qt
-class BarGraphRenderer {
+class BarGraphRenderer : protected QOpenGLFunctions {
  public:
   explicit BarGraphRenderer(bool invert = false);  // Qt draws top-to-bottom
   void setBars(const std::vector<BarMetrics> &bars);
@@ -81,6 +82,10 @@ class BarGraphRenderer {
     Vertex bottom_right;
     Vertex top_right;
   };
+
+  void CheckError(const char * file, int line);
+  void GetCompileError(GLint shader, std::string *message);
+  void PrintCompileError(GLint shader);
 
   std::vector<bool> selected;
   std::vector<Vertex> vertices;

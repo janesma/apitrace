@@ -29,17 +29,45 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include <GL/gl.h>
-
 #include <algorithm>
 #include <vector>
 #include <set>
-
-#include "glframe_glhelper.hpp"
+#include <string>
 
 using glretrace::BarGraphRenderer;
 using glretrace::BarGraphSubscriber;
 using glretrace::BarMetrics;
+
+#define GL_CHECK() CheckError(__FILE__, __LINE__)
+
+void
+BarGraphRenderer::GetCompileError(GLint shader, std::string *message) {
+  GLint status;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+  if (status == GL_TRUE)
+    return;
+  static const int MAXLEN = 1024;
+  std::vector<char> log(MAXLEN);
+  GLsizei len;
+  glGetShaderInfoLog(shader,  MAXLEN,  &len, log.data());
+  *message = log.data();
+}
+
+void
+BarGraphRenderer::CheckError(const char * file, int line) {
+  const int error = glGetError();
+  if ( error == GL_NO_ERROR)
+    return;
+  printf("ERROR: %x %s:%i\n", error, file, line);
+}
+
+void
+BarGraphRenderer::PrintCompileError(GLint shader) {
+  std::string message;
+  GetCompileError(shader, &message);
+  if (message.size())
+    printf("ERROR -- compile failed: %s\n", message.c_str());
+}
 
 const char *
 BarGraphRenderer::vshader =
@@ -68,48 +96,49 @@ BarGraphRenderer::BarGraphRenderer(bool invert)
       mouse_area(2),
       invert_y(invert ? -1 : 1),
       subscriber(NULL) {
+  initializeOpenGLFunctions();
   // generate vbo
-  GL::GenBuffers(1, &vbo);
+  glGenBuffers(1, &vbo);
   GL_CHECK();
-  GL::BindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   GL_CHECK();
-  GL::BindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   GL_CHECK();
 
-  const int vs = GL::CreateShader(GL_VERTEX_SHADER);
+  const int vs = glCreateShader(GL_VERTEX_SHADER);
   GL_CHECK();
   int len = strlen(vshader);
-  GL::ShaderSource(vs, 1, &vshader, &len);
+  glShaderSource(vs, 1, &vshader, &len);
   GL_CHECK();
-  GL::CompileShader(vs);
+  glCompileShader(vs);
   PrintCompileError(vs);
 
-  const int fs = GL::CreateShader(GL_FRAGMENT_SHADER);
+  const int fs = glCreateShader(GL_FRAGMENT_SHADER);
   GL_CHECK();
   len = strlen(fshader);
-  GL::ShaderSource(fs, 1, &fshader, &len);
+  glShaderSource(fs, 1, &fshader, &len);
   GL_CHECK();
-  GL::CompileShader(fs);
+  glCompileShader(fs);
   PrintCompileError(fs);
 
-  prog = GL::CreateProgram();
-  GL::AttachShader(prog, vs);
+  prog = glCreateProgram();
+  glAttachShader(prog, vs);
   GL_CHECK();
-  GL::AttachShader(prog, fs);
+  glAttachShader(prog, fs);
   GL_CHECK();
-  GL::LinkProgram(prog);
+  glLinkProgram(prog);
   GL_CHECK();
 
   // get attribute locations
-  att_coord = GL::GetAttribLocation(prog,  "coord");
+  att_coord = glGetAttribLocation(prog,  "coord");
   GL_CHECK();
-  uni_max_x = GL::GetUniformLocation(prog,  "max_x");
+  uni_max_x = glGetUniformLocation(prog,  "max_x");
   GL_CHECK();
-  uni_max_y = GL::GetUniformLocation(prog,  "max_y");
+  uni_max_y = glGetUniformLocation(prog,  "max_y");
   GL_CHECK();
-  uni_invert_y = GL::GetUniformLocation(prog,  "invert_y");
+  uni_invert_y = glGetUniformLocation(prog,  "invert_y");
   GL_CHECK();
-  uni_bar_color = GL::GetUniformLocation(prog, "bar_color");
+  uni_bar_color = glGetUniformLocation(prog, "bar_color");
   GL_CHECK();
 }
 
@@ -219,37 +248,37 @@ template class std::vector<BarGraphRenderer::Vertex>;
 
 void
 BarGraphRenderer::render() {
-  GL::Enable(GL_BLEND);
+  glEnable(GL_BLEND);
   GL_CHECK();
-  GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  GL_CHECK();
-
-  GL::ClearColor(1.0, 1.0, 1.0, 1.0);
-  GL_CHECK();
-  GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   GL_CHECK();
 
-  GL::UseProgram(prog);
+  glClearColor(1.0, 1.0, 1.0, 1.0);
+  GL_CHECK();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  GL_CHECK();
+
+  glUseProgram(prog);
   GL_CHECK();
 
   // set uniforms
-  GL::Uniform1f(uni_max_y, max_y);
+  glUniform1f(uni_max_y, max_y);
   GL_CHECK();
-  GL::Uniform1f(uni_max_x, total_x);
+  glUniform1f(uni_max_x, total_x);
   GL_CHECK();
-  GL::Uniform1f(uni_invert_y, invert_y);
+  glUniform1f(uni_invert_y, invert_y);
   GL_CHECK();
 
   // bind vbo
-  GL::BindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   GL_CHECK();
 
   // enable vbo
-  GL::EnableVertexAttribArray(att_coord);
+  glEnableVertexAttribArray(att_coord);
   GL_CHECK();
 
   // describe vbo
-  GL::VertexAttribPointer(att_coord,           // attribute
+  glVertexAttribPointer(att_coord,           // attribute
                           2,                   // number of elements
                           // per vertex, here
                           // (x,y)
@@ -269,20 +298,20 @@ BarGraphRenderer::render() {
     grid_lines[i+1].y = max_y * (0.2 + i * 0.1);
   }
   const float grey_color[4] = { 0.2, 0.2, 0.2, 0.6 };
-  GL::Uniform4f(uni_bar_color, grey_color[0], grey_color[1],
+  glUniform4f(uni_bar_color, grey_color[0], grey_color[1],
                 grey_color[2], grey_color[3]);
   GL_CHECK();
-  GL::BufferData(GL_ARRAY_BUFFER, grid_lines.size() * sizeof(Vertex),
+  glBufferData(GL_ARRAY_BUFFER, grid_lines.size() * sizeof(Vertex),
                  grid_lines.data(), GL_STATIC_DRAW);
   GL_CHECK();
   for (int i = 0; i < 4; ++i) {
-    GL::DrawArrays(GL_LINE_STRIP, i*2, 2);
+    glDrawArrays(GL_LINE_STRIP, i*2, 2);
     GL_CHECK();
   }
-  // GL::Disable(GL_BLEND);
+  // glDisable(GL_BLEND);
 
   // buffer vertex data to vbo
-  GL::BufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
                  vertices.data(), GL_STATIC_DRAW);
   GL_CHECK();
 
@@ -294,17 +323,17 @@ BarGraphRenderer::render() {
     const float bar_color[4] = { 0.0, 0.0, 1.0, 1.0 };
     const float selected_color[4] = { 1.0, 1.0, 0.0, 1.0 };
     const float* color = selected[i/4] ? selected_color : bar_color;
-    GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
+    glUniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
     GL_CHECK();
-    GL::DrawArrays(GL_TRIANGLE_STRIP, i, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, i, 4);
     GL_CHECK();
 
     // draw a thin border around each bar
     const float black_color[4] = { 0.0, 0.0, 0.0, 1.0 };
-    GL::Uniform4f(uni_bar_color, black_color[0], black_color[1],
+    glUniform4f(uni_bar_color, black_color[0], black_color[1],
                   black_color[2], black_color[3]);
     GL_CHECK();
-    GL::DrawElements(GL_LINE_STRIP, 5, GL_UNSIGNED_SHORT,
+    glDrawElements(GL_LINE_STRIP, 5, GL_UNSIGNED_SHORT,
                      outline_indices.data());
     GL_CHECK();
 
@@ -321,24 +350,24 @@ BarGraphRenderer::render() {
     // mouse selection is active, draw a selection rectangle
 
     // buffer data to vbo
-    GL::BufferData(GL_ARRAY_BUFFER, mouse_vertices.size() * sizeof(Vertex),
+    glBufferData(GL_ARRAY_BUFFER, mouse_vertices.size() * sizeof(Vertex),
                    mouse_vertices.data(), GL_STATIC_DRAW);
     GL_CHECK();
 
     // yellow selection box
     const float color[4] = { 0.5, 0.5, 0.5, 0.5 };
-    GL::Uniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
+    glUniform4f(uni_bar_color, color[0], color[1], color[2], color[3]);
     GL_CHECK();
-    GL::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     GL_CHECK();
   }
 
   // disable vbo
-  GL::DisableVertexAttribArray(att_coord);
+  glDisableVertexAttribArray(att_coord);
   GL_CHECK();
 
   // unbind vbo
-  GL::BindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   GL_CHECK();
 }
 
