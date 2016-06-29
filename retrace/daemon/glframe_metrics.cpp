@@ -97,6 +97,17 @@ class PerfMetricGroup : public NoCopy, NoAssign {
 
 PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
   GLuint query_id;
+  GLint count;
+  bool has_metrics = false;
+  GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
+  for (int i = 0; i < count; ++i) {
+    const GLubyte *name = GlFunctions::GetStringi(GL_EXTENSIONS, i);
+    if (strcmp((const char*)name, "GL_INTEL_performance_query") == 0)
+      has_metrics = true;
+  }
+  if (!has_metrics)
+    return;
+
   GlFunctions::GetFirstPerfQueryIdINTEL(&query_id);
   if (query_id == -1)
     return;
