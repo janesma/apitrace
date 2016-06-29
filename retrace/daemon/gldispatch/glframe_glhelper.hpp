@@ -86,6 +86,7 @@ class GlFunctions {
   static void GetFirstPerfQueryIdINTEL(GLuint *queryId);
   static void GetNextPerfQueryIdINTEL(GLuint queryId, GLuint *nextQueryId);
   static void GetIntegerv(GLenum pname, GLint *params);
+  static const GLubyte *GetStringi(GLenum pname, GLuint index);
   static void GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
                                     GLchar *queryName, GLuint *dataSize,
                                     GLuint *noCounters, GLuint *noInstances,
