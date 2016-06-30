@@ -25,25 +25,51 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
+
+#include <getopt.h>
 #include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-namespace glretrace {
+#include "glframe_glhelper.hpp"
+#include "glframe_logger.hpp"
+#include "glframe_retrace_skeleton.hpp"
+#include "glframe_socket.hpp"
 
+using glretrace::FrameRetraceSkeleton;
+using glretrace::GlFunctions;
+using glretrace::Logger;
+using glretrace::ServerSocket;
 
-int fork_execv(const char *path, const char *const argv[]) {
-  pid_t pid = fork();
-  if (pid == -1) {
-    // When fork() returns -1, an error happened.
-    perror("fork failed");
-    exit(-1);
+int parse_args(int argc, char *argv[]) {
+  int opt;
+
+  while ((opt = getopt(argc, argv, "p:h")) != -1) {
+    switch (opt) {
+      case 'p':
+        return atoi(optarg);
+      case 'h':
+      default: /* '?' */
+        printf("USAGE: frame_retrace_server -p port\n");
+        exit(-1);
+    }
   }
-  if (pid == 0) {
-    return ::execv(path, (char *const*) argv);
-  }
-  return 0;
+  exit(-1);
 }
 
-}  // namespace glretrace
+
+int main(int argc, char *argv[]) {
+  // signal(SIGHUP, SIG_IGN);
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+  GlFunctions::Init();
+  Logger::Create("/tmp");
+  Logger::SetSeverity(glretrace::WARN);
+  Logger::Begin();
+
+  int port = parse_args(argc, argv);
+  ServerSocket sock(port);
+  FrameRetraceSkeleton skel(sock.Accept());
+  skel.Run();
+  Logger::Destroy();
+  return 0;
+}

@@ -35,10 +35,11 @@
 #include <google/protobuf/io/coded_stream.h>
 
 #include <sstream>
+#include <string>
 
 #include "glframe_glhelper.hpp"
-#include "glframe_os.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_os.hpp"
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
@@ -55,23 +56,23 @@ using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::ServerSocket;
 
-int fork_retracer() {
-  ServerSocket sock(0);
-  pid_t pid = fork();
-  if (pid == -1) {
-    // When fork() returns -1, an error happened.
-    perror("fork failed");
-    exit(-1);
-  }
-  if (pid == 0) {
-    // child: create retrace skeleton
-    Logger::Begin();
-    FrameRetraceSkeleton skel(sock.Accept());
-    skel.Run();
-    Logger::Destroy();
-    exit(0);  // exit() is unreliable here, so _exit must be used
-  }
-  return sock.GetPort();
+void exec_retracer(const char *main_exe, int port) {
+  // frame_retrace_server should be at the same path as frame_retrace
+  std::string server_exe(main_exe);
+  size_t last_sep = server_exe.rfind('/');
+  if (last_sep != std::string::npos)
+    server_exe.resize(last_sep + 1);
+  else
+    server_exe = std::string("");
+  server_exe += "frame_retrace_server";
+
+  std::stringstream port_s;
+  port_s << port;
+  const char *const args[] = {server_exe.c_str(),
+                              "-p",
+                              port_s.str().c_str(),
+                              ""};
+  glretrace::fork_execv(server_exe.c_str(), args);
 }
 
 Q_DECLARE_METATYPE(QList<glretrace::BarMetrics>)
@@ -83,8 +84,14 @@ int main(int argc, char *argv[]) {
   Logger::Create("/tmp");
   Logger::SetSeverity(glretrace::WARN);
 
-  const int port = fork_retracer();
+  int port = 0;
+  {
+    ServerSocket sock(0);
+    port = sock.GetPort();
+  }
+  exec_retracer(argv[0], port);
   Logger::Begin();
+  GRLOGF(glretrace::WARN, "using port: %d", port);
 
   FrameRetraceStub::Init(port);
   QGuiApplication app(argc, argv);

@@ -69,5 +69,6 @@ Lint( RETRACE_SOURCES )
 
 add_subdirectory (test)
 add_subdirectory (ui)
+add_subdirectory (server)
 add_subdirectory (bargraph)
 add_subdirectory (gldispatch)
