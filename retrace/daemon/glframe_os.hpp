@@ -60,7 +60,7 @@ class Semaphore : NoCopy, NoAssign, NoMove {
   std::condition_variable m_cv;
 };
 
-int fork_execv(const char *path, char *const argv[]);
+int fork_execv(const char *path, const char *const argv[]);
 
 }  // namespace glretrace
 

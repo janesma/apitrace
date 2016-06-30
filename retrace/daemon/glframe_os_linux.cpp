@@ -25,6 +25,7 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -32,7 +33,7 @@
 namespace glretrace {
 
 
-int fork_execv(const char *path, char *const argv[]) {
+int fork_execv(const char *path, const char *const argv[]) {
   pid_t pid = fork();
   if (pid == -1) {
     // When fork() returns -1, an error happened.
@@ -40,7 +41,7 @@ int fork_execv(const char *path, char *const argv[]) {
     exit(-1);
   }
   if (pid == 0) {
-    return ::execv(path, argv);
+    return ::execv(path, (char *const*) argv);
   }
   return 0;
 }
