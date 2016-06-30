@@ -111,8 +111,14 @@ Socket::Socket(const std::string &address, int port)
       reinterpret_cast<sockaddr_in *>(resolved_address->ai_addr);
   ip_address->sin_port = htons(port);
 
-  result = ::connect(fd, resolved_address->ai_addr,
-                     static_cast<int>(resolved_address->ai_addrlen));
+  result = -1;
+  while (true) {
+    result = ::connect(fd, resolved_address->ai_addr,
+                       static_cast<int>(resolved_address->ai_addrlen));
+    if (result == 0)
+      break;
+    sleep(1);
+  }
 
   assert(0 == result);
 
