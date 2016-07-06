@@ -38,8 +38,6 @@ using glretrace::GlFunctions;
 using glretrace::QSelection;
 
 int main(int argc, char *argv[]) {
-  GlFunctions::Init();
-
   QGuiApplication app(argc, argv);
 
   qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");

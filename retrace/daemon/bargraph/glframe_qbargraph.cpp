@@ -117,7 +117,7 @@ QBarGraphRenderer::onSelect(QList<int> selection) {
 QOpenGLFramebufferObject *
 QBarGraphRenderer::createFramebufferObject(const QSize & size) {
   QOpenGLFramebufferObjectFormat format;
-  format.setSamples(20);
+  format.setSamples(10);
   return new QOpenGLFramebufferObject(size, format);
 }
 

@@ -44,11 +44,19 @@ add_executable(bargraph
 
 qt5_use_modules(bargraph Core Gui Concurrent Quick) 
 
+if (WIN32)
+set (GL_LIB opengl32)
+set (DL_LIB "")
+else ()
+set (GL_LIB GL)
+set (DL_LIB dl)
+endif ()
+
 target_link_libraries(bargraph
   retrace_bargraph
   retrace_gldispatch
-  GL
+  ${GL_LIB}
   ${X11_X11_LIB}
-  dl
+  ${DL_LIB}
 )
 
