@@ -86,7 +86,7 @@ BarGraphRenderer::vshader =
 
 const char *
 BarGraphRenderer::fshader =
-    "uniform vec4 bar_color;"
+    "uniform mediump vec4 bar_color;"
     "void main(void) {"
     "   gl_FragColor = bar_color;"
     "}";
