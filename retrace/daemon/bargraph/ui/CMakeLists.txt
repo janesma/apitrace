@@ -49,7 +49,6 @@ target_link_libraries(bargraph
   retrace_gldispatch
   GL
   ${X11_X11_LIB}
-  pthread
   dl
 )
 
