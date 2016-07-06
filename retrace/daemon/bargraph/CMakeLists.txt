@@ -26,7 +26,6 @@ include_directories (
   )
 
 find_package(Qt5Core REQUIRED)
-find_package(Qt5Declarative REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Quick REQUIRED)
@@ -50,7 +49,7 @@ add_library(retrace_bargraph STATIC
   ${BARGRAPH_SOURCES}
   )
 
-qt5_use_modules(retrace_bargraph Core Gui OpenGL Concurrent Quick Declarative) 
+qt5_use_modules(retrace_bargraph Core Gui OpenGL Concurrent Quick) 
 
 if (NOT WIN32)
     add_subdirectory(test)
