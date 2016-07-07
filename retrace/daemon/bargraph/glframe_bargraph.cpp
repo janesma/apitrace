@@ -71,10 +71,11 @@ BarGraphRenderer::PrintCompileError(GLint shader) {
 
 const char *
 BarGraphRenderer::vshader =
-    "attribute vec2 coord; \n"
-    "uniform float max_x; \n"
-    "uniform float max_y; \n"
-    "uniform float invert_y; \n"
+    "#version 100\n"
+    "attribute mediump vec2 coord; \n"
+    "uniform mediump float max_x; \n"
+    "uniform mediump float max_y; \n"
+    "uniform mediump float invert_y; \n"
     "void main(void) { \n"
     "  /* normalize y */ \n"
     "  /* normalize x */ \n"
@@ -86,6 +87,7 @@ BarGraphRenderer::vshader =
 
 const char *
 BarGraphRenderer::fshader =
+    "#version 100\n"
     "uniform mediump vec4 bar_color;"
     "void main(void) {"
     "   gl_FragColor = bar_color;"
