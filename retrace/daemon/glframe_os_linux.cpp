@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
 
 namespace glretrace {
 
@@ -44,6 +46,10 @@ int fork_execv(const char *path, const char *const argv[]) {
     return ::execv(path, (char *const*) argv);
   }
   return 0;
+}
+
+struct tm *glretrace_localtime(const time_t *timep, struct tm *result) {
+  return localtime_r(timep, result);
 }
 
 }  // namespace glretrace

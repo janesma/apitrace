@@ -28,9 +28,10 @@
 #ifndef _GLFRAME_OS_H_
 #define _GLFRAME_OS_H_
 
+#include <time.h>
+
 #include <mutex>
 #include <condition_variable>
-// #include <pthread.h>
 
 #include "glframe_traits.hpp"
 
@@ -61,6 +62,8 @@ class Semaphore : NoCopy, NoAssign, NoMove {
 };
 
 int fork_execv(const char *path, const char *const argv[]);
+
+struct tm *glretrace_localtime(const time_t *timep, struct tm *result);
 
 }  // namespace glretrace
 
