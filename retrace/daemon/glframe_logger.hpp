@@ -44,7 +44,7 @@ enum Severity {
   DEBUG,
   INFO,
   WARN,
-  ERROR
+  ERR
 };
 
 class Logger : public Thread {

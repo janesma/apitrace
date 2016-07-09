@@ -89,7 +89,7 @@ format_severity(glretrace::Severity s) {
       return "INFO";
     case glretrace::WARN:
       return "WARN";
-    case glretrace::ERROR:
+    case glretrace::ERR:
       return "ERROR";
     default:
       return "UNKNOWN";
