@@ -29,6 +29,7 @@
 #define OS_GFLOGGER_H_
 
 #include <stdarg.h>
+#include <stdio.h>
 
 #include <mutex>
 #include <queue>
@@ -67,8 +68,7 @@ class Logger : public Thread {
   std::queue<std::string> m_q;
   std::mutex m_protect;
   Semaphore m_sem;
-  int m_fh;
-  int m_read_fh;
+  FILE *m_fh, *m_read_fh;
   int m_severity;
   bool m_running;
 };

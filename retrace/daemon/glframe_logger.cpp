@@ -30,9 +30,8 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <unistd.h>
+#include <time.h>
 
-#include <sys/time.h>
 #include <sstream>
 #include <string>
 
@@ -68,17 +67,17 @@ Logger::Logger(const std::string &out_directory) : Thread("logger"),
                                                    m_running(true) {
   std::stringstream ss;
   ss << out_directory << "/frame_retrace.log";
-  mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-  m_fh = open(ss.str().c_str(),
-              O_WRONLY | O_APPEND | O_CREAT | O_SYNC,
-              mode);
-  assert(m_fh > -1);
-  m_read_fh = open(ss.str().c_str(), O_RDONLY);
-  assert(m_read_fh > -1);
+  m_fh = fopen(ss.str().c_str(), "a");
+  assert(m_fh != NULL);
+  m_read_fh = fopen(ss.str().c_str(), "r");
+  assert(m_read_fh != NULL);
 }
 
 Logger::~Logger() {
-  close(m_fh);
+  fclose(m_fh);
+  m_fh = NULL;
+  fclose(m_read_fh);
+  m_read_fh = NULL;
 }
 
 const char *
@@ -103,13 +102,13 @@ Logger::Log(Severity s, const std::string &file, int line,
   assert(m_instance);
   if (s < m_instance->m_severity)
     return;
-  timeval current_time;
-  gettimeofday(&current_time, NULL);
-  int milli = current_time.tv_usec / 1000;
+  time_t t = time(NULL);
   char ts[255];
-  strftime(ts, 255, "%Y %b %d %H:%M:%S.", localtime(&current_time.tv_sec));
+  struct tm result;
+  glretrace_localtime(&t, &result);
+  strftime(ts, 255, "%Y %b %d %H:%M:%S", &result);
   std::stringstream ss;
-  ss << "[" << ts << milli << "]"
+  ss << "[" << ts << "] "
      << file << " " << line
      << " (" << format_severity(s) << "): "
      << message << "\n";
@@ -136,8 +135,10 @@ Logger::Flush() {
       front = m_instance->m_q.front();
       m_instance->m_q.pop();
     }
-    write(m_instance->m_fh, front.c_str(), front.size());
+    fwrite(front.c_str(), 1, front.length(), m_instance->m_fh);
   }
+  ScopedLock sl(m_instance->m_protect);
+  fflush(m_instance->m_fh);
 }
 
 void
@@ -163,7 +164,7 @@ Logger::GetLog(std::string *out) {
   char buf[1024];
   size_t bytes = 1;
   while (bytes > 0) {
-    bytes = read(m_instance->m_read_fh, buf, 1023);
+    bytes = fread(buf, 1, 1023, m_instance->m_read_fh);
     buf[bytes] = '\0';
     out->append(buf);
   }
