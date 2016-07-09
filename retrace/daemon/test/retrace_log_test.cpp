@@ -32,14 +32,14 @@
 #include "glframe_logger.hpp"
 
 using glretrace::Logger;
-using glretrace::ERROR;
+using glretrace::ERR;
 using glretrace::WARN;
 
 TEST(Logger, ReadWrite) {
   Logger::Create("/tmp");
   Logger::Begin();
   std::string s("This is a test message");
-  GRLOG(ERROR, s.c_str());
+  GRLOG(ERR, s.c_str());
   Logger::Flush();
   std::string m;
   Logger::GetLog(&m);
