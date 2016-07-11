@@ -65,6 +65,8 @@ int fork_execv(const char *path, const char *const argv[]);
 
 struct tm *glretrace_localtime(const time_t *timep, struct tm *result);
 
+int glretrace_rand(unsigned int *seedp);
+
 }  // namespace glretrace
 
 #endif  // _GLFRAME_OS_H_

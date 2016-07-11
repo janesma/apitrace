@@ -26,40 +26,45 @@
 //  **********************************************************************/
 
 #include <windows.h>
-
+#include <time.h>
+#include <stdlib.h>
 #include <sstream>
 
 namespace glretrace {
 
-  int fork_execv(const char *path, const char *const argv[]) {
-    std::stringstream cmdLine;
-    cmdLine << path;
-    const char *i = argv[0];
-    while (i != NULL) {
-      cmdLine << i << " ";
-    }
-	
-	return CreateProcess(NULL,
-                         (char*) (cmdLine.str().c_str()),
-                         NULL,
-                         NULL,
-                         false,
-                         0,
-                         NULL,  // _In_opt_    LPVOID                lpEnvironment,
-                         NULL,  // _In_opt_    LPCTSTR               lpCurrentDirectory,
-                         NULL,  // _In_        LPSTARTUPINFO         lpStartupInfo,
-                         NULL); // _Out_       LPPROCESS_INFORMATION lpProcessInformation
+int fork_execv(const char *path, const char *const argv[]) {
+  std::stringstream cmdLine;
+  cmdLine << path;
+  const char *i = argv[0];
+  while (i != NULL) {
+    cmdLine << i << " ";
+  }
+  return CreateProcess(NULL,
+                       (char*) (cmdLine.str().c_str()),
+                       NULL,
+                       NULL,
+                       false,
+                       0,
+                       NULL,  // _In_opt_    LPVOID                lpEnvironment,
+                       NULL,  // _In_opt_    LPCTSTR               lpCurrentDirectory,
+                       NULL,  // _In_        LPSTARTUPINFO         lpStartupInfo,
+                       NULL); // _Out_       LPPROCESS_INFORMATION lpProcessInformation
 		
-  }
+}
 
-  struct tm *glretrace_localtime(const time_t *timep, struct tm *result) {
-    localtime_s(result, timep);
-    return result;
-  }
+struct tm *glretrace_localtime(const time_t *timep, struct tm *result) {
+  localtime_s(result, timep);
+  return result;
+}
 
-  int
-  glretrace_rand(unsigned int *seedp) {
-    return rand();
-  }
+int
+glretrace_rand(unsigned int *seedp) {
+  return rand();
+}
+
+int
+glretrace_delay(unsigned int ms) {
+  Sleep(ms);
+}
 
 }  // namespace glretrace
