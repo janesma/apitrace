@@ -23,51 +23,36 @@
  *
  **************************************************************************/
 
-#include <gtest/gtest.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdlib.h>
 
 #include <string>
 
-#include "glframe_logger.hpp"
+#include "glframe_stderr.hpp"
 
-using glretrace::Logger;
-using glretrace::ERR;
-using glretrace::WARN;
+using glretrace::StdErrRedirect;
 
-TEST(Logger, ReadWrite) {
-  Logger::Create("/tmp");
-  Logger::Begin();
-  std::string s("This is a test message");
-  GRLOG(ERR, s.c_str());
-  Logger::Flush();
-  std::string m;
-  Logger::GetLog(&m);
-  size_t p = m.find(s);
-  EXPECT_NE(p, std::string::npos);
-  Logger::Destroy();
+StdErrRedirect::StdErrRedirect() {
+  pipe2(out_pipe, O_NONBLOCK);
+  dup2(out_pipe[1], STDERR_FILENO);
+  close(out_pipe[1]);
+  buf.resize(1024);
 }
 
-TEST(Logger, RepeatLog) {
-  Logger::Create("/tmp");
-  Logger::Begin();
-  std::string m;
-  size_t p;
-  unsigned int seed = 1;
-  // make a long string
-  for (int j = 0; j < 100; ++j) {
-    std::stringstream ss;
-    for (int i = 0; i < 10; ++i)
-      ss << rand_r(&seed);
-    GRLOG(WARN, ss.str().c_str());
-    Logger::Flush();
-    Logger::GetLog(&m);
-    p = m.find(ss.str());
-    EXPECT_NE(p, std::string::npos);
-
-    m.clear();
-    Logger::GetLog(&m);
-    EXPECT_EQ(m.size(), 0);
+std::string
+StdErrRedirect::poll() {
+  fflush(stdout);
+  std::string ret;
+  int bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+  while (0 < bytes) {
+    buf[bytes] = '\0';
+    ret.append(buf.data());
+    bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
   }
+  return ret;
+}
 
-  Logger::Destroy();
+StdErrRedirect::~StdErrRedirect() {
+  close(out_pipe[2]);
 }
