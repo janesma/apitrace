@@ -29,10 +29,12 @@
 #include <string>
 
 #include "glframe_logger.hpp"
+#include "glframe_os.hpp"
 
 using glretrace::Logger;
 using glretrace::ERR;
 using glretrace::WARN;
+using glretrace::glretrace_rand;
 
 TEST(Logger, ReadWrite) {
   Logger::Create("/tmp");
@@ -57,7 +59,7 @@ TEST(Logger, RepeatLog) {
   for (int j = 0; j < 100; ++j) {
     std::stringstream ss;
     for (int i = 0; i < 10; ++i)
-      ss << rand_r(&seed);
+      ss << glretrace_rand(&seed);
     GRLOG(WARN, ss.str().c_str());
     Logger::Flush();
     Logger::GetLog(&m);

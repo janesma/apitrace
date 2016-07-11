@@ -26,7 +26,8 @@
 //  **********************************************************************/
 
 #include <windows.h>
-
+#include <time.h>
+#include <stdlib.h>
 #include <sstream>
 
 namespace glretrace {
@@ -38,7 +39,6 @@ namespace glretrace {
     while (i != NULL) {
       cmdLine << i << " ";
     }
-	
 	return CreateProcess(NULL,
                          (char*) (cmdLine.str().c_str()),
                          NULL,
