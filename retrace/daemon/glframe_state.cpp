@@ -38,6 +38,7 @@
 
 using glretrace::StateTrack;
 using glretrace::WARN;
+using glretrace::OutputPoller;
 using trace::Call;
 using trace::Array;
 
