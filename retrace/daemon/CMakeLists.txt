@@ -17,6 +17,7 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/helpers
   ${CMAKE_BINARY_DIR}/retrace/daemon
   ${CMAKE_SOURCE_DIR}/retrace/daemon/gldispatch
+  ${PROTOBUF_INCLUDE_DIR}
   )
 
 set (RETRACE_LINUX_SOURCE
