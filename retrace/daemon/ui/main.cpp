@@ -25,8 +25,6 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#include <unistd.h>
-
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QtQml>
