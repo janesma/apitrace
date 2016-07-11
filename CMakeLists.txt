@@ -119,7 +119,7 @@ if (ENABLE_GUI)
         cmake_policy (SET CMP0020 NEW)
     endif()
     find_package (Qt5Widgets ${REQUIRE_GUI})
-    find_package (Qt5WebKitWidgets ${REQUIRE_GUI})
+    # find_package (Qt5WebKitWidgets ${REQUIRE_GUI})
 endif ()
 
 if (WIN32)
