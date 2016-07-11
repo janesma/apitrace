@@ -19,7 +19,11 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon/gldispatch
   )
 
-set (RETRACE_LINUX_SOURCE glframe_os_linux.cpp)
+set (RETRACE_LINUX_SOURCE
+  glframe_os_linux.cpp
+  glframe_socket_linux.cpp
+  glframe_stderr.cpp
+  )
 
 set (RETRACE_WIN_SOURCE glframe_os_win.cpp)
 
@@ -44,10 +48,10 @@ set (RETRACE_SOURCES
   glframe_retrace_skeleton.hpp
   glframe_retrace_stub.cpp
   glframe_retrace_stub.hpp
-  glframe_socket.cpp
   glframe_socket.hpp
   glframe_state.cpp
   glframe_state.hpp
+  glframe_stderr.hpp
   glframe_thread.cpp
   glframe_thread.hpp
   glframe_traits.hpp

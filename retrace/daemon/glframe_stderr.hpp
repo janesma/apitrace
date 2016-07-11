@@ -23,51 +23,26 @@
  *
  **************************************************************************/
 
-#include <gtest/gtest.h>
-#include <stdlib.h>
-
 #include <string>
+#include <vector>
+#include "glframe_state.hpp"
 
-#include "glframe_logger.hpp"
+namespace glretrace {
 
-using glretrace::Logger;
-using glretrace::ERR;
-using glretrace::WARN;
+class StdErrRedirect : public OutputPoller {
+ public:
+  StdErrRedirect();
+  std::string poll();
+  ~StdErrRedirect();
 
-TEST(Logger, ReadWrite) {
-  Logger::Create("/tmp");
-  Logger::Begin();
-  std::string s("This is a test message");
-  GRLOG(ERR, s.c_str());
-  Logger::Flush();
-  std::string m;
-  Logger::GetLog(&m);
-  size_t p = m.find(s);
-  EXPECT_NE(p, std::string::npos);
-  Logger::Destroy();
-}
+ private:
+  int out_pipe[2];
+  std::vector<char> buf;
+};
 
-TEST(Logger, RepeatLog) {
-  Logger::Create("/tmp");
-  Logger::Begin();
-  std::string m;
-  size_t p;
-  unsigned int seed = 1;
-  // make a long string
-  for (int j = 0; j < 100; ++j) {
-    std::stringstream ss;
-    for (int i = 0; i < 10; ++i)
-      ss << rand_r(&seed);
-    GRLOG(WARN, ss.str().c_str());
-    Logger::Flush();
-    Logger::GetLog(&m);
-    p = m.find(ss.str());
-    EXPECT_NE(p, std::string::npos);
+class NoRedirect : public OutputPoller {
+ public:
+  std::string poll() { return ""; }
+};
 
-    m.clear();
-    Logger::GetLog(&m);
-    EXPECT_EQ(m.size(), 0);
-  }
-
-  Logger::Destroy();
-}
+}  // namespace glretrace

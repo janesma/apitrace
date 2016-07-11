@@ -23,7 +23,6 @@
  *
  **************************************************************************/
 
-#include <unistd.h>
 #include <gtest/gtest.h>
 
 #include <vector>

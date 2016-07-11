@@ -29,7 +29,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <sstream>
 #include <string>
@@ -39,6 +38,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_retrace_render.hpp"
+#include "glframe_stderr.hpp"
 #include "glretrace.hpp"
 // #include "glws.hpp"
 // #include "trace_dump.hpp"
@@ -59,47 +59,18 @@ using glretrace::OutputPoller;
 using glretrace::RenderId;
 using glretrace::StateTrack;
 using glretrace::WARN;
+using glretrace::NoRedirect;
+using glretrace::StdErrRedirect;
 using image::Image;
 using retrace::parser;
 using trace::Call;
 extern retrace::Retracer retracer;
 
-
-class StdErrRedirect : public OutputPoller {
- public:
-  StdErrRedirect() {
-    pipe2(out_pipe, O_NONBLOCK);
-    dup2(out_pipe[1], STDERR_FILENO);
-    close(out_pipe[1]);
-    buf.resize(1024);
-  }
-  std::string poll() {
-    fflush(stdout);
-    std::string ret;
-    int bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
-    while (0 < bytes) {
-      buf[bytes] = '\0';
-      ret.append(buf.data());
-      bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
-    }
-    return ret;
-  }
-  ~StdErrRedirect() {
-    close(out_pipe[2]);
-  }
-
- private:
-  int out_pipe[2];
-  std::vector<char> buf;
-};
-
-class NoRedirect : public OutputPoller {
- public:
-  std::string poll() { return ""; }
-};
-
+#ifdef WIN32
+static NoRedirect assemblyOutput;
+#else
 static StdErrRedirect assemblyOutput;
-// static NoRedirect assemblyOutput;
+#endif
 
 FrameRetrace::FrameRetrace()
     : m_tracker(&assemblyOutput) {
