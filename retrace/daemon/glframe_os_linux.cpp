@@ -34,7 +34,6 @@
 
 namespace glretrace {
 
-
 int fork_execv(const char *path, const char *const argv[]) {
   pid_t pid = fork();
   if (pid == -1) {
@@ -48,8 +47,14 @@ int fork_execv(const char *path, const char *const argv[]) {
   return 0;
 }
 
-struct tm *glretrace_localtime(const time_t *timep, struct tm *result) {
+struct tm *
+glretrace_localtime(const time_t *timep, struct tm *result) {
   return localtime_r(timep, result);
+}
+
+int
+glretrace_rand(unsigned int *seedp) {
+  return rand_r(seedp);
 }
 
 }  // namespace glretrace
