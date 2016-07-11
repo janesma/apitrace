@@ -42,6 +42,7 @@ class OutputPoller {
  public:
   virtual std::string poll() = 0;
   virtual ~OutputPoller() {}
+  virtual void init() = 0;
 };
 
 // tracks subset of gl state for frameretrace purposes

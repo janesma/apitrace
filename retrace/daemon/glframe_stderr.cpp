@@ -56,3 +56,9 @@ StdErrRedirect::poll() {
 StdErrRedirect::~StdErrRedirect() {
   close(out_pipe[2]);
 }
+
+void
+StdErrRedirect::init() {
+  setenv("INTEL_DEBUG", "vs,fs", 1);
+  setenv("vblank_mode", "0", 1);
+}
