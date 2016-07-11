@@ -60,6 +60,8 @@ using image::Image;
 using retrace::parser;
 using trace::Call;
 using trace::RenderBookmark;
+using glretrace::RenderTargetType;
+using glretrace::RenderOptions;
 
 extern retrace::Retracer retracer;
 

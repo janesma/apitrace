@@ -46,6 +46,11 @@ using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QBarGraphRenderer;
 using glretrace::QSelection;
+using glretrace::RenderId;
+using glretrace::RenderTargetType;
+using glretrace::ExperimentId;
+using glretrace::MetricId;
+using glretrace::MetricSeries;
 
 FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_selection(NULL),

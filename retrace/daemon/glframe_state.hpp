@@ -26,6 +26,8 @@
 #ifndef _GLFRAME_STATE_HPP_
 #define _GLFRAME_STATE_HPP_
 
+#include <stdint.h>
+
 #include <map>
 #include <string>
 #include <vector>

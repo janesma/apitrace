@@ -42,6 +42,9 @@ using glretrace::PerfMetrics;
 using glretrace::MetricId;
 using glretrace::NoCopy;
 using glretrace::NoAssign;
+using glretrace::OnFrameRetrace;
+using glretrace::RenderId;
+using glretrace::ExperimentId;
 
 namespace {
 
