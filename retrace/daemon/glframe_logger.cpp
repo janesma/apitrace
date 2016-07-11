@@ -40,6 +40,7 @@
 using glretrace::Logger;
 using glretrace::ScopedLock;
 using glretrace::Thread;
+using glretrace::Severity;
 
 Logger *Logger::m_instance = NULL;
 

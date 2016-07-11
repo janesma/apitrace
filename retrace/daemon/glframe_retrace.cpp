@@ -64,6 +64,9 @@ using glretrace::StdErrRedirect;
 using image::Image;
 using retrace::parser;
 using trace::Call;
+using glretrace::RenderTargetType;
+using glretrace::RenderOptions;
+
 extern retrace::Retracer retracer;
 
 #ifdef WIN32
