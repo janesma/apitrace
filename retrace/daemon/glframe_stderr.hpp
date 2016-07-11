@@ -34,6 +34,7 @@ class StdErrRedirect : public OutputPoller {
   StdErrRedirect();
   std::string poll();
   ~StdErrRedirect();
+  void init();
 
  private:
   int out_pipe[2];
@@ -42,7 +43,10 @@ class StdErrRedirect : public OutputPoller {
 
 class NoRedirect : public OutputPoller {
  public:
+  NoRedirect() {}
   std::string poll() { return ""; }
+  ~NoRedirect() {}
+  void init() {}
 };
 
 }  // namespace glretrace

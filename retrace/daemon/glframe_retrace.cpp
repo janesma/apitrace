@@ -28,7 +28,6 @@
 #include <GLES2/gl2.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <sstream>
 #include <string>
@@ -98,9 +97,7 @@ int currentRenderBuffer() {
 void
 FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
                        OnFrameRetrace *callback) {
-  setenv("INTEL_DEBUG", "vs,fs", 1);
-  setenv("vblank_mode", "0", 1);
-
+  assemblyOutput.init();
   retracer.addCallbacks(glretrace::gl_callbacks);
   retracer.addCallbacks(glretrace::glx_callbacks);
   retracer.addCallbacks(glretrace::wgl_callbacks);
