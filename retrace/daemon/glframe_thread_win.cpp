@@ -30,10 +30,7 @@
 #include <assert.h>
 #include <string>
 
-#include "glframe_logger.hpp"
-
 using glretrace::Thread;
-using glretrace::INFO;
 
 Thread::Thread(const std::string &name) : m_name(name) {}
 
@@ -52,16 +49,12 @@ Thread::Start() {
       this,                             // argument to thread function 
       0,                                // use default creation flags 
       NULL);                            // returns the thread identifier
-  
-  GRLOGF(INFO, "thread started: %s", m_name.c_str());
 }
 
 void
 Thread::Join() {
-  GRLOGF(INFO, "joining thread: %s", m_name.c_str());
   WaitForSingleObject(thread_handle, INFINITE);
   CloseHandle(thread_handle);
-  GRLOGF(INFO, "thread joined: %s", m_name.c_str());
 }
 
 
