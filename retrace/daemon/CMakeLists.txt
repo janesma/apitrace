@@ -24,9 +24,13 @@ set (RETRACE_LINUX_SOURCE
   glframe_os_linux.cpp
   glframe_socket_linux.cpp
   glframe_stderr.cpp
+  glframe_thread_linux.cpp
   )
 
-set (RETRACE_WIN_SOURCE glframe_os_win.cpp)
+set (RETRACE_WIN_SOURCE
+  glframe_os_win.cpp
+  glframe_thread_win.cpp
+  )
 
 if (WIN32)
   set (RETRACE_OS_SOURCE ${RETRACE_WIN_SOURCE})
@@ -53,11 +57,10 @@ set (RETRACE_SOURCES
   glframe_state.cpp
   glframe_state.hpp
   glframe_stderr.hpp
-  glframe_thread.cpp
   glframe_thread.hpp
   glframe_traits.hpp
   glretrace_globals.cpp
-)  
+  )  
 
 add_library(retrace_daemon STATIC
   ${ProtoHeaders}
