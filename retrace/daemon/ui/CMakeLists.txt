@@ -33,17 +33,24 @@ add_executable(frame_retrace
 
 qt5_use_modules(frame_retrace Core Gui Concurrent Quick) 
 
+if (WIN32)
+  set (GL_LIB opengl32)
+  set (THREAD_LIB "")
+else()
+  set (GL_LIB GL)
+  set (THREAD_LIB pthread dl)
+endif()
+
 target_link_libraries(frame_retrace
   retrace_daemon
   retrace_bargraph
   glretrace_common
   glhelpers
   glproc_gl
-  protobuf
-  GL
+  ${PROTOBUF_LIBRARY}
+  ${GL_LIB}
   ${X11_X11_LIB}
-  pthread
-  dl
+  ${THREAD_LIB}
 )
 
 Lint(UI_SRC)
