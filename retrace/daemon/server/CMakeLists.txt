@@ -27,4 +27,6 @@ target_link_libraries(frame_retrace_server
   dl
 )
 
-Lint(SERVER_SRC)
+if (NOT WIN32)
+  Lint(SERVER_SRC)
+endif()

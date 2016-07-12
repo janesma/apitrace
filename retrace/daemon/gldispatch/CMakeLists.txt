@@ -30,7 +30,9 @@ set (GLDISPATCH_SOURCES
   glframe_glhelper.hpp
   )
 
-Lint( GLDISPATCH_SOURCES )
+if (NOT WIN32)
+  Lint( GLDISPATCH_SOURCES )
+endif()
 
 add_library(retrace_gldispatch STATIC
   ${GLDISPATCH_SOURCES}

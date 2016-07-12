@@ -49,4 +49,6 @@ set(LINT_SOURCE
   ${TEST_UTILITIES_SOURCE}
   )
 
-Lint( LINT_SOURCE )
+if (NOT WIN32)
+  Lint( LINT_SOURCE )
+endif()

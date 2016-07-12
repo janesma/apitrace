@@ -43,8 +43,9 @@ set (BARGRAPH_SOURCES
   glframe_qselection.hpp
   )
 
-Lint( BARGRAPH_SOURCES )
-
+if (NOT WIN32)
+  Lint( BARGRAPH_SOURCES )
+endif()
 add_library(retrace_bargraph STATIC
   ${BARGRAPH_SOURCES}
   )
