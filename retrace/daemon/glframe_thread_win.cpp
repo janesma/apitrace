@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2014.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2016.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,37 +25,43 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#ifndef OS_GFTHREAD_H_
-#define OS_GFTHREAD_H_
+#include "glframe_thread.hpp"
 
+#include <assert.h>
 #include <string>
-#ifdef WIN32
-#include <windows.h>
-#else
-#include <thread>
-#endif
 
-#include "glframe_traits.hpp"
+#include "glframe_logger.hpp"
 
-namespace glretrace {
+using glretrace::Thread;
+using glretrace::INFO;
 
-class Thread : NoCopy, NoAssign, NoMove {
- public:
-  explicit Thread(const std::string &name);
-  virtual ~Thread() {}
-  virtual void Run() = 0;
-  void Start();
-  void Join();
- private:
-  static void start_routine(Thread *context);
-  const std::string m_name;
-#ifdef WIN32
-  HANDLE  thread_handle;
-#else
-  std::thread m_thread;
-#endif
-};
+Thread::Thread(const std::string &name) : m_name(name) {}
 
-}  // namespace glretrace
+DWORD WINAPI start_thread(LPVOID ctx);
+DWORD WINAPI start_thread(LPVOID ctx) {
+  reinterpret_cast<Thread*>(ctx)->Run();
+  return 0;
+}
 
-#endif  // OS_GFTHREAD_H_
+void
+Thread::Start() {
+  thread_handle = CreateThread( 
+      NULL,                             // default security attributes
+      0,                                // use default stack size  
+      start_thread,                     // thread function name
+      this,                             // argument to thread function 
+      0,                                // use default creation flags 
+      NULL);                            // returns the thread identifier
+  
+  GRLOGF(INFO, "thread started: %s", m_name.c_str());
+}
+
+void
+Thread::Join() {
+  GRLOGF(INFO, "joining thread: %s", m_name.c_str());
+  WaitForSingleObject(thread_handle, INFINITE);
+  CloseHandle(thread_handle);
+  GRLOGF(INFO, "thread joined: %s", m_name.c_str());
+}
+
+
