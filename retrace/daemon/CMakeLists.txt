@@ -73,7 +73,9 @@ target_link_libraries(retrace_daemon
   retrace_gldispatch
   )
 
-Lint( RETRACE_SOURCES )
+if (NOT WIN32)
+  Lint( RETRACE_SOURCES )
+endif()
 
 add_subdirectory (test)
 add_subdirectory (ui)

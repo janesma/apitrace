@@ -36,4 +36,6 @@ target_link_libraries(retrace_daemon_test
 
 add_test (NAME daemon_test COMMAND $<TARGET_FILE:retrace_daemon_test>)
 
-Lint(DAEMON_TEST_SRC)
+if (NOT WIN32)
+  Lint(DAEMON_TEST_SRC)
+endif()
