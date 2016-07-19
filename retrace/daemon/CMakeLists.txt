@@ -29,6 +29,7 @@ set (RETRACE_LINUX_SOURCE
 
 set (RETRACE_WIN_SOURCE
   glframe_os_win.cpp
+  glframe_socket_win.cpp
   glframe_thread_win.cpp
   )
 
