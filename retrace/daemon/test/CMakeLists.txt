@@ -9,6 +9,7 @@ set (DAEMON_TEST_SRC
   retrace_daemon_test.cpp
   retrace_log_test.cpp
   retrace_metrics_test.cpp
+  retrace_socket_test.cpp
   retrace_thread_test.cpp
   main_test.cpp
   )
