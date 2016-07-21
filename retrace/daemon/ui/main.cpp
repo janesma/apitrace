@@ -44,6 +44,7 @@
 #include "glframe_retrace_skeleton.hpp"
 #include "glframe_retrace_stub.hpp"
 #include "glframe_socket.hpp"
+#include "glretrace.hpp"
 
 using glretrace::FrameRetraceModel;
 using glretrace::FrameRetraceSkeleton;
@@ -53,6 +54,7 @@ using glretrace::Logger;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::ServerSocket;
+using glretrace::Socket;
 
 void exec_retracer(const char *main_exe, int port) {
   // frame_retrace_server should be at the same path as frame_retrace
@@ -81,6 +83,7 @@ int main(int argc, char *argv[]) {
   GlFunctions::Init();
   Logger::Create("/tmp");
   Logger::SetSeverity(glretrace::WARN);
+  Socket::Init();
 
   int port = 0;
   {
@@ -120,5 +123,6 @@ int main(int argc, char *argv[]) {
   FrameRetraceStub::Shutdown();
   ::google::protobuf::ShutdownProtobufLibrary();
   Logger::Destroy();
+  Socket::Cleanup();
   return ret;
 }
