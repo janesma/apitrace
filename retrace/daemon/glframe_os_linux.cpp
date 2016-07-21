@@ -57,4 +57,9 @@ glretrace_rand(unsigned int *seedp) {
   return rand_r(seedp);
 }
 
+void
+glretrace_delay(unsigned int ms) {
+  usleep(1000 * ms);
+}
+
 }  // namespace glretrace

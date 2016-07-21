@@ -27,26 +27,47 @@
 
 #include "glframe_socket.hpp"
 
-#include <arpa/inet.h>
-#include <assert.h>
-#include <netdb.h>
-#include <netinet/tcp.h>
-#include <string.h>
+#ifdef WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
+#include <netdb.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#include <assert.h>
+#include <string.h>
 
 #include <string>
 
+#include "glframe_os.hpp"
+
 using glretrace::Socket;
 using glretrace::ServerSocket;
+
+#ifdef WIN32
+#define SHUT_RDWR SD_BOTH
+typedef bool SOCKOPT_T;
+#else
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
+#define closesocket close
+typedef int SOCKET;
+typedef int SOCKOPT_T;
+#endif
+
 
 bool
 Socket::Read(void * buf, int size) {
   int bytes_remaining = size;
   void *curPtr = buf;
   while (bytes_remaining > 0) {
-    int bytes_read = ::read(m_socket_fd, curPtr, bytes_remaining);
+    int bytes_read = ::recv(m_socket_fd,
+                            reinterpret_cast<char *>(curPtr),
+                            bytes_remaining, 0);
     if (bytes_read <= 0)
       return false;
     bytes_remaining -= bytes_read;
@@ -60,7 +81,8 @@ Socket::Write(const void * buf, int size) {
   int bytes_remaining = size;
   const void *curPtr = buf;
   while (bytes_remaining > 0) {
-    ssize_t bytes_written = ::send(m_socket_fd, curPtr,
+    size_t bytes_written = ::send(m_socket_fd,
+                                  reinterpret_cast<const char *>(curPtr),
                                    bytes_remaining,
                                    0);  // default flags
 
@@ -76,10 +98,10 @@ Socket::Write(const void * buf, int size) {
   return true;
 }
 
-class FreeAddrInfo {
+class AutoFreeAddrInfo {
  public:
-  explicit FreeAddrInfo(addrinfo *p) : m_p(p) {}
-  ~FreeAddrInfo() { freeaddrinfo(m_p); }
+  explicit AutoFreeAddrInfo(addrinfo *p) : m_p(p) {}
+  ~AutoFreeAddrInfo() { ::freeaddrinfo(m_p); }
  private:
   addrinfo *m_p;
 };
@@ -98,12 +120,12 @@ Socket::Socket(const std::string &address, int port)
 
   assert(result == 0);
 
-  FreeAddrInfo a(resolved_address);
+  AutoFreeAddrInfo a(resolved_address);
 
-  int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  assert(fd);
+  SOCKET fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  assert(fd != INVALID_SOCKET);
 
-  const int nodelay_flag = 1;
+  const SOCKOPT_T nodelay_flag = 1;
   setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &nodelay_flag,
              sizeof(nodelay_flag));
 
@@ -115,20 +137,20 @@ Socket::Socket(const std::string &address, int port)
   while (true) {
     result = ::connect(fd, resolved_address->ai_addr,
                        static_cast<int>(resolved_address->ai_addrlen));
-    if (result == 0)
+    if (result != SOCKET_ERROR)
       break;
-    sleep(1);
+    glretrace_delay(1);
   }
 
-  assert(0 == result);
-
+  assert(SOCKET_ERROR != result);
   // TODO(majanes): need to raise here if couldn't connect
 
   m_socket_fd = fd;
 }
 
 Socket::~Socket() {
-  close(m_socket_fd);
+  shutdown(m_socket_fd, SHUT_RDWR);
+  closesocket(m_socket_fd);
 }
 
 ServerSocket::ServerSocket(int port) {
@@ -140,26 +162,25 @@ ServerSocket::ServerSocket(int port) {
   address.sin_family = AF_INET;
   address.sin_port = htons(port);
   address.sin_addr.s_addr = htonl(INADDR_ANY);
-  const int flag = 1;
+  const SOCKOPT_T flag = 1;
   setsockopt( m_server_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag) );
 
   int bind_result;
   for (int retry = 0; retry < 5; ++retry) {
     bind_result = bind(m_server_fd, (struct sockaddr *) &address,
                        sizeof(struct sockaddr_in));
-    if (bind_result != -1)
+    if (bind_result != SOCKET_ERROR)
       break;
-
     // delay, retry
-    usleep(100000);
+    glretrace_delay(100);
     perror("bind failure: ");
   }
-  assert(bind_result != -1);
+  assert(bind_result != SOCKET_ERROR);
   // todo raise on error
 
   const int backlog = 1;  // single connection
   const int listen_result = listen(m_server_fd, backlog);
-  assert(listen_result != -1);
+  assert(listen_result == 0);
   // todo raise on error
 }
 
@@ -167,10 +188,10 @@ Socket *
 ServerSocket::Accept() {
   socklen_t client_addr_size = sizeof(struct sockaddr_in);
   struct sockaddr_in client_address;
-  int socket_fd = accept(m_server_fd, (struct sockaddr *) &client_address,
-                         &client_addr_size);
+  SOCKET socket_fd = accept(m_server_fd, (struct sockaddr *) &client_address,
+                            &client_addr_size);
 
-  assert(socket_fd != -1);
+    assert(socket_fd != INVALID_SOCKET);
   // todo raise on error
 
   // now that we have a connected server socket, we don't need to listen for
@@ -180,7 +201,7 @@ ServerSocket::Accept() {
 }
 
 ServerSocket::~ServerSocket() {
-  close(m_server_fd);
+  closesocket(m_server_fd);
 }
 
 int
@@ -193,3 +214,4 @@ ServerSocket::GetPort() const {
   assert(result == 0);
   return ntohs(addr.sin_port);
 }
+

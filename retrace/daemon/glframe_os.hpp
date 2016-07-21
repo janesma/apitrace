@@ -66,6 +66,7 @@ int fork_execv(const char *path, const char *const argv[]);
 struct tm *glretrace_localtime(const time_t *timep, struct tm *result);
 
 int glretrace_rand(unsigned int *seedp);
+void glretrace_delay(unsigned int ms);
 
 }  // namespace glretrace
 
