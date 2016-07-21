@@ -27,26 +27,48 @@
 
 #include "glframe_socket.hpp"
 
-//#include <windows.h>
-#include <assert.h>
+#ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#endif
+#include <assert.h>
 #include <string.h>
-//#include <sys/socket.h>
-//#include <sys/types.h>
-//#include <unistd.h>
 
 #include <string>
 
+#include "glframe_os.hpp"
+
 using glretrace::Socket;
 using glretrace::ServerSocket;
+using glretrace::glretrace_delay;
+
+#ifdef WIN32
+#define SHUT_RDWR SD_BOTH
+typedef bool SOCKOPT_T;
+#else
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
+#define closesocket close
+typedef int SOCKET;
+typedef int SOCKOPT_T;
+#endif
+
 
 bool
 Socket::Read(void * buf, int size) {
   int bytes_remaining = size;
   void *curPtr = buf;
   while (bytes_remaining > 0) {
-    int bytes_read = ::recv(m_socket_fd, (char *)curPtr, bytes_remaining, 0);
+    int bytes_read = ::recv(m_socket_fd,
+                            reinterpret_cast<char *>(curPtr),
+                            bytes_remaining, 0);
     if (bytes_read <= 0)
       return false;
     bytes_remaining -= bytes_read;
@@ -60,9 +82,10 @@ Socket::Write(const void * buf, int size) {
   int bytes_remaining = size;
   const void *curPtr = buf;
   while (bytes_remaining > 0) {
-    size_t bytes_written = ::send(m_socket_fd, (char *)curPtr,
-                                   bytes_remaining,
-                                   0);  // default flags
+    size_t bytes_written = ::send(m_socket_fd,
+                                  reinterpret_cast<const char *>(curPtr),
+                                  bytes_remaining,
+                                  0);  // default flags
 
     if (bytes_written < 0) {
       if (errno == EINTR)
@@ -103,8 +126,9 @@ Socket::Socket(const std::string &address, int port)
   SOCKET fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   assert(fd != INVALID_SOCKET);
 
-  const bool nodelay_flag = 1;
-  setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*) &nodelay_flag,
+  const SOCKOPT_T nodelay_flag = 1;
+  setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+             reinterpret_cast<const char*>(&nodelay_flag),
              sizeof(nodelay_flag));
 
   struct sockaddr_in *ip_address =
@@ -117,18 +141,17 @@ Socket::Socket(const std::string &address, int port)
                        static_cast<int>(resolved_address->ai_addrlen));
     if (result != SOCKET_ERROR)
       break;
-    Sleep(1);
+    glretrace_delay(1);
   }
 
   assert(SOCKET_ERROR != result);
-
   // TODO(majanes): need to raise here if couldn't connect
 
   m_socket_fd = fd;
 }
 
 Socket::~Socket() {
-  shutdown(m_socket_fd, SD_BOTH);
+  shutdown(m_socket_fd, SHUT_RDWR);
   closesocket(m_socket_fd);
 }
 
@@ -141,8 +164,9 @@ ServerSocket::ServerSocket(int port) {
   address.sin_family = AF_INET;
   address.sin_port = htons(port);
   address.sin_addr.s_addr = htonl(INADDR_ANY);
-  const bool flag = 1;
-  setsockopt( m_server_fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag) );
+  const SOCKOPT_T flag = 1;
+  setsockopt(m_server_fd, IPPROTO_TCP, TCP_NODELAY,
+             reinterpret_cast<const char *>(&flag), sizeof(flag));
 
   int bind_result;
   for (int retry = 0; retry < 5; ++retry) {
@@ -150,9 +174,8 @@ ServerSocket::ServerSocket(int port) {
                        sizeof(struct sockaddr_in));
     if (bind_result != SOCKET_ERROR)
       break;
-
     // delay, retry
-    Sleep(100);
+    glretrace_delay(100);
     perror("bind failure: ");
   }
   assert(bind_result != SOCKET_ERROR);
@@ -193,4 +216,19 @@ ServerSocket::GetPort() const {
                                  &l);
   assert(result == 0);
   return ntohs(addr.sin_port);
+}
+
+void
+Socket::Init() {
+#ifdef WIN32
+  WSADATA wsaData;
+  WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
+}
+
+void
+Socket::Cleanup() {
+#ifdef WIN32
+  WSACleanup();
+#endif
 }

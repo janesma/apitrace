@@ -67,9 +67,4 @@ glretrace_delay(unsigned int ms) {
   Sleep(ms);
 }
 
-void
-shutdown() {
-  shutdown(m_socket_fd, SHUT_RDWR);
-}
-
 }  // namespace glretrace

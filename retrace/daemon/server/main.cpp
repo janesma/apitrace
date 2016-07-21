@@ -35,11 +35,13 @@
 #include "glframe_logger.hpp"
 #include "glframe_retrace_skeleton.hpp"
 #include "glframe_socket.hpp"
+#include "glretrace.hpp"
 
 using glretrace::FrameRetraceSkeleton;
 using glretrace::GlFunctions;
 using glretrace::Logger;
 using glretrace::ServerSocket;
+using glretrace::Socket;
 
 int parse_args(int argc, char *argv[]) {
   int opt;
@@ -65,11 +67,12 @@ int main(int argc, char *argv[]) {
   Logger::Create("/tmp");
   Logger::SetSeverity(glretrace::WARN);
   Logger::Begin();
-
+  Socket::Init();
   int port = parse_args(argc, argv);
   ServerSocket sock(port);
   FrameRetraceSkeleton skel(sock.Accept());
   skel.Run();
+  Socket::Cleanup();
   Logger::Destroy();
   return 0;
 }

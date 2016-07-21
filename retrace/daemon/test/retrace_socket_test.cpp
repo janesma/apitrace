@@ -62,6 +62,7 @@ class TestServer : public Thread {
 };
 
 TEST(Thread, Socket_Read_Write) {
+  Socket::Init();
   std::vector<uint8_t> buf;
   buf.reserve(10000);
   unsigned int seed = 1;
@@ -83,5 +84,6 @@ TEST(Thread, Socket_Read_Write) {
   s.Read(buf2.data(), 10000);
   EXPECT_EQ(buf, buf2);
   server.Join();
+  Socket::Cleanup();
 }
 

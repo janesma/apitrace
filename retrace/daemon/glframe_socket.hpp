@@ -43,6 +43,8 @@ class Socket : NoAssign, NoCopy, NoMove {
   // sockets, use the ServerSocket class
   Socket(const std::string &address, int port);
   ~Socket();
+  static void Init();
+  static void Cleanup();
 
   bool Read(void * buf, int size);
   template <typename T> bool Read(T *val) { return Read(val, sizeof(T)); }
