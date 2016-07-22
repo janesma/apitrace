@@ -81,104 +81,127 @@ static void *pGetProgramInfoLog = NULL;
 
 }  // namespace
 
+static void * _GetProcAddress(const char *name) {
+  typedef void* (* GETPROCADDRESS) (const char *procName);
+  static GETPROCADDRESS lookup_fn = NULL;
+#ifdef WIN32
+  static HMODULE lib_handle = NULL;
+  if (!lib_handle) {
+    char szDll[MAX_PATH] = {0};
+    if (!GetSystemDirectoryA(szDll, MAX_PATH)) {
+      return NULL;
+    }
+    strncat(szDll, "\\opengl32.dll", MAX_PATH - 1);
+    lib_handle = LoadLibraryA(szDll);
+  }
+  static GETPROCADDRESS lookup_fn = NULL;
+  if (!lookup_fn) {
+    lookup_fn = (GETPROCADDRESS) GetProcAddress(lib_handle,
+                                                "wglGetProcAddress");
+  }
+#else
+  static void *lib_handle = NULL;
+  lib_handle = dlopen("libGL.so", RTLD_LAZY | RTLD_GLOBAL);
+  lookup_fn = reinterpret_cast<GETPROCADDRESS>(dlsym(lib_handle,
+                                                     "glXGetProcAddress"));
+#endif
+  assert(lookup_fn);
+  void* ret = lookup_fn(name);
+#ifdef WIN32
+  if (ret == NULL)
+    ret = GetProcAddress(lib_handle, name);
+  if (ret == NULL)
+    ret = wglGetProcAddress(name);
+#endif
+  assert(ret);
+  return ret;
+}
 void
 GlFunctions::Init(void *lookup_fn) {
   if (m_is_initialized)
     return;
 
-  if (!lookup_fn) {
-#ifdef WIN32
-    HMODULE lib_handle = LoadLibrary("libGLESv2.dll");
-    lookup_fn = GetProcAddress(lib_handle, "wglGetProcAddress");
-#else
-    void *lib_handle = NULL;
-    lib_handle = dlopen("libGL.so", RTLD_LAZY | RTLD_GLOBAL);
-    lookup_fn = dlsym(lib_handle, "glXGetProcAddress");
-#endif
-    assert(lookup_fn);
-  }
-  typedef void* (* GETPROCADDRESS) (const char *procName);
-  GETPROCADDRESS GetProcAddress = (GETPROCADDRESS)lookup_fn;
-  pCreateProgram = GetProcAddress("glCreateProgram");
+
+  pCreateProgram = _GetProcAddress("glCreateProgram");
   assert(pCreateProgram);
 
-  pCreateShader = GetProcAddress("glCreateShader");
+  pCreateShader = _GetProcAddress("glCreateShader");
   assert(pCreateShader);
-  pShaderSource = GetProcAddress("glShaderSource");
+  pShaderSource = _GetProcAddress("glShaderSource");
   assert(pShaderSource);
-  pCompileShader = GetProcAddress("glCompileShader");
+  pCompileShader = _GetProcAddress("glCompileShader");
   assert(pCompileShader);
-  pAttachShader = GetProcAddress("glAttachShader");
+  pAttachShader = _GetProcAddress("glAttachShader");
   assert(pAttachShader);
-  pLinkProgram = GetProcAddress("glLinkProgram");
+  pLinkProgram = _GetProcAddress("glLinkProgram");
   assert(pLinkProgram);
-  pUseProgram = GetProcAddress("glUseProgram");
+  pUseProgram = _GetProcAddress("glUseProgram");
   assert(pUseProgram);
-  pGetError = GetProcAddress("glGetError");
+  pGetError = _GetProcAddress("glGetError");
   assert(pGetError);
-  pGetShaderiv = GetProcAddress("glGetShaderiv");
+  pGetShaderiv = _GetProcAddress("glGetShaderiv");
   assert(pGetShaderiv);
-  pGetShaderInfoLog = GetProcAddress("glGetShaderInfoLog");
+  pGetShaderInfoLog = _GetProcAddress("glGetShaderInfoLog");
   assert(pGetShaderInfoLog);
-  pGenBuffers = GetProcAddress("glGenBuffers");
+  pGenBuffers = _GetProcAddress("glGenBuffers");
   assert(pGenBuffers);
-  pBindBuffer = GetProcAddress("glBindBuffer");
+  pBindBuffer = _GetProcAddress("glBindBuffer");
   assert(pBindBuffer);
-  pGetAttribLocation = GetProcAddress("glGetAttribLocation");
+  pGetAttribLocation = _GetProcAddress("glGetAttribLocation");
   assert(pGetAttribLocation);
-  pGetUniformLocation = GetProcAddress("glGetUniformLocation");
+  pGetUniformLocation = _GetProcAddress("glGetUniformLocation");
   assert(pGetUniformLocation);
-  pClearColor = GetProcAddress("glClearColor");
+  pClearColor = _GetProcAddress("glClearColor");
   assert(pClearColor);
-  pClear = GetProcAddress("glClear");
+  pClear = _GetProcAddress("glClear");
   assert(pClear);
-  pUniform1f = GetProcAddress("glUniform1f");
+  pUniform1f = _GetProcAddress("glUniform1f");
   assert(pUniform1f);
-  pUniform4f = GetProcAddress("glUniform4f");
+  pUniform4f = _GetProcAddress("glUniform4f");
   assert(pUniform4f);
-  pBufferData = GetProcAddress("glBufferData");
+  pBufferData = _GetProcAddress("glBufferData");
   assert(pBufferData);
-  pEnableVertexAttribArray = GetProcAddress("glEnableVertexAttribArray");
+  pEnableVertexAttribArray = _GetProcAddress("glEnableVertexAttribArray");
   assert(pEnableVertexAttribArray);
-  pVertexAttribPointer = GetProcAddress("glVertexAttribPointer");
+  pVertexAttribPointer = _GetProcAddress("glVertexAttribPointer");
   assert(pVertexAttribPointer);
-  pDrawArrays = GetProcAddress("glDrawArrays");
+  pDrawArrays = _GetProcAddress("glDrawArrays");
   assert(pDrawArrays);
-  pDisableVertexAttribArray = GetProcAddress("glDisableVertexAttribArray");
+  pDisableVertexAttribArray = _GetProcAddress("glDisableVertexAttribArray");
   assert(pDisableVertexAttribArray);
-  pEnable = GetProcAddress("glEnable");
+  pEnable = _GetProcAddress("glEnable");
   assert(pEnable);
-  pReadPixels = GetProcAddress("glReadPixels");
+  pReadPixels = _GetProcAddress("glReadPixels");
   assert(pReadPixels);
-  pDrawElements = GetProcAddress("glDrawElements");
+  pDrawElements = _GetProcAddress("glDrawElements");
   assert(pDrawElements);
-  pBlendFunc = GetProcAddress("glBlendFunc");
+  pBlendFunc = _GetProcAddress("glBlendFunc");
   assert(pBlendFunc);
-  pGetFirstPerfQueryIdINTEL = GetProcAddress("glGetFirstPerfQueryIdINTEL");
+  pGetFirstPerfQueryIdINTEL = _GetProcAddress("glGetFirstPerfQueryIdINTEL");
   assert(pGetFirstPerfQueryIdINTEL);
-  pGetNextPerfQueryIdINTEL = GetProcAddress("glGetNextPerfQueryIdINTEL");
+  pGetNextPerfQueryIdINTEL = _GetProcAddress("glGetNextPerfQueryIdINTEL");
   assert(pGetNextPerfQueryIdINTEL);
-  pGetIntegerv = GetProcAddress("glGetIntegerv");
+  pGetIntegerv = _GetProcAddress("glGetIntegerv");
   assert(pGetIntegerv);
-  pGetStringi = GetProcAddress("glGetStringi");
+  pGetStringi = _GetProcAddress("glGetStringi");
   assert(pGetStringi);
-  pGetPerfQueryInfoINTEL = GetProcAddress("glGetPerfQueryInfoINTEL");
+  pGetPerfQueryInfoINTEL = _GetProcAddress("glGetPerfQueryInfoINTEL");
   assert(pGetPerfQueryInfoINTEL);
-  pGetPerfCounterInfoINTEL = GetProcAddress("glGetPerfCounterInfoINTEL");
+  pGetPerfCounterInfoINTEL = _GetProcAddress("glGetPerfCounterInfoINTEL");
   assert(pGetPerfCounterInfoINTEL);
-  pCreatePerfQueryINTEL = GetProcAddress("glCreatePerfQueryINTEL");
+  pCreatePerfQueryINTEL = _GetProcAddress("glCreatePerfQueryINTEL");
   assert(pCreatePerfQueryINTEL);
-  pDeletePerfQueryINTEL = GetProcAddress("glDeletePerfQueryINTEL");
+  pDeletePerfQueryINTEL = _GetProcAddress("glDeletePerfQueryINTEL");
   assert(pDeletePerfQueryINTEL);
-  pBeginPerfQueryINTEL = GetProcAddress("glBeginPerfQueryINTEL");
+  pBeginPerfQueryINTEL = _GetProcAddress("glBeginPerfQueryINTEL");
   assert(pBeginPerfQueryINTEL);
-  pEndPerfQueryINTEL = GetProcAddress("glEndPerfQueryINTEL");
+  pEndPerfQueryINTEL = _GetProcAddress("glEndPerfQueryINTEL");
   assert(pEndPerfQueryINTEL);
-  pGetPerfQueryDataINTEL = GetProcAddress("glGetPerfQueryDataINTEL");
+  pGetPerfQueryDataINTEL = _GetProcAddress("glGetPerfQueryDataINTEL");
   assert(pGetPerfQueryDataINTEL);
-  pGetProgramiv = GetProcAddress("glGetProgramiv");
+  pGetProgramiv = _GetProcAddress("glGetProgramiv");
   assert(pGetProgramiv);
-  pGetProgramInfoLog = GetProcAddress("glGetProgramInfoLog");
+  pGetProgramInfoLog = _GetProcAddress("glGetProgramInfoLog");
   assert(pGetProgramInfoLog);
 }
 
@@ -304,7 +327,7 @@ GlFunctions::Uniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2,
 
 void
 GlFunctions::BufferData(GLenum target, GLsizeiptr size, const void *data,
-                         GLenum usage) {
+                        GLenum usage) {
   typedef void (*BUFFERDATA) (GLenum target, GLsizeiptr size, const void *data,
                               GLenum usage);
   ((BUFFERDATA)pBufferData) (target, size, data, usage);
@@ -324,8 +347,8 @@ GlFunctions::VertexAttribPointer(GLuint index, GLint size, GLenum type,
                                       GLboolean normalized, GLsizei stride,
                                       const void *pointer);
   ((VERTEXATTRIBPOINTER)pVertexAttribPointer)(index, size,
-                                             type, normalized,
-                                             stride, pointer);
+                                              type, normalized,
+                                              stride, pointer);
 }
 
 void
@@ -349,9 +372,9 @@ GlFunctions::Enable(GLenum cap) {
 
 void
 GlFunctions::ReadPixels(GLint x, GLint y,
-                          GLsizei width, GLsizei height,
-                          GLenum format, GLenum type,
-                          GLvoid *pixels) {
+                        GLsizei width, GLsizei height,
+                        GLenum format, GLenum type,
+                        GLvoid *pixels) {
   typedef void (*READPIXELS)(GLint x, GLint y,
                              GLsizei width, GLsizei height,
                              GLenum format, GLenum type,
@@ -402,8 +425,8 @@ GlFunctions::GetStringi(GLenum pname, GLuint index) {
 }
 
 void GlFunctions::GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
-                                    GLchar *queryName, GLuint *dataSize,
-                                    GLuint *noCounters, GLuint *noInstances,
+                                        GLchar *queryName, GLuint *dataSize,
+                                        GLuint *noCounters, GLuint *noInstances,
                                         GLuint *capsMask) {
   typedef void (*GETPERFQUERYINFOINTEL)(GLuint queryId, GLuint queryNameLength,
                                         GLchar *queryName, GLuint *dataSize,
@@ -417,14 +440,14 @@ void GlFunctions::GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
 
 void
 GlFunctions::GetPerfCounterInfoINTEL(GLuint queryId, GLuint counterId,
-                                      GLuint counterNameLength,
-                                      GLchar *counterName,
-                                      GLuint counterDescLength,
-                                      GLchar *counterDesc,
-                                      GLuint *counterOffset,
-                                      GLuint *counterDataSize,
-                                      GLuint *counterTypeEnum,
-                                      GLuint *counterDataTypeEnum,
+                                     GLuint counterNameLength,
+                                     GLchar *counterName,
+                                     GLuint counterDescLength,
+                                     GLchar *counterDesc,
+                                     GLuint *counterOffset,
+                                     GLuint *counterDataSize,
+                                     GLuint *counterTypeEnum,
+                                     GLuint *counterDataTypeEnum,
                                      GLuint64 *rawCounterMaxValue) {
   typedef void (*GETPERFCOUNTERINFOINTEL)(GLuint queryId, GLuint counterId,
                                           GLuint counterNameLength,
