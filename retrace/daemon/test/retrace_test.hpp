@@ -36,7 +36,7 @@ class RetraceTest : public ::testing::Test {
   virtual void SetUp() {
     retrace::setUp();
     glretrace::GlFunctions::Init();
-    glretrace::Logger::Create("/tmp");
+    glretrace::Logger::Create();
     glretrace::Logger::Begin();
   }
   virtual void TearDown() {

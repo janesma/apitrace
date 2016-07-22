@@ -36,9 +36,19 @@ using glretrace::ERR;
 using glretrace::WARN;
 using glretrace::glretrace_rand;
 
-TEST(Logger, ReadWrite) {
-  Logger::Create("/tmp");
+
+class LogTest : public ::testing::Test {
+ protected:
+  virtual void SetUp() {
+  Logger::Create();
   Logger::Begin();
+  }
+  virtual void TearDown() {
+    Logger::Destroy();
+  }
+};
+
+TEST_F(LogTest, ReadWrite) {
   std::string s("This is a test message");
   GRLOG(ERR, s.c_str());
   Logger::Flush();
@@ -46,12 +56,9 @@ TEST(Logger, ReadWrite) {
   Logger::GetLog(&m);
   size_t p = m.find(s);
   EXPECT_NE(p, std::string::npos);
-  Logger::Destroy();
 }
 
-TEST(Logger, RepeatLog) {
-  Logger::Create("/tmp");
-  Logger::Begin();
+TEST_F(LogTest, RepeatLog) {
   std::string m;
   size_t p;
   unsigned int seed = 1;
@@ -70,6 +77,4 @@ TEST(Logger, RepeatLog) {
     Logger::GetLog(&m);
     EXPECT_EQ(m.size(), 0);
   }
-
-  Logger::Destroy();
 }
