@@ -28,7 +28,9 @@
 #ifndef RETRACE_DAEMON_BARGRAPH_TEST_TEST_BARGRAPH_CTX_H_
 #define RETRACE_DAEMON_BARGRAPH_TEST_TEST_BARGRAPH_CTX_H_
 
+#ifndef WIN32
 #include <waffle-1/waffle.h>
+#endif
 #include <GLES2/gl2.h>
 
 namespace glretrace {
@@ -39,10 +41,12 @@ class TestContext {
   void swapBuffers();
 
  private:
+#ifndef WIN32
   struct waffle_display *m_dpy;
   struct waffle_config *m_config;
   struct waffle_window *m_window;
   struct waffle_context *m_ctx;
+#endif
   // GLuint vbo, prog, texture;
   // GLint attribute_coord2d, tex_uniform;
 };
