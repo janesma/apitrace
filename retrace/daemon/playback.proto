@@ -11,6 +11,7 @@ enum RequestType {
   SHADER_ASSEMBLY_REQUEST = 3;
   METRICS_REQUEST = 4;
   REPLACE_SHADERS_REQUEST = 5;
+  API_REQUEST = 6;
 };
 
 message OpenFileRequest {
@@ -86,6 +87,15 @@ message ReplaceShadersResponse {
   required string message = 4;
 }
 
+message ApiRequest {
+  required uint32 render_id = 1;
+}
+
+message ApiResponse {
+  required uint32 render_id = 1;
+  repeated string apis = 2;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
@@ -93,6 +103,7 @@ message RetraceRequest {
   optional OpenFileRequest fileOpen = 4;
   optional MetricsRequest metrics = 5;
   optional ReplaceShadersRequest shaders = 6;
+  optional ApiResponse api = 7;
 }
 
 message RetraceResponse {
@@ -102,4 +113,5 @@ message RetraceResponse {
   optional MetricsList metricsList = 4;
   optional MetricsResponse metricsData = 5;
   optional ReplaceShadersResponse shadersData = 6;
+  optional ApiResponse api = 7;
 }

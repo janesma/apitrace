@@ -292,6 +292,35 @@ class ReplaceShadersRequest : public IRetraceRequest {
   OnFrameRetrace *m_callback;
 };
 
+class ApiRequest : public IRetraceRequest {
+ public:
+  ApiRequest(RenderId renderId,
+             OnFrameRetrace *cb)
+      : m_callback(cb) {
+    auto shaderRequest = m_proto_msg.mutable_api();
+    shaderRequest->set_render_id(renderId());
+    m_proto_msg.set_requesttype(ApiTrace::API_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    RetraceResponse response;
+    s->retrace(m_proto_msg, &response);
+    assert(response.has_api());
+    auto api_response = response.api();
+
+    const RenderId rid(api_response.render_id());
+    std::vector<std::string> apis;
+    auto &api_str_vec = api_response.apis();
+    apis.reserve(api_str_vec.size());
+    for (auto a : api_str_vec)
+      apis.push_back(a);
+    m_callback->onApi(rid, apis);
+  }
+
+ private:
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -401,4 +430,10 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
                                  OnFrameRetrace *callback) {
   thread->push(new ReplaceShadersRequest(renderId, experimentCount,
                                          vs, fs, callback));
+}
+
+void
+FrameRetraceStub::retraceApi(RenderId renderId,
+                             OnFrameRetrace *callback) {
+  thread->push(new ApiRequest(renderId, callback));
 }

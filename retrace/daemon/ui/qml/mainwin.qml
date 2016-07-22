@@ -367,6 +367,18 @@ ApplicationWindow {
                     }
                 }
             }
+            Tab {
+                title: "Api Calls"
+                id: apiTab
+                clip: true
+                ListView {
+                    model: frameRetrace.apiCalls
+                    anchors.fill: apiTab
+                    delegate: Text {
+                        text: modelData
+                    }
+                }
+            }
         }
     }
 }

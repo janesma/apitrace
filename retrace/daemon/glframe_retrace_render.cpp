@@ -26,6 +26,7 @@
 #include "glframe_retrace_render.hpp"
 
 #include <string>
+#include <sstream>
 
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
@@ -60,7 +61,13 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
                                                     m_highlight_rt(false) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
+  std::stringstream call_stream;
   while ((call = parser->parse_call())) {
+    trace::dump(*call, call_stream,
+                trace::DUMP_FLAG_NO_COLOR);
+    m_api_calls.push_back(call_stream.str());
+    call_stream.str("");
+
     tracker->flush();
     m_retracer->retrace(*call);
     tracker->track(*call);
@@ -169,4 +176,9 @@ RetraceRender::replaceShaders(StateTrack *tracker,
   m_rt_program = tracker->useProgram(vs, simple_fs, message);
   tracker->useProgram(result);
   return true;
+}
+
+void
+RetraceRender::onApi(RenderId renderId, OnFrameRetrace *callback) {
+  callback->onApi(renderId, m_api_calls);
 }

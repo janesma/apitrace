@@ -82,6 +82,11 @@ class RenderId {
  public:
   RenderId() : value(0) {}
   explicit RenderId(uint32_t renderNumber) {
+    if (renderNumber == -1)
+      // -1 renderId means "no render".  This id addresses, for
+      // -example, tracked state up to the point where the frame
+      // -begins.
+      renderNumber ^= ID_PREFIX_MASK;
     assert(((renderNumber & ID_PREFIX_MASK) == 0) ||
            ((renderNumber & ID_PREFIX_MASK) == RENDER_ID_PREFIX));
     value = RENDER_ID_PREFIX | renderNumber;
@@ -185,6 +190,8 @@ class OnFrameRetrace {
                                ExperimentId experimentCount,
                                bool status,
                                const std::string &errorString) = 0;
+  virtual void onApi(RenderId renderId,
+                     const std::vector<std::string> &api_calls) = 0;
 };
 
 class IFrameRetrace {
@@ -204,10 +211,12 @@ class IFrameRetrace {
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const = 0;
   virtual void replaceShaders(RenderId renderId,
-                             ExperimentId experimentCount,
-                             const std::string &vs,
-                             const std::string &fs,
-                             OnFrameRetrace *callback) = 0;
+                              ExperimentId experimentCount,
+                              const std::string &vs,
+                              const std::string &fs,
+                              OnFrameRetrace *callback) = 0;
+  virtual void retraceApi(RenderId renderId,
+                          OnFrameRetrace *callback) = 0;
 };
 
 class FrameState {
@@ -258,6 +267,9 @@ class FrameRetrace : public IFrameRetrace {
   //                 const std::string &fs,
   //                 OnFrameRetrace *callback);
   // void revertModifications();
+  void retraceApi(RenderId renderId,
+                  OnFrameRetrace *callback);
+
  private:
   // these are global
   // trace::Parser parser;
