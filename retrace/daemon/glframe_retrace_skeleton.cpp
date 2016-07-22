@@ -137,6 +137,14 @@ FrameRetraceSkeleton::Run() {
                                   this);
           break;
         }
+      case ApiTrace::API_REQUEST:
+        {
+          assert(request.has_api());
+          auto api = request.api();
+          m_frame->retraceApi(RenderId(api.render_id()),
+                              this);
+          break;
+        }
     }
   }
 }
@@ -274,4 +282,16 @@ FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
   writeResponse(m_socket, *m_multi_metrics_response, &m_buf);
   m_remaining_metrics_requests = 0;
   m_multi_metrics_response->Clear();
+}
+
+void
+FrameRetraceSkeleton::onApi(RenderId renderId,
+                            const std::vector<std::string> &api_calls) {
+  RetraceResponse proto_response;
+  auto api = proto_response.mutable_api();
+  api->set_render_id(renderId());
+  for (auto a : api_calls) {
+    api->add_apis(a);
+  }
+  writeResponse(m_socket, proto_response, &m_buf);
 }
