@@ -49,7 +49,7 @@ enum Severity {
 
 class Logger : public Thread {
  public:
-  static void Create(const std::string &out_directory);
+  static void Create();
   static void Begin();
   static void Destroy();
   static void Log(Severity s, const std::string &file, int line,
@@ -60,7 +60,7 @@ class Logger : public Thread {
   void Run();
 
  private:
-  explicit Logger(const std::string &out_directory);
+  explicit Logger(const std::string &out_path);
   ~Logger();
   void Stop();
 

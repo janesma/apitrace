@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   // signal(SIGHUP, SIG_IGN);
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   GlFunctions::Init();
-  Logger::Create("/tmp");
+  Logger::Create();
   Logger::SetSeverity(glretrace::WARN);
   Logger::Begin();
   Socket::Init();
