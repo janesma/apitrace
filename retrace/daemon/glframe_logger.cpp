@@ -45,9 +45,17 @@ using glretrace::Severity;
 Logger *Logger::m_instance = NULL;
 
 void
-Logger::Create(const std::string &out_directory) {
+Logger::Create() {
   assert(!m_instance);
-  m_instance = new Logger(out_directory);
+#ifdef WIN32
+  char dir[MAX_PATH] = "";
+  GetTempPath(MAX_PATH, dir);
+#else
+    const char *dir = "/tmp";
+#endif
+  std::stringstream ss;
+  ss << dir << "/" << "frame_retrace.log";
+  m_instance = new Logger(ss.str());
 }
 
 void
@@ -63,14 +71,13 @@ Logger::Destroy() {
   m_instance = NULL;
 }
 
-Logger::Logger(const std::string &out_directory) : Thread("logger"),
-                                                   m_severity(WARN),
-                                                   m_running(true) {
+Logger::Logger(const std::string &out_path) : Thread("logger"),
+                                              m_severity(WARN),
+                                              m_running(true) {
   std::stringstream ss;
-  ss << out_directory << "/frame_retrace.log";
-  m_fh = fopen(ss.str().c_str(), "a");
+  m_fh = fopen(out_path.c_str(), "a");
   assert(m_fh != NULL);
-  m_read_fh = fopen(ss.str().c_str(), "r");
+  m_read_fh = fopen(out_path.c_str(), "r");
   assert(m_read_fh != NULL);
 }
 
