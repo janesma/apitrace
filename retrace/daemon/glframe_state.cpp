@@ -35,6 +35,8 @@
 #include "trace_model.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
+#include "retrace.hpp"
+#include "glframe_retrace.hpp"
 
 using glretrace::StateTrack;
 using glretrace::WARN;
@@ -60,14 +62,14 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glUseProgram"] = &StateTrack::trackUseProgram;
 }
 
-void
+bool
 StateTrack::TrackMap::track(StateTrack *tracker, const Call &call) {
   auto resolve = lookup.find(call.sig->name);
   if (resolve == lookup.end())
-    return;
-
+    return false;
   MemberFunType funptr = resolve->second;
   (tracker->*funptr)(call);
+  return true;
 }
 
 bool
@@ -87,7 +89,12 @@ getContext(const trace::Call &call) {
 // TODO(majanes): use a lookup table
 void
 StateTrack::track(const Call &call) {
-  lookup.track(this, call);
+  if (lookup.track(this, call)) {
+    std::stringstream call_stream;
+    trace::dump(const_cast<Call&>(call), call_stream,
+                trace::DUMP_FLAG_NO_COLOR);
+    tracked_calls.push_back(call_stream.str());
+  }
 
   if (changesContext(call))
     current_context = getContext(call);
@@ -406,4 +413,9 @@ void
 StateTrack::useProgram(int program) {
   current_program = program;
   parse();
+}
+
+void
+StateTrack::onApi(OnFrameRetrace *callback) {
+  callback->onApi(RenderId(-1), tracked_calls);
 }

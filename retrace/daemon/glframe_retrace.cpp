@@ -301,3 +301,11 @@ FrameRetrace::replaceShaders(RenderId renderId,
   callback->onShaderCompile(renderId, experimentCount,
                             result, message);
 }
+
+void
+FrameRetrace::retraceApi(RenderId renderId,
+                         OnFrameRetrace *callback) {
+  if (renderId.index() == RenderId(-1).index())
+    return m_tracker.onApi(callback);
+  m_renders[renderId.index()]->onApi(renderId, callback);
+}

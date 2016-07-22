@@ -73,6 +73,9 @@ class FrameRetraceSkeleton : public Thread,
                             const std::vector<std::string> &names);
   virtual void onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount);
+  virtual void onApi(RenderId renderid,
+                     const std::vector<std::string> &api_calls);
+
  private:
   Socket *m_socket;
   std::vector<unsigned char> m_buf;

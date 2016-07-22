@@ -77,7 +77,12 @@ class NullCallback : public OnFrameRetrace {
                     const std::vector<std::string> &names) {}
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount) {}
+  void onApi(RenderId renderId,
+             const std::vector<std::string> &api_calls) {
+    calls = api_calls;
+  }
   std::string compile_error, fs;
+  std::vector<std::string> calls;
 };
 
 TEST_F(RetraceTest, LoadFile) {
@@ -113,4 +118,14 @@ TEST_F(RetraceTest, ReplaceShaders) {
                  "}\n");
   rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs, &cb);
   EXPECT_EQ(cb.compile_error.size(), 0);
+}
+
+TEST_F(RetraceTest, ApiCalls) {
+  NullCallback cb;
+  FrameRetrace rt;
+  rt.openFile(test_file, 7, &cb);
+  rt.retraceApi(RenderId(-1), &cb);
+  EXPECT_GT(cb.calls.size(), 0);
+  rt.retraceApi(RenderId(1), &cb);
+  EXPECT_GT(cb.calls.size(), 0);
 }

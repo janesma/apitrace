@@ -112,6 +112,8 @@ class FrameRetraceModel : public QObject,
              WRITE setStopAtRender)
   Q_PROPERTY(bool highlightRender READ highlightRender
              WRITE setHighlightRender)
+  Q_PROPERTY(QStringList apiCalls
+             READ apiCalls NOTIFY onApiCalls);
  public:
   FrameRetraceModel();
   ~FrameRetraceModel();
@@ -148,6 +150,7 @@ class FrameRetraceModel : public QObject,
                     const std::vector<std::string> &names);
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount);
+  void onApi(RenderId renderId, const std::vector<std::string> &api_calls);
   QString vsIR() const { ScopedLock s(m_protect); return m_vs_ir; }
   QString fsIR() const { ScopedLock s(m_protect); return m_fs_ir; }
   QString vsSource() const { ScopedLock s(m_protect); return m_vs_shader; }
@@ -160,6 +163,8 @@ class FrameRetraceModel : public QObject,
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
+  QStringList apiCalls();
+
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
   bool stopAtRender() const;
@@ -178,6 +183,7 @@ class FrameRetraceModel : public QObject,
   void onRenderTarget();
   void onOpenPercent();
   void onMaxMetric();
+  void onApiCalls();
 
   // this signal transfers onMetricList to be handled in the UI
   // thread.  The handler generates QObjects which are passed to qml
@@ -185,6 +191,7 @@ class FrameRetraceModel : public QObject,
  private:
   void retrace_rendertarget();
   void retrace_shader_assemblies();
+  void retrace_api();
 
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
@@ -197,6 +204,8 @@ class FrameRetraceModel : public QObject,
 
   QString m_vs_ir, m_fs_ir, m_vs_shader, m_fs_shader,
     m_vs_vec4, m_fs_simd8, m_fs_simd16, m_fs_ssa, m_fs_nir;
+
+  QStringList m_api_calls;
   int m_open_percent;
 
   // thread-safe storage for member data updated from the retrace

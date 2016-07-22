@@ -60,6 +60,8 @@ class FrameRetraceStub : public IFrameRetrace {
                              const std::string &vs,
                              const std::string &fs,
                              OnFrameRetrace *callback);
+  virtual void retraceApi(RenderId renderId,
+                          OnFrameRetrace *callback);
 };
 }  // namespace glretrace
 

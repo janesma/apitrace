@@ -63,6 +63,7 @@ class RetraceRender {
   void overrideFragmentShader(StateTrack *tracker, bool enable,
                               const std::string &fs);
   void revertShaders();
+  void onApi(RenderId renderId, OnFrameRetrace *callback);
 
  private:
   trace::AbstractParser *m_parser;
@@ -72,6 +73,7 @@ class RetraceRender {
     m_modified_fs, m_modified_vs;
   int m_rt_program, m_retrace_program;
   bool m_end_of_frame, m_highlight_rt;
+  std::vector<std::string> m_api_calls;
 };
 
 }  // namespace glretrace

@@ -37,6 +37,7 @@ class Call;
 }
 
 namespace glretrace {
+class OnFrameRetrace;
 
 class OutputPoller {
  public:
@@ -67,12 +68,13 @@ class StateTrack {
   int useProgram(const std::string &vs, const std::string &fs,
                  std::string *message = NULL);
   void useProgram(int program);
+  void onApi(OnFrameRetrace *callback);
 
  private:
   class TrackMap {
    public:
     TrackMap();
-    void track(StateTrack *tracker, const trace::Call &call);
+    bool track(StateTrack *tracker, const trace::Call &call);
    private:
     typedef void (glretrace::StateTrack::*MemberFunType)(const trace::Call&);
     std::map <std::string, MemberFunType> lookup;
@@ -111,6 +113,8 @@ class StateTrack {
   std::map<int, std::string> program_to_fragment_shader_simd16;
   std::map<int, std::string> program_to_fragment_shader_ssa;
   std::map<int, std::string> program_to_fragment_shader_nir;
+
+  std::vector<std::string> tracked_calls;
 };
 }  // namespace glretrace
 #endif

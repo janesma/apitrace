@@ -67,6 +67,7 @@ FrameRetraceModel::~FrameRetraceModel() {
     delete m_state;
     m_state = NULL;
   }
+  m_api_calls.clear();
 }
 
 FrameState *frame_state_off_thread(std::string filename,
@@ -82,6 +83,7 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber) {
   future = QtConcurrent::run(frame_state_off_thread,
                              filename.toStdString(), framenumber);
   m_retrace.openFile(filename.toStdString(), framenumber, this);
+  m_retrace.retraceApi(RenderId(-1), this);
 }
 
 QQmlListProperty<QRenderBookmark>
@@ -164,6 +166,16 @@ FrameRetraceModel::renderTargetImage() const {
   std::stringstream ss;
   ss << "image://myimageprovider/image" << ++i << ".png";
   return ss.str().c_str();
+}
+
+void
+FrameRetraceModel::retrace_api() {
+  if (m_cached_selection.empty())
+    return m_retrace.retraceApi(RenderId(-1 ^ glretrace::ID_PREFIX_MASK),
+                                this);
+
+  m_retrace.retraceApi(RenderId(m_cached_selection.back()),
+                       this);
 }
 
 void
@@ -293,6 +305,7 @@ FrameRetraceModel::onSelect(QList<int> selection) {
   m_cached_selection = selection;
   retrace_rendertarget();
   retrace_shader_assemblies();
+  retrace_api();
 }
 
 bool
@@ -345,4 +358,20 @@ FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs) {
   retrace_shader_assemblies();
   m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
                            this);
+}
+
+QStringList
+FrameRetraceModel::apiCalls() {
+  ScopedLock s(m_protect);
+  return m_api_calls;
+}
+
+void
+FrameRetraceModel::onApi(RenderId renderId,
+                         const std::vector<std::string> &api_calls) {
+  m_api_calls.clear();
+  for (auto i : api_calls) {
+    m_api_calls.append(QString::fromStdString(i));
+  }
+  emit onApiCalls();
 }
