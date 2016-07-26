@@ -57,6 +57,8 @@ class StateTrack {
   int CurrentProgram() const { return current_program; }
   std::string currentVertexShader() const;
   std::string currentVertexIr() const;
+  std::string currentVertexNIR() const;
+  std::string currentVertexSSA() const;
   std::string currentVertexVec4() const;
   std::string currentFragmentShader() const;
   std::string currentFragmentIr() const;
@@ -64,6 +66,8 @@ class StateTrack {
   std::string currentFragmentSimd16() const;
   std::string currentFragmentSSA() const;
   std::string currentFragmentNIR() const;
+  std::string currentTessControlShader() const;
+  std::string currentTessEvalShader() const;
   uint64_t currentContext() const { return current_context; }
   int useProgram(const std::string &vs, const std::string &fs,
                  std::string *message = NULL);
@@ -82,10 +86,11 @@ class StateTrack {
   static TrackMap lookup;
   class ProgramKey {
    public:
-    ProgramKey(const std::string &v, const std::string &f);
+    ProgramKey(const std::string &v, const std::string &f,
+               const std::string &t_c, const std::string &t_e);
     bool operator<(const ProgramKey &o) const;
    private:
-    std::string vs; std::string fs;
+    std::string vs, fs, tess_control, tess_eval;
   };
 
   void parse();
@@ -106,6 +111,8 @@ class StateTrack {
   // for these maps, key is program
   std::map<int, std::string> program_to_vertex_shader_source;
   std::map<int, std::string> program_to_vertex_shader_ir;
+  std::map<int, std::string> program_to_vertex_shader_nir;
+  std::map<int, std::string> program_to_vertex_shader_ssa;
   std::map<int, std::string> program_to_vertex_shader_vec4;
   std::map<int, std::string> program_to_fragment_shader_source;
   std::map<int, std::string> program_to_fragment_shader_ir;
@@ -113,6 +120,8 @@ class StateTrack {
   std::map<int, std::string> program_to_fragment_shader_simd16;
   std::map<int, std::string> program_to_fragment_shader_ssa;
   std::map<int, std::string> program_to_fragment_shader_nir;
+  std::map<int, std::string> program_to_tess_control_shader_source;
+  std::map<int, std::string> program_to_tess_eval_shader_source;
 
   std::vector<std::string> tracked_calls;
 };

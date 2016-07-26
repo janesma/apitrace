@@ -216,114 +216,197 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Tab {
-                title: "Vertex Shader"
+                title: "Shaders"
                 TabView {
                     Tab {
-                        title: "Source"
-                        Flickable {
-                            contentWidth: vsSource.width; contentHeight: vsSource.height
-                            clip: true
-                            TextEdit {
-                                id: vsSource
-                                text: frameRetrace.vsSource
-                                onTextChanged: { vsCompileButton.vsText = text; vsCompileButton.visible=true; }
+                        title: "Vertex"
+                        TabView {
+                            Tab {
+                                title: "Source"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: vsSource.width; contentHeight: vsSource.height
+                                        clip: true
+                                        TextEdit {
+                                            id: vsSource
+                                            text: frameRetrace.vsSource
+                                            onTextChanged: { vsCompileButton.vsText = text; vsCompileButton.visible=true; }
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "IR"
+                                ScrollView {
+                                    Flickable {
+                                        anchors.fill: parent
+                                        contentWidth: vsIR.width; contentHeight: vsIR.height
+                                        clip: true
+                                        Text {
+                                            id: vsIR
+                                            text: frameRetrace.vsIR
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "NIR"
+                                ScrollView {
+                                    Flickable {
+                                        anchors.fill: parent
+                                        contentWidth: vsNIR.width; contentHeight: vsNIR.height
+                                        clip: true
+                                        Text {
+                                            id: vsNIR
+                                            text: frameRetrace.vsNIR
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "SSA"
+                                ScrollView {
+                                    Flickable {
+                                        anchors.fill: parent
+                                        contentWidth: vsSSA.width; contentHeight: vsSSA.height
+                                        clip: true
+                                        Text {
+                                            id: vsSSA
+                                            text: frameRetrace.vsSSA
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "Vec4"
+                                ScrollView {
+                                    Flickable {
+                                        anchors.fill: parent
+                                        contentWidth: vsVec4.width; contentHeight: vsVec4.height
+                                        clip: true
+                                        Text {
+                                            id: vsVec4
+                                            text: frameRetrace.vsVec4
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                     Tab {
-                        title: "IR"
-                        Flickable {
+                        title: "Fragment"
+                        TabView {
                             anchors.fill: parent
-                            contentWidth: vsIR.width; contentHeight: vsIR.height
-                            clip: true
-                            Text {
-                                id: vsIR
-                                text: frameRetrace.vsIR
+                            Tab {
+                                title: "Source"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: fsSource.width; contentHeight: fsSource.height
+                                        clip: true
+                                        TextEdit {
+                                            id: fsSource
+                                            text: frameRetrace.fsSource
+                                            onTextChanged: { vsCompileButton.fsText = text; vsCompileButton.visible=true; }
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "IR"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: fsIR.width; contentHeight: fsIR.height
+                                        clip: true
+                                        Text {
+                                            id: fsIR
+                                            text: frameRetrace.fsIR
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "Simd8"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: fsSimd8.width; contentHeight: fsSimd8.height
+                                        clip: true
+                                        Text {
+                                            id: fsSimd8
+                                            text: frameRetrace.fsSimd8
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "Simd16"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: fsSimd16.width; contentHeight: fsSimd16.height
+                                        clip: true
+                                        Text {
+                                            id: fsSimd16
+                                            text: frameRetrace.fsSimd16
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "SSA"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: fsSSA.width; contentHeight: fsSSA.height
+                                        clip: true
+                                        Text {
+                                            id: fsSSA
+                                            text: frameRetrace.fsSSA
+                                        }
+                                    }
+                                }
+                            }
+                            Tab {
+                                title: "NIR"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: fsNIR.width; contentHeight: fsNIR.height
+                                        clip: true
+                                        Text {
+                                            id: fsNIR
+                                            text: frameRetrace.fsNIR
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                     Tab {
-                        title: "Vec4"
-                        Flickable {
+                        title: "Tesselation"
+                        TabView {
                             anchors.fill: parent
-                            contentWidth: vsVec4.width; contentHeight: vsVec4.height
-                            clip: true
-                            Text {
-                                id: vsVec4
-                                text: frameRetrace.vsVec4
+                            Tab {
+                                title: "Control"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: tessControlSource.width; contentHeight: tessControlSource.height
+                                        clip: true
+                                        Text {
+                                            id: tessControlSource
+                                            text: frameRetrace.tessControlSource
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    }
-                }
-            }
-            Tab {
-                title: "Fragment Shader"
-                TabView {
-                    anchors.fill: parent
-                    Tab {
-                        title: "Source"
-                        Flickable {
-                            contentWidth: fsSource.width; contentHeight: fsSource.height
-                            clip: true
-                            TextEdit {
-                                id: fsSource
-                                text: frameRetrace.fsSource
-                                onTextChanged: { vsCompileButton.fsText = text; vsCompileButton.visible=true; }
-                            }
-                        }
-                    }
-                    Tab {
-                        title: "IR"
-                        Flickable {
-                            contentWidth: fsIR.width; contentHeight: fsIR.height
-                            clip: true
-                            Text {
-                                id: fsIR
-                                text: frameRetrace.fsIR
-                            }
-                        }
-                    }
-                    Tab {
-                        title: "Simd8"
-                        Flickable {
-                            contentWidth: fsSimd8.width; contentHeight: fsSimd8.height
-                            clip: true
-                            Text {
-                                id: fsSimd8
-                                text: frameRetrace.fsSimd8
-                            }
-                        }
-                    }
-                    Tab {
-                        title: "Simd16"
-                        Flickable {
-                            contentWidth: fsSimd16.width; contentHeight: fsSimd16.height
-                            clip: true
-                            Text {
-                                id: fsSimd16
-                                text: frameRetrace.fsSimd16
-                            }
-                        }
-                    }
-                    Tab {
-                        title: "SSA"
-                        Flickable {
-                            contentWidth: fsSSA.width; contentHeight: fsSSA.height
-                            clip: true
-                            Text {
-                                id: fsSSA
-                                text: frameRetrace.fsSSA
-                            }
-                        }
-                    }
-                    Tab {
-                        title: "NIR"
-                        Flickable {
-                            contentWidth: fsNIR.width; contentHeight: fsNIR.height
-                            clip: true
-                            Text {
-                                id: fsNIR
-                                text: frameRetrace.fsNIR
+                            Tab {
+                                title: "Eval"
+                                ScrollView {
+                                    Flickable {
+                                        contentWidth: tessEvalSource.width; contentHeight: tessEvalSource.height
+                                        clip: true
+                                        Text {
+                                            id: tessEvalSource
+                                            text: frameRetrace.tessEvalSource
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -371,11 +454,13 @@ ApplicationWindow {
                 title: "Api Calls"
                 id: apiTab
                 clip: true
-                ListView {
-                    model: frameRetrace.apiCalls
-                    anchors.fill: apiTab
-                    delegate: Text {
-                        text: modelData
+                ScrollView {
+                    ListView {
+                        model: frameRetrace.apiCalls
+                        anchors.fill: apiTab
+                        delegate: Text {
+                            text: modelData
+                        }
                     }
                 }
             }
