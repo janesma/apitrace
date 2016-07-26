@@ -250,10 +250,10 @@ void
 FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
                              ExperimentId experimentCount,
                              OnFrameRetrace *callback) const {
-  // reset to beginning of frame
-  parser->setBookmark(frame_start.start);
   const int render_count = getRenderCount();
   for (const auto &id : ids) {
+    // reset to beginning of frame
+    parser->setBookmark(frame_start.start);
     const MetricId nullMetric(0);
     if (id == nullMetric) {
       // no metrics selected
