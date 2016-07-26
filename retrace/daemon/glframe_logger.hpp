@@ -79,7 +79,7 @@ inline void glretrace_log_message(glretrace::Severity s,
                                   const char *file,
                                   int line,
                                   const char *format, ... ) {
-  static const int BUF_SIZE = 512;
+  static const int BUF_SIZE = 16384;
   char buf[BUF_SIZE];
   va_list ap;
   va_start(ap, format);
