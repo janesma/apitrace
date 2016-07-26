@@ -30,6 +30,7 @@
 #include <string>
 
 #include "glframe_stderr.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::StdErrRedirect;
 

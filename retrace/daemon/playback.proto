@@ -61,6 +61,10 @@ message ShaderAssemblyResponse {
   required string fragment_simd16 = 7;
   required string fragment_ssa = 8;
   required string fragment_nir = 9;
+  required string tess_control_shader = 10;
+  required string tess_eval_shader = 11;
+  required string vertex_nir = 12;
+  required string vertex_ssa = 13;
 }
 
 message MetricSeries {

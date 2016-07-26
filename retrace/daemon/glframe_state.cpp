@@ -31,7 +31,8 @@
 #include <sstream>
 #include <string>
 
-#include "GLES2/gl2.h"
+#include "GL/gl.h"
+#include "GL/glext.h"
 #include "trace_model.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
@@ -110,14 +111,24 @@ StateTrack::trackAttachShader(const Call &call) {
     program_to_fragment_shader_source[program] = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_VERTEX_SHADER)
     program_to_vertex_shader_source[program] = shader_to_source[shader];
+  else if (shader_to_type[shader] == GL_TESS_CONTROL_SHADER)
+    program_to_tess_control_shader_source[program] = shader_to_source[shader];
+  else if (shader_to_type[shader] == GL_TESS_EVALUATION_SHADER)
+    program_to_tess_eval_shader_source[program] = shader_to_source[shader];
 
   auto vs = program_to_vertex_shader_source.find(program);
-  if (vs == program_to_vertex_shader_source.end())
-    return;
   auto fs = program_to_fragment_shader_source.find(program);
-  if (fs == program_to_fragment_shader_source.end())
-    return;
-  m_sources_to_program[ProgramKey(vs->second, fs->second)] = program;
+  auto tess_control = program_to_tess_control_shader_source.find(program);
+  auto tess_eval = program_to_tess_eval_shader_source.find(program);
+  const ProgramKey k(vs == program_to_vertex_shader_source.end()
+                     ? "" : vs->second,
+                     fs == program_to_fragment_shader_source.end()
+                     ? "" : fs->second,
+                     tess_control == program_to_tess_control_shader_source.end()
+                     ? "" : tess_control->second,
+                     tess_eval == program_to_tess_eval_shader_source.end()
+                     ? "" : tess_eval->second);
+  m_sources_to_program[k] = program;
 }
 
 void
@@ -156,7 +167,7 @@ StateTrack::parse() {
     return;
 
   std::string fs_ir, fs_simd8, fs_simd16, vs_ir, vs_vec4, line,
-      fs_nir_ssa, fs_nir_final,
+      fs_nir_ssa, fs_nir_final, vs_nir_ssa, vs_nir_final,
       *current_target = NULL;
   std::stringstream line_split(output);
   int line_shader = -1;
@@ -166,6 +177,12 @@ StateTrack::parse() {
     if (matches > 0)
       current_target = &vs_ir;
 
+    if (0 == strcmp(line.c_str(), "NIR (SSA form) for vertex shader:"))
+      current_target = &vs_nir_ssa;
+
+    if (0 == strcmp(line.c_str(), "NIR (final form) for vertex shader:"))
+      current_target = &vs_nir_final;
+
     if (0 == strcmp(line.c_str(), "NIR (SSA form) for fragment shader:"))
       current_target = &fs_nir_ssa;
 
@@ -174,7 +191,7 @@ StateTrack::parse() {
 
     if (matches <= 0) {
       matches = sscanf(line.c_str(),
-                       "Native code for unnamed vertex shader %d:",
+                       "Native code for unnamed vertex shader GLSL%d:",
                        &line_shader);
       if (matches > 0)
         current_target = &vs_vec4;
@@ -195,7 +212,7 @@ StateTrack::parse() {
     if (matches <= 0) {
       int wide;
       matches = sscanf(line.c_str(),
-                       "Native code for unnamed fragment shader %d",
+                       "Native code for unnamed fragment shader GLSL%d",
                        &line_shader);
       if (matches > 0) {
         if (line_shader != current_program) {
@@ -231,6 +248,10 @@ StateTrack::parse() {
     program_to_fragment_shader_simd16[current_program] = fs_simd16;
   if (vs_ir.length() > 0)
     program_to_vertex_shader_ir[current_program] = vs_ir;
+  if (vs_nir_ssa.length() > 0)
+    program_to_vertex_shader_ssa[current_program] = vs_nir_ssa;
+  if (vs_nir_final.length() > 0)
+    program_to_vertex_shader_nir[current_program] = vs_nir_final;
   if (vs_vec4.length() > 0)
     program_to_vertex_shader_vec4[current_program] = vs_vec4;
   if (fs_nir_final.length() > 0)
@@ -243,6 +264,22 @@ std::string
 StateTrack::currentVertexIr() const {
   auto sh = program_to_vertex_shader_ir.find(current_program);
   if (sh == program_to_vertex_shader_ir.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentVertexNIR() const {
+  auto sh = program_to_vertex_shader_nir.find(current_program);
+  if (sh == program_to_vertex_shader_nir.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentVertexSSA() const {
+  auto sh = program_to_vertex_shader_ssa.find(current_program);
+  if (sh == program_to_vertex_shader_ssa.end())
     return "";
   return sh->second;
 }
@@ -311,12 +348,30 @@ StateTrack::currentFragmentNIR() const {
   return sh->second;
 }
 
+std::string
+StateTrack::currentTessControlShader() const {
+  auto sh = program_to_tess_control_shader_source.find(current_program);
+  if (sh == program_to_tess_control_shader_source.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessEvalShader() const {
+  auto sh = program_to_tess_eval_shader_source.find(current_program);
+  if (sh == program_to_tess_eval_shader_source.end())
+    return "";
+  return sh->second;
+}
+
 void
 StateTrack::flush() { m_poller->poll(); }
 
 StateTrack::ProgramKey::ProgramKey(const std::string &v,
-                               const std::string &f)
-    : vs(v), fs(f) {}
+                                   const std::string &f,
+                                   const std::string &t_c,
+                                   const std::string &t_e)
+    : vs(v), fs(f), tess_control(t_c), tess_eval(t_e) {}
 
 bool
 StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
@@ -326,6 +381,14 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
     return false;
   if (fs < o.fs)
     return true;
+  if (fs > o.fs)
+    return false;
+  if (tess_control < o.tess_control)
+    return true;
+  if (tess_control > o.tess_control)
+    return false;
+  if (tess_eval < o.tess_eval)
+    return true;
   return false;
 }
 
@@ -333,7 +396,7 @@ int
 StateTrack::useProgram(const std::string &vs,
                        const std::string &fs,
                        std::string *message) {
-  const ProgramKey k(vs, fs);
+  const ProgramKey k(vs, fs, "", "");
   auto i = m_sources_to_program.find(k);
   if (i != m_sources_to_program.end())
     return i->second;

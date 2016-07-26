@@ -212,13 +212,17 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
   callback->onShaderAssembly(renderId,
                              tmp_tracker.currentVertexShader(),
                              tmp_tracker.currentVertexIr(),
+                             tmp_tracker.currentVertexNIR(),
+                             tmp_tracker.currentVertexSSA(),
                              tmp_tracker.currentVertexVec4(),
                              tmp_tracker.currentFragmentShader(),
                              tmp_tracker.currentFragmentIr(),
                              tmp_tracker.currentFragmentSimd8(),
                              tmp_tracker.currentFragmentSimd16(),
                              tmp_tracker.currentFragmentSSA(),
-                             tmp_tracker.currentFragmentNIR());
+                             tmp_tracker.currentFragmentNIR(),
+                             tmp_tracker.currentTessControlShader(),
+                             tmp_tracker.currentTessEvalShader());
 }
 
 FrameState::FrameState(const std::string &filename,
