@@ -236,6 +236,11 @@ PerfMetricGroup::publish(MetricId metric,
   m_extant_query_handles.clear();
   if (callback)
     callback->onMetrics(out_data, experimentCount);
+
+  for (auto free_query : m_free_query_handles) {
+    GlFunctions::DeletePerfQueryINTEL(free_query);
+  }
+  m_free_query_handles.clear();
 }
 
 void
