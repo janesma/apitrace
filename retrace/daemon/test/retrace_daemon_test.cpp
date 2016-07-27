@@ -48,7 +48,7 @@ using glretrace::RenderTargetType;
 TEST(Build, Cmake) {
 }
 
-static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.test_trace";
+static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.trace";
 
 class NullCallback : public OnFrameRetrace {
  public:
