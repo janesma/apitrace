@@ -42,6 +42,7 @@
 using glretrace::StateTrack;
 using glretrace::WARN;
 using glretrace::OutputPoller;
+using glretrace::OnFrameRetrace;
 using trace::Call;
 using trace::Array;
 

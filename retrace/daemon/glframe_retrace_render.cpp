@@ -39,6 +39,8 @@ using glretrace::GlFunctions;
 using glretrace::RetraceRender;
 using glretrace::StateTrack;
 using glretrace::RenderTargetType;
+using glretrace::RenderId;
+using glretrace::OnFrameRetrace;
 
 bool changesContext(const trace::Call * const call) {
   if (strncmp(call->name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
