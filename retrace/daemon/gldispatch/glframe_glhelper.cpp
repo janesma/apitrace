@@ -94,7 +94,6 @@ static void * _GetProcAddress(const char *name) {
     strncat(szDll, "\\opengl32.dll", MAX_PATH - 1);
     lib_handle = LoadLibraryA(szDll);
   }
-  static GETPROCADDRESS lookup_fn = NULL;
   if (!lookup_fn) {
     lookup_fn = (GETPROCADDRESS) GetProcAddress(lib_handle,
                                                 "wglGetProcAddress");

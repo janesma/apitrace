@@ -20,7 +20,7 @@ add_executable(frame_retrace_server
 
 if (WIN32)
   set (GL_LIB opengl32)
-  set (THREAD_LIB "")
+  set (THREAD_LIB Ws2_32)
 else()
   set (GL_LIB GL)
   set (THREAD_LIB pthread dl)
