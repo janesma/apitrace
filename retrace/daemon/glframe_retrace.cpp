@@ -111,6 +111,10 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
   trace::Call *call;
   int current_frame = 0;
   while ((call = parser->parse_call()) && current_frame < framenumber) {
+    std::stringstream call_stream;
+    trace::dump(*call, call_stream,
+                trace::DUMP_FLAG_NO_COLOR);
+    GRLOGF(glretrace::INFO, "CALL: %s", call_stream.str().c_str());
     retracer.retrace(*call);
     m_tracker.track(*call);
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
