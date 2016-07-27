@@ -143,7 +143,10 @@ void
 FrameRetraceModel::onShaderCompile(RenderId renderId,
                                    ExperimentId experimentCount,
                                    bool status,
-                                   const std::string &errorString) {}
+                                   const std::string &errorString) {
+  if (errorString.size())
+    GRLOGF(WARN, "Compilation error: %s", errorString.c_str());
+}
 
 void
 FrameRetraceModel::retrace_rendertarget() {
