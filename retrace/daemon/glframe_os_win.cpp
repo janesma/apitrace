@@ -34,21 +34,29 @@ namespace glretrace {
 
 int fork_execv(const char *path, const char *const argv[]) {
   std::stringstream cmdLine;
-  cmdLine << path;
-  const char *i = argv[0];
-  while (i != NULL) {
-    cmdLine << i << " ";
+  cmdLine << path << " ";
+  int i = 1;
+  const char *arg = argv[i];
+  while (arg != NULL) {
+    cmdLine << arg << " ";
+    arg = argv[++i];
   }
-  return CreateProcess(NULL,
-                       (char*) (cmdLine.str().c_str()),
+  std::string cmdStr = cmdLine.str();
+  char* cmd_c = (char*) cmdStr.c_str();
+  STARTUPINFO startupInfo;
+  PROCESS_INFORMATION processInfo;
+  memset(&startupInfo, 0, sizeof(startupInfo));
+  memset(&processInfo, 0, sizeof(processInfo));
+  return CreateProcess(path,
+                       cmd_c,
                        NULL,
                        NULL,
                        false,
-                       0,
+					   NORMAL_PRIORITY_CLASS,
                        NULL,  // _In_opt_    LPVOID                lpEnvironment,
                        NULL,  // _In_opt_    LPCTSTR               lpCurrentDirectory,
-                       NULL,  // _In_        LPSTARTUPINFO         lpStartupInfo,
-                       NULL); // _Out_       LPPROCESS_INFORMATION lpProcessInformation
+                       &startupInfo,  // _In_        LPSTARTUPINFO         lpStartupInfo,
+                       &processInfo); // _Out_       LPPROCESS_INFORMATION lpProcessInformation
 		
 }
 
