@@ -82,8 +82,7 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber) {
   // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
   future = QtConcurrent::run(frame_state_off_thread,
                              filename.toStdString(), framenumber);
-  std::string fn(filename.toStdString());
-  m_retrace.openFile(fn, framenumber, this);
+  m_retrace.openFile(filename.toStdString(), framenumber, this);
   m_retrace.retraceApi(RenderId(-1), this);
 }
 
