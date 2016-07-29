@@ -53,7 +53,15 @@ class MetricsCallback : public OnFrameRetrace {
                         const std::string &fragment_nir_ssa,
                         const std::string &fragment_nir_final,
                         const std::string &tess_control_shader,
-                        const std::string &tess_eval_shader) {}
+                        const std::string &tess_control_ir,
+                        const std::string &tess_control_nir_ssa,
+                        const std::string &tess_control_nir_final,
+                        const std::string &tess_control_simd8,
+                        const std::string &tess_eval_shader,
+                        const std::string &tess_eval_ir,
+                        const std::string &tess_eval_nir_ssa,
+                        const std::string &tess_eval_nir_final,
+                        const std::string &tess_eval_simd8) {}
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, ExperimentId experimentCount,

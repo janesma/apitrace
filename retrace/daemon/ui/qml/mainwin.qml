@@ -384,26 +384,142 @@ ApplicationWindow {
                             anchors.fill: parent
                             Tab {
                                 title: "Control"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: tessControlSource.width; contentHeight: tessControlSource.height
-                                        clip: true
-                                        Text {
-                                            id: tessControlSource
-                                            text: frameRetrace.tessControlSource
+                                TabView {
+                                    anchors.fill: parent
+                                    Tab {
+                                        title: "Source"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessControlSource.width; contentHeight: tessControlSource.height
+                                                clip: true
+                                                Text {
+                                                    id: tessControlSource
+                                                    text: frameRetrace.tessControlSource
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "IR"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessControlIR.width; contentHeight: tessControlIR.height
+                                                clip: true
+                                                Text {
+                                                    id: tessControlIR
+                                                    text: frameRetrace.tessControlIR
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "SSA"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessControlSSA.width; contentHeight: tessControlSSA.height
+                                                clip: true
+                                                Text {
+                                                    id: tessControlSSA
+                                                    text: frameRetrace.tessControlSSA
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "NIR"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessControlNIR.width; contentHeight: tessControlNIR.height
+                                                clip: true
+                                                Text {
+                                                    id: tessControlNIR
+                                                    text: frameRetrace.tessControlNIR
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "SIMD8"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessControlSimd8.width; contentHeight: tessControlSimd8.height
+                                                clip: true
+                                                Text {
+                                                    id: tessControlSimd8
+                                                    text: frameRetrace.tessControlSimd8
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                             Tab {
-                                title: "Eval"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: tessEvalSource.width; contentHeight: tessEvalSource.height
-                                        clip: true
-                                        Text {
-                                            id: tessEvalSource
-                                            text: frameRetrace.tessEvalSource
+                                title: "Evaluation"
+                                TabView {
+                                    anchors.fill: parent
+                                    Tab {
+                                        title: "Source"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessEvalSource.width; contentHeight: tessEvalSource.height
+                                                clip: true
+                                                Text {
+                                                    id: tessEvalSource
+                                                    text: frameRetrace.tessEvalSource
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "IR"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessEvalIR.width; contentHeight: tessEvalIR.height
+                                                clip: true
+                                                Text {
+                                                    id: tessEvalIR
+                                                    text: frameRetrace.tessEvalIR
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "SSA"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessEvalSSA.width; contentHeight: tessEvalSSA.height
+                                                clip: true
+                                                Text {
+                                                    id: tessEvalSSA
+                                                    text: frameRetrace.tessEvalSSA
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "NIR"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessEvalNIR.width; contentHeight: tessEvalNIR.height
+                                                clip: true
+                                                Text {
+                                                    id: tessEvalNIR
+                                                    text: frameRetrace.tessEvalNIR
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Tab {
+                                        title: "SIMD8"
+                                        ScrollView {
+                                            Flickable {
+                                                contentWidth: tessEvalSimd8.width; contentHeight: tessEvalSimd8.height
+                                                clip: true
+                                                Text {
+                                                    id: tessEvalSimd8
+                                                    text: frameRetrace.tessEvalSimd8
+                                                }
+                                            }
                                         }
                                     }
                                 }

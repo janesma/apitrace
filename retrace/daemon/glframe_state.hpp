@@ -59,7 +59,7 @@ class StateTrack {
   std::string currentVertexIr() const;
   std::string currentVertexNIR() const;
   std::string currentVertexSSA() const;
-  std::string currentVertexVec4() const;
+  std::string currentVertexSimd8() const;
   std::string currentFragmentShader() const;
   std::string currentFragmentIr() const;
   std::string currentFragmentSimd8() const;
@@ -67,7 +67,15 @@ class StateTrack {
   std::string currentFragmentSSA() const;
   std::string currentFragmentNIR() const;
   std::string currentTessControlShader() const;
+  std::string currentTessControlIr() const;
+  std::string currentTessControlSimd8() const;
+  std::string currentTessControlSSA() const;
+  std::string currentTessControlNIR() const;
   std::string currentTessEvalShader() const;
+  std::string currentTessEvalIr() const;
+  std::string currentTessEvalSimd8() const;
+  std::string currentTessEvalSSA() const;
+  std::string currentTessEvalNIR() const;
   uint64_t currentContext() const { return current_context; }
   int useProgram(const std::string &vs, const std::string &fs,
                  std::string *message = NULL);
@@ -113,7 +121,7 @@ class StateTrack {
   std::map<int, std::string> program_to_vertex_shader_ir;
   std::map<int, std::string> program_to_vertex_shader_nir;
   std::map<int, std::string> program_to_vertex_shader_ssa;
-  std::map<int, std::string> program_to_vertex_shader_vec4;
+  std::map<int, std::string> program_to_vertex_shader_simd8;
   std::map<int, std::string> program_to_fragment_shader_source;
   std::map<int, std::string> program_to_fragment_shader_ir;
   std::map<int, std::string> program_to_fragment_shader_simd8;
@@ -122,6 +130,14 @@ class StateTrack {
   std::map<int, std::string> program_to_fragment_shader_nir;
   std::map<int, std::string> program_to_tess_control_shader_source;
   std::map<int, std::string> program_to_tess_eval_shader_source;
+  std::map<int, std::string> program_to_tess_control_ir;
+  std::map<int, std::string> program_to_tess_eval_ir;
+  std::map<int, std::string> program_to_tess_control_ssa;
+  std::map<int, std::string> program_to_tess_eval_ssa;
+  std::map<int, std::string> program_to_tess_control_final;
+  std::map<int, std::string> program_to_tess_eval_final;
+  std::map<int, std::string> program_to_tess_control_simd8;
+  std::map<int, std::string> program_to_tess_eval_simd8;
 
   std::vector<std::string> tracked_calls;
 };
