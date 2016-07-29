@@ -89,7 +89,9 @@ int main(int argc, char *argv[]) {
   {
     ServerSocket sock(0);
     port = sock.GetPort();
+    // port = 53135;
   }
+  // exec_retracer(argv[0], port);
   exec_retracer(argv[0], port);
   Logger::Begin();
   GRLOGF(glretrace::WARN, "using port: %d", port);
