@@ -167,17 +167,25 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
         RenderId(m_proto_msg.rendertarget().renderid()),
         shader.vertex_shader(),
         shader.vertex_ir(),
-        shader.vertex_nir(),
-        shader.vertex_ssa(),
-        shader.vertex_vec4(),
+        shader.vertex_nir_ssa(),
+        shader.vertex_nir_final(),
+        shader.vertex_simd8(),
         shader.fragment_shader(),
         shader.fragment_ir(),
         shader.fragment_simd8(),
         shader.fragment_simd16(),
-        shader.fragment_ssa(),
-        shader.fragment_nir(),
+        shader.fragment_nir_ssa(),
+        shader.fragment_nir_final(),
         shader.tess_control_shader(),
-        shader.tess_eval_shader());
+        shader.tess_control_ir(),
+        shader.tess_control_nir_ssa(),
+        shader.tess_control_nir_final(),
+        shader.tess_control_simd8(),
+        shader.tess_eval_shader(),
+        shader.tess_eval_ir(),
+        shader.tess_eval_nir_ssa(),
+        shader.tess_eval_nir_final(),
+        shader.tess_eval_simd8());
   }
 
  private:

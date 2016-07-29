@@ -105,7 +105,15 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(QString fsNIR READ fsNIR NOTIFY onShaders)
   Q_PROPERTY(QString fsSSA READ fsSSA NOTIFY onShaders)
   Q_PROPERTY(QString tessControlSource READ tessControlSource NOTIFY onShaders)
+  Q_PROPERTY(QString tessControlIR READ tessControlIR NOTIFY onShaders)
+  Q_PROPERTY(QString tessControlSSA READ tessControlSSA NOTIFY onShaders)
+  Q_PROPERTY(QString tessControlNIR READ tessControlNIR NOTIFY onShaders)
+  Q_PROPERTY(QString tessControlSimd8 READ tessControlSimd8 NOTIFY onShaders)
   Q_PROPERTY(QString tessEvalSource READ tessEvalSource NOTIFY onShaders)
+  Q_PROPERTY(QString tessEvalIR READ tessEvalIR NOTIFY onShaders)
+  Q_PROPERTY(QString tessEvalSSA READ tessEvalSSA NOTIFY onShaders)
+  Q_PROPERTY(QString tessEvalNIR READ tessEvalNIR NOTIFY onShaders)
+  Q_PROPERTY(QString tessEvalSimd8 READ tessEvalSimd8 NOTIFY onShaders)
   Q_PROPERTY(QString renderTargetImage READ renderTargetImage
              NOTIFY onRenderTarget)
   Q_PROPERTY(int openPercent READ openPercent NOTIFY onOpenPercent)
@@ -146,8 +154,16 @@ class FrameRetraceModel : public QObject,
                         const std::string &fragment_simd16,
                         const std::string &fragment_nir_ssa,
                         const std::string &fragment_nir_final,
-                        const std::string &tess_control,
-                        const std::string &tess_eval);
+                        const std::string &tess_control_shader,
+                        const std::string &tess_control_ir,
+                        const std::string &tess_control_nir_ssa,
+                        const std::string &tess_control_nir_final,
+                        const std::string &tess_control_simd8,
+                        const std::string &tess_eval_shader,
+                        const std::string &tess_eval_ir,
+                        const std::string &tess_eval_nir_ssa,
+                        const std::string &tess_eval_nir_final,
+                        const std::string &tess_eval_simd8);
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const std::vector<unsigned char> &data);
   void onShaderCompile(RenderId renderId,
@@ -171,7 +187,15 @@ class FrameRetraceModel : public QObject,
   QString fsSSA() const { ScopedLock s(m_protect); return m_fs_ssa; }
   QString fsNIR() const { ScopedLock s(m_protect); return m_fs_nir; }
   QString tessControlSource() const;
+  QString tessControlIR() const;
+  QString tessControlSSA() const;
+  QString tessControlNIR() const;
+  QString tessControlSimd8() const;
   QString tessEvalSource() const;
+  QString tessEvalIR() const;
+  QString tessEvalSSA() const;
+  QString tessEvalNIR() const;
+  QString tessEvalSimd8() const;
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
@@ -216,7 +240,11 @@ class FrameRetraceModel : public QObject,
 
   QString m_vs_ir, m_fs_ir, m_vs_shader, m_fs_shader,
     m_vs_vec4, m_fs_simd8, m_fs_simd16, m_fs_ssa, m_fs_nir,
-    m_vs_ssa, m_vs_nir, m_tess_control_shader, m_tess_eval_shader;
+    m_vs_ssa, m_vs_nir,
+    m_tess_control_shader, m_tess_control_ir, m_tess_control_ssa,
+    m_tess_control_nir, m_tess_control_simd8,
+    m_tess_eval_shader, m_tess_eval_ir, m_tess_eval_ssa,
+    m_tess_eval_nir, m_tess_eval_simd8;
 
   QStringList m_api_calls;
   int m_open_percent;

@@ -175,7 +175,7 @@ class OnFrameRetrace {
                                 const std::string &vertex_ir,
                                 const std::string &vertex_nir,
                                 const std::string &vertex_ssa,
-                                const std::string &vertex_vec4,
+                                const std::string &vertex_simd8,
                                 const std::string &fragment_shader,
                                 const std::string &fragment_ir,
                                 const std::string &fragment_simd8,
@@ -183,7 +183,15 @@ class OnFrameRetrace {
                                 const std::string &fragment_nir_ssa,
                                 const std::string &fragment_nir_final,
                                 const std::string &tess_control_shader,
-                                const std::string &tess_eval_shader) = 0;
+                                const std::string &tess_control_ir,
+                                const std::string &tess_control_nir_ssa,
+                                const std::string &tess_control_nir_final,
+                                const std::string &tess_control_simd8,
+                                const std::string &tess_eval_shader,
+                                const std::string &tess_eval_ir,
+                                const std::string &tess_eval_nir_ssa,
+                                const std::string &tess_eval_nir_final,
+                                const std::string &tess_eval_simd8) = 0;
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
                               const uvec & pngImageData) = 0;
   virtual void onMetricList(const std::vector<MetricId> &ids,
