@@ -29,6 +29,9 @@
 
 #include <assert.h>
 #ifdef WIN32
+#include "retrace.hpp"
+#include "glretrace.hpp"
+#include "glws.hpp"
 #else
 #include <dlfcn.h>
 #endif
@@ -120,6 +123,14 @@ GlFunctions::Init(void *lookup_fn) {
   if (m_is_initialized)
     return;
 
+#ifdef WIN32
+  // GetProcAddress will return null on windows unless there is an
+  // active GL context.
+  retrace::setUp();
+  glws::Drawable *d = glretrace::createDrawable();
+  glretrace::Context *c = glretrace::createContext();
+  glws::makeCurrent(d, c->wsContext);
+#endif
 
   pCreateProgram = _GetProcAddress("glCreateProgram");
   assert(pCreateProgram);
