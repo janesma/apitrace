@@ -400,7 +400,8 @@ void
 FrameRetraceStub::openFile(const std::string &filename,
                            uint32_t frameNumber,
                            OnFrameRetrace *callback) {
-  thread->push(new RetraceOpenFileRequest(filename, frameNumber, callback));
+  std::string winstr(&(filename.c_str()[1]));
+  thread->push(new RetraceOpenFileRequest(winstr, frameNumber, callback));
 }
 
 void
