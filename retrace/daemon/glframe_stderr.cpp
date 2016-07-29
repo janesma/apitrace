@@ -36,6 +36,7 @@ using glretrace::StdErrRedirect;
 
 StdErrRedirect::StdErrRedirect() {
   pipe2(out_pipe, O_NONBLOCK);
+  fcntl(out_pipe[1], F_SETPIPE_SZ, 1048576);
   dup2(out_pipe[1], STDERR_FILENO);
   close(out_pipe[1]);
   buf.resize(1024);
