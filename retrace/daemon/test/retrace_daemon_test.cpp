@@ -67,7 +67,15 @@ class NullCallback : public OnFrameRetrace {
                         const std::string &fragment_nir_ssa,
                         const std::string &fragment_nir_final,
                         const std::string &tess_control_shader,
-                        const std::string &tess_eval_shader) {
+                        const std::string &tess_control_ir,
+                        const std::string &tess_control_nir_ssa,
+                        const std::string &tess_control_nir_final,
+                        const std::string &tess_control_simd8,
+                        const std::string &tess_eval_shader,
+                        const std::string &tess_eval_ir,
+                        const std::string &tess_eval_nir_ssa,
+                        const std::string &tess_eval_nir_final,
+                        const std::string &tess_eval_simd8) {
     fs = fragment_shader;
   }
   void onRenderTarget(RenderId renderId, RenderTargetType type,

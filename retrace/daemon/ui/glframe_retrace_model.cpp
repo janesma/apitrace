@@ -110,8 +110,16 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const std::string &fragment_simd16,
                                     const std::string &fragment_nir_ssa,
                                     const std::string &fragment_nir_final,
-                                    const std::string &tess_control,
-                                    const std::string &tess_eval) {
+                                    const std::string &tess_control_shader,
+                                    const std::string &tess_control_ir,
+                                    const std::string &tess_control_nir_ssa,
+                                    const std::string &tess_control_nir_final,
+                                    const std::string &tess_control_simd8,
+                                    const std::string &tess_eval_shader,
+                                    const std::string &tess_eval_ir,
+                                    const std::string &tess_eval_nir_ssa,
+                                    const std::string &tess_eval_nir_final,
+                                    const std::string &tess_eval_simd8) {
   ScopedLock s(m_protect);
   m_vs_ir = vertex_ir.c_str();
   m_fs_ir = fragment_ir.c_str();
@@ -124,8 +132,16 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
   m_vs_nir = vertex_nir.c_str();
   m_fs_ssa = fragment_nir_ssa.c_str();
   m_fs_nir = fragment_nir_final.c_str();
-  m_tess_control_shader = tess_control.c_str();
-  m_tess_eval_shader = tess_eval.c_str();
+  m_tess_control_shader = tess_control_shader.c_str();
+  m_tess_control_ir = tess_control_ir.c_str();
+  m_tess_control_ssa = tess_control_nir_ssa.c_str();
+  m_tess_control_nir = tess_control_nir_final.c_str();
+  m_tess_control_simd8 = tess_control_simd8.c_str();
+  m_tess_eval_shader = tess_eval_shader.c_str();
+  m_tess_eval_ir = tess_eval_ir.c_str();
+  m_tess_eval_ssa = tess_eval_nir_ssa.c_str();
+  m_tess_eval_nir = tess_eval_nir_final.c_str();
+  m_tess_eval_simd8 = tess_eval_simd8.c_str();
   emit onShaders();
 }
 
@@ -394,7 +410,56 @@ FrameRetraceModel::tessEvalSource() const {
 }
 
 QString
+FrameRetraceModel::tessEvalIR() const {
+  ScopedLock s(m_protect);
+  return m_tess_eval_ir;
+}
+
+QString
+FrameRetraceModel::tessEvalSSA() const {
+  ScopedLock s(m_protect);
+  return m_tess_eval_ssa;
+}
+
+QString
+FrameRetraceModel::tessEvalNIR() const {
+  ScopedLock s(m_protect);
+  return m_tess_eval_nir;
+}
+
+QString
+FrameRetraceModel::tessEvalSimd8() const {
+  ScopedLock s(m_protect);
+  return m_tess_eval_simd8;
+}
+
+QString
 FrameRetraceModel::tessControlSource() const {
   ScopedLock s(m_protect);
   return m_tess_control_shader;
 }
+
+QString
+FrameRetraceModel::tessControlIR() const {
+  ScopedLock s(m_protect);
+  return m_tess_control_ir;
+}
+
+QString
+FrameRetraceModel::tessControlSSA() const {
+  ScopedLock s(m_protect);
+  return m_tess_control_ssa;
+}
+
+QString
+FrameRetraceModel::tessControlNIR() const {
+  ScopedLock s(m_protect);
+  return m_tess_control_nir;
+}
+
+QString
+FrameRetraceModel::tessControlSimd8() const {
+  ScopedLock s(m_protect);
+  return m_tess_control_simd8;
+}
+

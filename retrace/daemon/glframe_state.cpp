@@ -163,84 +163,149 @@ StateTrack::trackUseProgram(const trace::Call &call) {
 
 void
 StateTrack::parse() {
-  const std::string output = m_poller->poll();
-  if (output.size() == 0)
-    return;
-
-  std::string fs_ir, fs_simd8, fs_simd16, vs_ir, vs_vec4, line,
+  std::string fs_ir, fs_simd8, fs_simd16, vs_ir, vs_simd8, line,
       fs_nir_ssa, fs_nir_final, vs_nir_ssa, vs_nir_final,
+      tess_eval_ir, tess_eval_ssa, tess_eval_final, tess_eval_simd8,
+      tess_control_ir, tess_control_ssa, tess_control_final, tess_control_simd8,
       *current_target = NULL;
-  std::stringstream line_split(output);
   int line_shader = -1;
-  while (std::getline(line_split, line, '\n')) {
-    int matches = sscanf(line.c_str(),
-                         "GLSL IR for native vertex shader %d:", &line_shader);
-    if (matches > 0)
-      current_target = &vs_ir;
+  while (true) {
+    const std::string output = m_poller->poll();
+    if (output.size() == 0)
+      break;
 
-    if (0 == strcmp(line.c_str(), "NIR (SSA form) for vertex shader:"))
-      current_target = &vs_nir_ssa;
-
-    if (0 == strcmp(line.c_str(), "NIR (final form) for vertex shader:"))
-      current_target = &vs_nir_final;
-
-    if (0 == strcmp(line.c_str(), "NIR (SSA form) for fragment shader:"))
-      current_target = &fs_nir_ssa;
-
-    if (0 == strcmp(line.c_str(), "NIR (final form) for fragment shader:"))
-      current_target = &fs_nir_final;
-
-    if (matches <= 0) {
-      matches = sscanf(line.c_str(),
-                       "Native code for unnamed vertex shader GLSL%d:",
-                       &line_shader);
+    std::stringstream line_split(output);
+    while (std::getline(line_split, line, '\n')) {
+      int matches = sscanf(line.c_str(),
+                           "GLSL IR for native vertex shader %d:",
+                           &line_shader);
       if (matches > 0)
-        current_target = &vs_vec4;
-    }
-    if (matches <= 0) {
-      matches = sscanf(line.c_str(),
-                       "Native code for meta clear vertex shader %d:",
-                       &line_shader);
-      if (matches > 0)
-        current_target = &vs_vec4;
-    }
-    if (matches <= 0) {
-      matches = sscanf(line.c_str(),
-                       "GLSL IR for native fragment shader %d:", &line_shader);
-      if (matches > 0)
-        current_target = &fs_ir;
-    }
-    if (matches <= 0) {
-      int wide;
-      matches = sscanf(line.c_str(),
-                       "Native code for unnamed fragment shader GLSL%d",
-                       &line_shader);
-      if (matches > 0) {
-        if (line_shader != current_program) {
-          current_target = NULL;
-          continue;
-        }
-        // for Native code, need the second line to get the
-        // target.
-        const std::string line_copy = line;
-        std::getline(line_split, line, '\n');
+        current_target = &vs_ir;
+
+      if (0 == strcmp(line.c_str(), "NIR (SSA form) for vertex shader:"))
+        current_target = &vs_nir_ssa;
+
+      if (0 == strcmp(line.c_str(), "NIR (final form) for vertex shader:"))
+        current_target = &vs_nir_final;
+
+      if (0 == strcmp(line.c_str(), "NIR (SSA form) for fragment shader:"))
+        current_target = &fs_nir_ssa;
+
+      if (0 == strcmp(line.c_str(), "NIR (final form) for fragment shader:"))
+        current_target = &fs_nir_final;
+
+      if (matches <= 0) {
         matches = sscanf(line.c_str(),
-                         "SIMD%d", &wide);
-        assert(matches > 0);
-        current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
+                         "Native code for unnamed vertex shader GLSL%d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &vs_simd8;
+      }
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "Native code for meta clear vertex shader %d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &vs_simd8;
+      }
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "GLSL IR for native fragment shader %d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &fs_ir;
+      }
+      if (matches <= 0) {
+        int wide;
+        matches = sscanf(line.c_str(),
+                         "Native code for unnamed fragment shader GLSL%d",
+                         &line_shader);
+        if (matches > 0) {
+          if (line_shader != current_program) {
+            current_target = NULL;
+            continue;
+          }
+          // for Native code, need the second line to get the
+          // target.
+          const std::string line_copy = line;
+          std::getline(line_split, line, '\n');
+          matches = sscanf(line.c_str(),
+                           "SIMD%d", &wide);
+          assert(matches > 0);
+          current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
 
-        *current_target += line_copy + "\n";
+          *current_target += line_copy + "\n";
+        }
+      }
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "GLSL IR for native tessellation "
+                         "evaluation shader %d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &tess_eval_ir;
+      }
+      if (0 == strcmp(line.c_str(),
+                      "NIR (SSA form) for tessellation evaluation shader:"))
+        current_target = &tess_eval_ssa;
+
+      if (0 == strcmp(line.c_str(),
+                      "NIR (final form) for tessellation evaluation shader:"))
+        current_target = &tess_eval_final;
+
+      if (0 == strcmp(line.c_str(),
+                      "NIR (final form) for tessellation evaluation shader:"))
+        current_target = &tess_eval_final;
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "Native code for unnamed tessellation "
+                         "evaluation shader GLSL%d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &tess_eval_simd8;
+      }
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "GLSL IR for native tessellation control shader %d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &tess_control_ir;
+      }
+      if (0 == strcmp(line.c_str(),
+                      "NIR (SSA form) for tessellation control shader:"))
+        current_target = &tess_control_ssa;
+
+      if (0 == strcmp(line.c_str(),
+                      "NIR (final form) for tessellation control shader:"))
+        current_target = &tess_control_final;
+
+      if (0 == strcmp(line.c_str(),
+                      "NIR (final form) for tessellation control shader:"))
+        current_target = &tess_control_final;
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "Native code for unnamed tessellation "
+                         "control shader GLSL%d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &tess_control_simd8;
+      }
+
+      if (current_target) {
+        *current_target += line + "\n";
       }
     }
-    if (current_target) {
-      *current_target += line + "\n";
+
+    if (line_shader != current_program) {
+      // this is probably a shader that mesa uses, flush output
+      while (m_poller->poll().size() > 0) {}
+      return;
     }
   }
-
-  if (line_shader != current_program)
-    // this is probably a shader that mesa uses
-    return;
-
   if (fs_ir.length() > 0)
     program_to_fragment_shader_ir[current_program] = fs_ir;
   if (fs_simd8.length() > 0)
@@ -253,12 +318,30 @@ StateTrack::parse() {
     program_to_vertex_shader_ssa[current_program] = vs_nir_ssa;
   if (vs_nir_final.length() > 0)
     program_to_vertex_shader_nir[current_program] = vs_nir_final;
-  if (vs_vec4.length() > 0)
-    program_to_vertex_shader_vec4[current_program] = vs_vec4;
+  if (vs_simd8.length() > 0)
+    program_to_vertex_shader_simd8[current_program] = vs_simd8;
   if (fs_nir_final.length() > 0)
     program_to_fragment_shader_nir[current_program] = fs_nir_final;
   if (fs_nir_ssa.length() > 0)
     program_to_fragment_shader_ssa[current_program] = fs_nir_ssa;
+
+  if (tess_eval_ir.length() > 0)
+    program_to_tess_eval_ir[current_program] = tess_eval_ir;
+  if (tess_eval_ssa.length() > 0)
+    program_to_tess_eval_ssa[current_program] = tess_eval_ssa;
+  if (tess_eval_final.length() > 0)
+    program_to_tess_eval_final[current_program] = tess_eval_final;
+  if (tess_eval_simd8.length() > 0)
+    program_to_tess_eval_simd8[current_program] = tess_eval_simd8;
+
+  if (tess_control_ir.length() > 0)
+    program_to_tess_control_ir[current_program] = tess_control_ir;
+  if (tess_control_ssa.length() > 0)
+    program_to_tess_control_ssa[current_program] = tess_control_ssa;
+  if (tess_control_final.length() > 0)
+    program_to_tess_control_final[current_program] = tess_control_final;
+  if (tess_control_simd8.length() > 0)
+    program_to_tess_control_simd8[current_program] = tess_control_simd8;
 }
 
 std::string
@@ -310,9 +393,9 @@ StateTrack::currentFragmentShader() const {
 }
 
 std::string
-StateTrack::currentVertexVec4() const {
-  auto sh = program_to_vertex_shader_vec4.find(current_program);
-  if (sh == program_to_vertex_shader_vec4.end())
+StateTrack::currentVertexSimd8() const {
+  auto sh = program_to_vertex_shader_simd8.find(current_program);
+  if (sh == program_to_vertex_shader_simd8.end())
     return "";
   return sh->second;
 }
@@ -358,9 +441,73 @@ StateTrack::currentTessControlShader() const {
 }
 
 std::string
+StateTrack::currentTessControlIr() const {
+  auto sh = program_to_tess_control_ir.find(current_program);
+  if (sh == program_to_tess_control_ir.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessControlSimd8() const {
+  auto sh = program_to_tess_control_simd8.find(current_program);
+  if (sh == program_to_tess_control_simd8.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessControlSSA() const {
+  auto sh = program_to_tess_control_ssa.find(current_program);
+  if (sh == program_to_tess_control_ssa.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessControlNIR() const {
+  auto sh = program_to_tess_control_final.find(current_program);
+  if (sh == program_to_tess_control_final.end())
+    return "";
+  return sh->second;
+}
+
+std::string
 StateTrack::currentTessEvalShader() const {
   auto sh = program_to_tess_eval_shader_source.find(current_program);
   if (sh == program_to_tess_eval_shader_source.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessEvalIr() const {
+  auto sh = program_to_tess_eval_ir.find(current_program);
+  if (sh == program_to_tess_eval_ir.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessEvalSimd8() const {
+  auto sh = program_to_tess_eval_simd8.find(current_program);
+  if (sh == program_to_tess_eval_simd8.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessEvalSSA() const {
+  auto sh = program_to_tess_eval_ssa.find(current_program);
+  if (sh == program_to_tess_eval_ssa.end())
+    return "";
+  return sh->second;
+}
+
+std::string
+StateTrack::currentTessEvalNIR() const {
+  auto sh = program_to_tess_eval_final.find(current_program);
+  if (sh == program_to_tess_eval_final.end())
     return "";
   return sh->second;
 }
