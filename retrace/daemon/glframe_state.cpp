@@ -37,12 +37,13 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
 #include "retrace.hpp"
-#include "glframe_retrace.hpp"
+#include "glframe_retrace_interface.hpp"
 
 using glretrace::StateTrack;
 using glretrace::WARN;
 using glretrace::OutputPoller;
 using glretrace::OnFrameRetrace;
+using glretrace::ShaderAssembly;
 using trace::Call;
 using trace::Array;
 
@@ -109,26 +110,26 @@ StateTrack::trackAttachShader(const Call &call) {
   const int program = call.args[0].value->toDouble();
   const int shader = call.args[1].value->toDouble();
   if (shader_to_type[shader] == GL_FRAGMENT_SHADER)
-    program_to_fragment_shader_source[program] = shader_to_source[shader];
+    program_to_fragment[program].shader = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_VERTEX_SHADER)
-    program_to_vertex_shader_source[program] = shader_to_source[shader];
+    program_to_vertex[program].shader = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_TESS_CONTROL_SHADER)
-    program_to_tess_control_shader_source[program] = shader_to_source[shader];
+    program_to_tess_control[program].shader = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_TESS_EVALUATION_SHADER)
-    program_to_tess_eval_shader_source[program] = shader_to_source[shader];
+    program_to_tess_eval[program].shader = shader_to_source[shader];
 
-  auto vs = program_to_vertex_shader_source.find(program);
-  auto fs = program_to_fragment_shader_source.find(program);
-  auto tess_control = program_to_tess_control_shader_source.find(program);
-  auto tess_eval = program_to_tess_eval_shader_source.find(program);
-  const ProgramKey k(vs == program_to_vertex_shader_source.end()
-                     ? "" : vs->second,
-                     fs == program_to_fragment_shader_source.end()
-                     ? "" : fs->second,
-                     tess_control == program_to_tess_control_shader_source.end()
-                     ? "" : tess_control->second,
-                     tess_eval == program_to_tess_eval_shader_source.end()
-                     ? "" : tess_eval->second);
+  auto vs = program_to_vertex.find(program);
+  auto fs = program_to_fragment.find(program);
+  auto tess_control = program_to_tess_control.find(program);
+  auto tess_eval = program_to_tess_eval.find(program);
+  const ProgramKey k(vs == program_to_vertex.end()
+                     ? "" : vs->second.shader,
+                     fs == program_to_fragment.end()
+                     ? "" : fs->second.shader,
+                     tess_control == program_to_tess_control.end()
+                     ? "" : tess_control->second.shader,
+                     tess_eval == program_to_tess_eval.end()
+                     ? "" : tess_eval->second.shader);
   m_sources_to_program[k] = program;
 }
 
@@ -307,210 +308,69 @@ StateTrack::parse() {
     }
   }
   if (fs_ir.length() > 0)
-    program_to_fragment_shader_ir[current_program] = fs_ir;
-  if (fs_simd8.length() > 0)
-    program_to_fragment_shader_simd8[current_program] = fs_simd8;
-  if (fs_simd16.length() > 0)
-    program_to_fragment_shader_simd16[current_program] = fs_simd16;
-  if (vs_ir.length() > 0)
-    program_to_vertex_shader_ir[current_program] = vs_ir;
-  if (vs_nir_ssa.length() > 0)
-    program_to_vertex_shader_ssa[current_program] = vs_nir_ssa;
-  if (vs_nir_final.length() > 0)
-    program_to_vertex_shader_nir[current_program] = vs_nir_final;
-  if (vs_simd8.length() > 0)
-    program_to_vertex_shader_simd8[current_program] = vs_simd8;
-  if (fs_nir_final.length() > 0)
-    program_to_fragment_shader_nir[current_program] = fs_nir_final;
+    program_to_fragment[current_program].ir = fs_ir;
   if (fs_nir_ssa.length() > 0)
-    program_to_fragment_shader_ssa[current_program] = fs_nir_ssa;
+    program_to_fragment[current_program].ssa = fs_nir_ssa;
+  if (fs_nir_final.length() > 0)
+    program_to_fragment[current_program].nir = fs_nir_final;
+  if (fs_simd8.length() > 0)
+    program_to_fragment[current_program].simd8 = fs_simd8;
+  if (fs_simd16.length() > 0)
+    program_to_fragment[current_program].simd16 = fs_simd16;
+
+  if (vs_ir.length() > 0)
+    program_to_vertex[current_program].ir = vs_ir;
+  if (vs_nir_ssa.length() > 0)
+    program_to_vertex[current_program].ssa = vs_nir_ssa;
+  if (vs_nir_final.length() > 0)
+    program_to_vertex[current_program].nir = vs_nir_final;
+  if (vs_simd8.length() > 0)
+    program_to_vertex[current_program].simd8 = vs_simd8;
 
   if (tess_eval_ir.length() > 0)
-    program_to_tess_eval_ir[current_program] = tess_eval_ir;
+    program_to_tess_eval[current_program].ir = tess_eval_ir;
   if (tess_eval_ssa.length() > 0)
-    program_to_tess_eval_ssa[current_program] = tess_eval_ssa;
+    program_to_tess_eval[current_program].ssa = tess_eval_ssa;
   if (tess_eval_final.length() > 0)
-    program_to_tess_eval_final[current_program] = tess_eval_final;
+    program_to_tess_eval[current_program].nir = tess_eval_final;
   if (tess_eval_simd8.length() > 0)
-    program_to_tess_eval_simd8[current_program] = tess_eval_simd8;
+    program_to_tess_eval[current_program].simd8 = tess_eval_simd8;
 
   if (tess_control_ir.length() > 0)
-    program_to_tess_control_ir[current_program] = tess_control_ir;
+    program_to_tess_control[current_program].ir = tess_control_ir;
   if (tess_control_ssa.length() > 0)
-    program_to_tess_control_ssa[current_program] = tess_control_ssa;
+    program_to_tess_control[current_program].ssa = tess_control_ssa;
   if (tess_control_final.length() > 0)
-    program_to_tess_control_final[current_program] = tess_control_final;
+    program_to_tess_control[current_program].nir = tess_control_final;
   if (tess_control_simd8.length() > 0)
-    program_to_tess_control_simd8[current_program] = tess_control_simd8;
+    program_to_tess_control[current_program].simd8 = tess_control_simd8;
 }
 
-std::string
-StateTrack::currentVertexIr() const {
-  auto sh = program_to_vertex_shader_ir.find(current_program);
-  if (sh == program_to_vertex_shader_ir.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentVertexNIR() const {
-  auto sh = program_to_vertex_shader_nir.find(current_program);
-  if (sh == program_to_vertex_shader_nir.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentVertexSSA() const {
-  auto sh = program_to_vertex_shader_ssa.find(current_program);
-  if (sh == program_to_vertex_shader_ssa.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentFragmentIr() const {
-  auto sh = program_to_fragment_shader_ir.find(current_program);
-  if (sh == program_to_fragment_shader_ir.end())
-    return "";
-  return sh->second;
-}
-
-std::string
+const ShaderAssembly &
 StateTrack::currentVertexShader() const {
-  auto sh = program_to_vertex_shader_source.find(current_program);
-  if (sh == program_to_vertex_shader_source.end())
-    return "";
-  return sh->second;
+  auto sh = program_to_vertex.find(current_program);
+  return (sh == program_to_vertex.end() ?
+          empty_shader : sh->second);
 }
 
-std::string
+const ShaderAssembly &
 StateTrack::currentFragmentShader() const {
-  auto sh = program_to_fragment_shader_source.find(current_program);
-  if (sh == program_to_fragment_shader_source.end())
-    return "";
-  return sh->second;
+  auto sh = program_to_fragment.find(current_program);
+  return (sh == program_to_fragment.end() ? empty_shader : sh->second);
 }
 
-std::string
-StateTrack::currentVertexSimd8() const {
-  auto sh = program_to_vertex_shader_simd8.find(current_program);
-  if (sh == program_to_vertex_shader_simd8.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentFragmentSimd8() const {
-  auto sh = program_to_fragment_shader_simd8.find(current_program);
-  if (sh == program_to_fragment_shader_simd8.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentFragmentSimd16() const {
-  auto sh = program_to_fragment_shader_simd16.find(current_program);
-  if (sh == program_to_fragment_shader_simd16.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentFragmentSSA() const {
-  auto sh = program_to_fragment_shader_ssa.find(current_program);
-  if (sh == program_to_fragment_shader_ssa.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentFragmentNIR() const {
-  auto sh = program_to_fragment_shader_nir.find(current_program);
-  if (sh == program_to_fragment_shader_nir.end())
-    return "";
-  return sh->second;
-}
-
-std::string
+const ShaderAssembly &
 StateTrack::currentTessControlShader() const {
-  auto sh = program_to_tess_control_shader_source.find(current_program);
-  if (sh == program_to_tess_control_shader_source.end())
-    return "";
-  return sh->second;
+  auto sh = program_to_tess_control.find(current_program);
+  return (sh == program_to_tess_control.end() ? empty_shader : sh->second);
 }
 
-std::string
-StateTrack::currentTessControlIr() const {
-  auto sh = program_to_tess_control_ir.find(current_program);
-  if (sh == program_to_tess_control_ir.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentTessControlSimd8() const {
-  auto sh = program_to_tess_control_simd8.find(current_program);
-  if (sh == program_to_tess_control_simd8.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentTessControlSSA() const {
-  auto sh = program_to_tess_control_ssa.find(current_program);
-  if (sh == program_to_tess_control_ssa.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentTessControlNIR() const {
-  auto sh = program_to_tess_control_final.find(current_program);
-  if (sh == program_to_tess_control_final.end())
-    return "";
-  return sh->second;
-}
-
-std::string
+const ShaderAssembly &
 StateTrack::currentTessEvalShader() const {
-  auto sh = program_to_tess_eval_shader_source.find(current_program);
-  if (sh == program_to_tess_eval_shader_source.end())
-    return "";
-  return sh->second;
+  auto sh = program_to_tess_eval.find(current_program);
+  return (sh == program_to_tess_eval.end() ? empty_shader : sh->second);
 }
 
-std::string
-StateTrack::currentTessEvalIr() const {
-  auto sh = program_to_tess_eval_ir.find(current_program);
-  if (sh == program_to_tess_eval_ir.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentTessEvalSimd8() const {
-  auto sh = program_to_tess_eval_simd8.find(current_program);
-  if (sh == program_to_tess_eval_simd8.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentTessEvalSSA() const {
-  auto sh = program_to_tess_eval_ssa.find(current_program);
-  if (sh == program_to_tess_eval_ssa.end())
-    return "";
-  return sh->second;
-}
-
-std::string
-StateTrack::currentTessEvalNIR() const {
-  auto sh = program_to_tess_eval_final.find(current_program);
-  if (sh == program_to_tess_eval_final.end())
-    return "";
-  return sh->second;
-}
 
 void
 StateTrack::flush() { m_poller->poll(); }
@@ -552,8 +412,8 @@ StateTrack::useProgram(const std::string &vs,
   // TODO(majanes) assert if ids are being reused
   const GLuint pid = GlFunctions::CreateProgram();
   GL_CHECK();
-  assert(program_to_fragment_shader_source.find(pid)
-         == program_to_fragment_shader_source.end());
+  assert(program_to_fragment.find(pid)
+         == program_to_fragment.end());
   current_program = pid;
   flush();
   auto vshader = source_to_shader.find(vs);
@@ -580,7 +440,7 @@ StateTrack::useProgram(const std::string &vs,
     source_to_shader[vs] = vsid;
     vshader = source_to_shader.find(vs);
   }
-  program_to_vertex_shader_source[pid] = vs;
+  program_to_vertex[pid].shader = vs;
 
   auto fshader = source_to_shader.find(fs);
   if (fshader == source_to_shader.end()) {
@@ -606,7 +466,7 @@ StateTrack::useProgram(const std::string &vs,
     source_to_shader[fs] = fsid;
     fshader = source_to_shader.find(fs);
   }
-  program_to_fragment_shader_source[pid] = fs;
+  program_to_fragment[pid].shader = fs;
 
   GlFunctions::AttachShader(pid, fshader->second);
   GL_CHECK();

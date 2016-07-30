@@ -44,6 +44,7 @@
 #include "glframe_retrace_skeleton.hpp"
 #include "glframe_retrace_stub.hpp"
 #include "glframe_socket.hpp"
+#include "glframe_shader_model.hpp"
 #include "glretrace.hpp"
 
 using glretrace::FrameRetraceModel;
@@ -112,6 +113,7 @@ int main(int argc, char *argv[]) {
 
   qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");
   qmlRegisterType<glretrace::QSelection>("ApiTrace", 1, 0, "Selection");
+  qmlRegisterType<glretrace::QShader>("ApiTrace", 1, 0, "Shader");
 
   glretrace::FrameImages::Create();
 

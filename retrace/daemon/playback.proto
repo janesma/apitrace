@@ -51,28 +51,20 @@ message MetricsRequest {
   required uint32 experiment_count = 2;
 }
 
+message ShaderAssembly {
+  required string shader = 1;
+  required string ir = 2;
+  required string nir_ssa = 3;
+  required string nir_final = 4;
+  required string simd8 = 5;
+  required string simd16 = 6;
+}
+
 message ShaderAssemblyResponse {
-  required string vertex_shader = 1;
-  required string vertex_ir = 2;
-  required string vertex_nir_ssa = 3;
-  required string vertex_nir_final = 4;
-  required string vertex_simd8 = 5;
-  required string fragment_shader = 6;
-  required string fragment_ir = 7;
-  required string fragment_simd16 = 8;
-  required string fragment_nir_ssa = 9;
-  required string fragment_nir_final = 10;
-  required string fragment_simd8 = 11;
-  required string tess_control_shader = 12;
-  required string tess_control_ir = 13;
-  required string tess_control_nir_ssa = 14;
-  required string tess_control_nir_final = 15;
-  required string tess_control_simd8 = 16;
-  required string tess_eval_shader = 17;
-  required string tess_eval_ir = 18;
-  required string tess_eval_nir_ssa = 19;
-  required string tess_eval_nir_final = 20;
-  required string tess_eval_simd8 = 21;
+  required ShaderAssembly vertex = 1;
+  required ShaderAssembly fragment = 2;
+  required ShaderAssembly tess_control = 3;
+  required ShaderAssembly tess_eval = 4;
 }
 
 message MetricSeries {
