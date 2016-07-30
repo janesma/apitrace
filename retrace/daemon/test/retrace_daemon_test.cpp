@@ -44,6 +44,7 @@ using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
 using glretrace::Logger;
 using glretrace::RenderTargetType;
+using glretrace::ShaderAssembly;
 
 TEST(Build, Cmake) {
 }
@@ -55,28 +56,11 @@ class NullCallback : public OnFrameRetrace {
   void onFileOpening(bool finished,
                      uint32_t percent_complete) {}
   void onShaderAssembly(RenderId renderId,
-                        const std::string &vertex_shader,
-                        const std::string &vertex_ir,
-                        const std::string &vertex_nir,
-                        const std::string &vertex_ssa,
-                        const std::string &vertex_vec4,
-                        const std::string &fragment_shader,
-                        const std::string &fragment_ir,
-                        const std::string &fragment_simd8,
-                        const std::string &fragment_simd16,
-                        const std::string &fragment_nir_ssa,
-                        const std::string &fragment_nir_final,
-                        const std::string &tess_control_shader,
-                        const std::string &tess_control_ir,
-                        const std::string &tess_control_nir_ssa,
-                        const std::string &tess_control_nir_final,
-                        const std::string &tess_control_simd8,
-                        const std::string &tess_eval_shader,
-                        const std::string &tess_eval_ir,
-                        const std::string &tess_eval_nir_ssa,
-                        const std::string &tess_eval_nir_final,
-                        const std::string &tess_eval_simd8) {
-    fs = fragment_shader;
+                        const ShaderAssembly &vertex,
+                        const ShaderAssembly &fragment,
+                        const ShaderAssembly &tess_control,
+                        const ShaderAssembly &tess_eval) {
+    fs = fragment.shader;
   }
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}

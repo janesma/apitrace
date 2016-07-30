@@ -32,6 +32,8 @@
 #include <string>
 #include <vector>
 
+#include "glframe_retrace_interface.hpp"
+
 namespace trace {
 class Call;
 }
@@ -55,27 +57,10 @@ class StateTrack {
   void flush();
   void reset() { current_program = 0; }
   int CurrentProgram() const { return current_program; }
-  std::string currentVertexShader() const;
-  std::string currentVertexIr() const;
-  std::string currentVertexNIR() const;
-  std::string currentVertexSSA() const;
-  std::string currentVertexSimd8() const;
-  std::string currentFragmentShader() const;
-  std::string currentFragmentIr() const;
-  std::string currentFragmentSimd8() const;
-  std::string currentFragmentSimd16() const;
-  std::string currentFragmentSSA() const;
-  std::string currentFragmentNIR() const;
-  std::string currentTessControlShader() const;
-  std::string currentTessControlIr() const;
-  std::string currentTessControlSimd8() const;
-  std::string currentTessControlSSA() const;
-  std::string currentTessControlNIR() const;
-  std::string currentTessEvalShader() const;
-  std::string currentTessEvalIr() const;
-  std::string currentTessEvalSimd8() const;
-  std::string currentTessEvalSSA() const;
-  std::string currentTessEvalNIR() const;
+  const ShaderAssembly &currentVertexShader() const;
+  const ShaderAssembly &currentFragmentShader() const;
+  const ShaderAssembly &currentTessControlShader() const;
+  const ShaderAssembly &currentTessEvalShader() const;
   uint64_t currentContext() const { return current_context; }
   int useProgram(const std::string &vs, const std::string &fs,
                  std::string *message = NULL);
@@ -117,27 +102,11 @@ class StateTrack {
   std::map<ProgramKey, int> m_sources_to_program;
 
   // for these maps, key is program
-  std::map<int, std::string> program_to_vertex_shader_source;
-  std::map<int, std::string> program_to_vertex_shader_ir;
-  std::map<int, std::string> program_to_vertex_shader_nir;
-  std::map<int, std::string> program_to_vertex_shader_ssa;
-  std::map<int, std::string> program_to_vertex_shader_simd8;
-  std::map<int, std::string> program_to_fragment_shader_source;
-  std::map<int, std::string> program_to_fragment_shader_ir;
-  std::map<int, std::string> program_to_fragment_shader_simd8;
-  std::map<int, std::string> program_to_fragment_shader_simd16;
-  std::map<int, std::string> program_to_fragment_shader_ssa;
-  std::map<int, std::string> program_to_fragment_shader_nir;
-  std::map<int, std::string> program_to_tess_control_shader_source;
-  std::map<int, std::string> program_to_tess_eval_shader_source;
-  std::map<int, std::string> program_to_tess_control_ir;
-  std::map<int, std::string> program_to_tess_eval_ir;
-  std::map<int, std::string> program_to_tess_control_ssa;
-  std::map<int, std::string> program_to_tess_eval_ssa;
-  std::map<int, std::string> program_to_tess_control_final;
-  std::map<int, std::string> program_to_tess_eval_final;
-  std::map<int, std::string> program_to_tess_control_simd8;
-  std::map<int, std::string> program_to_tess_eval_simd8;
+  std::map<int, ShaderAssembly> program_to_vertex;
+  std::map<int, ShaderAssembly> program_to_fragment;
+  std::map<int, ShaderAssembly> program_to_tess_control;
+  std::map<int, ShaderAssembly> program_to_tess_eval;
+  const ShaderAssembly empty_shader;
 
   std::vector<std::string> tracked_calls;
 };

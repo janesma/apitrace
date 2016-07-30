@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 
+#include "glframe_retrace_interface.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_socket.hpp"
 #include "playback.pb.h" // NOLINT
@@ -44,6 +45,7 @@ using glretrace::RenderId;
 using glretrace::ExperimentId;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
+using glretrace::ShaderAssembly;
 using ApiTrace::RetraceResponse;
 using ApiTrace::RetraceRequest;
 using google::protobuf::io::ArrayInputStream;
@@ -181,53 +183,33 @@ FrameRetraceSkeleton::onFileOpening(bool finished,
   writeResponse(m_socket, proto_response, &m_buf);
 }
 
+void set_shader_assembly(const ShaderAssembly &assembly,
+                         ApiTrace::ShaderAssembly *response) {
+  response->set_shader(assembly.shader);
+  response->set_ir(assembly.ir);
+  response->set_nir_ssa(assembly.ssa);
+  response->set_nir_final(assembly.nir);
+  response->set_simd8(assembly.simd8);
+  response->set_simd16(assembly.simd16);
+}
+
 void
 FrameRetraceSkeleton::onShaderAssembly(
     RenderId renderId,
-    const std::string &vertex_shader,
-    const std::string &vertex_ir,
-    const std::string &vertex_nir,
-    const std::string &vertex_ssa,
-    const std::string &vertex_simd8,
-    const std::string &fragment_shader,
-    const std::string &fragment_ir,
-    const std::string &fragment_simd8,
-    const std::string &fragment_simd16,
-    const std::string &fragment_nir_ssa,
-    const std::string &fragment_nir_final,
-    const std::string &tess_control_shader,
-    const std::string &tess_control_ir,
-    const std::string &tess_control_nir_ssa,
-    const std::string &tess_control_nir_final,
-    const std::string &tess_control_simd8,
-    const std::string &tess_eval_shader,
-    const std::string &tess_eval_ir,
-    const std::string &tess_eval_nir_ssa,
-    const std::string &tess_eval_nir_final,
-    const std::string &tess_eval_simd8) {
+    const ShaderAssembly &vertex,
+    const ShaderAssembly &fragment,
+    const ShaderAssembly &tess_control,
+    const ShaderAssembly &tess_eval)  {
   RetraceResponse proto_response;
   auto shader = proto_response.mutable_shaderassembly();
-  shader->set_vertex_shader(vertex_shader);
-  shader->set_vertex_ir(vertex_ir);
-  shader->set_vertex_nir_ssa(vertex_nir);
-  shader->set_vertex_nir_final(vertex_ssa);
-  shader->set_vertex_simd8(vertex_simd8);
-  shader->set_fragment_shader(fragment_shader);
-  shader->set_fragment_ir(fragment_ir);
-  shader->set_fragment_simd8(fragment_simd8);
-  shader->set_fragment_simd16(fragment_simd16);
-  shader->set_fragment_nir_ssa(fragment_nir_ssa);
-  shader->set_fragment_nir_final(fragment_nir_final);
-  shader->set_tess_control_shader(tess_control_shader);
-  shader->set_tess_control_ir(tess_control_ir);
-  shader->set_tess_control_nir_ssa(tess_control_nir_ssa);
-  shader->set_tess_control_nir_final(tess_control_nir_final);
-  shader->set_tess_control_simd8(tess_control_simd8);
-  shader->set_tess_eval_shader(tess_eval_shader);
-  shader->set_tess_eval_ir(tess_eval_ir);
-  shader->set_tess_eval_nir_ssa(tess_eval_nir_ssa);
-  shader->set_tess_eval_nir_final(tess_eval_nir_final);
-  shader->set_tess_eval_simd8(tess_eval_simd8);
+  auto vertex_response = shader->mutable_vertex();
+  set_shader_assembly(vertex, vertex_response);
+  auto fragment_response = shader->mutable_fragment();
+  set_shader_assembly(fragment, fragment_response);
+  auto tess_control_response = shader->mutable_tess_control();
+  set_shader_assembly(tess_control, tess_control_response);
+  auto tess_eval_response = shader->mutable_tess_eval();
+  set_shader_assembly(tess_eval, tess_eval_response);
   writeResponse(m_socket, proto_response, &m_buf);
 }
 
