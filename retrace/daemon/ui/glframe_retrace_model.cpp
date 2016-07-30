@@ -51,6 +51,7 @@ using glretrace::RenderTargetType;
 using glretrace::ExperimentId;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
+using glretrace::ShaderAssembly;
 
 FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_selection(NULL),
@@ -99,49 +100,15 @@ FrameRetraceModel::metricList() {
 
 void
 FrameRetraceModel::onShaderAssembly(RenderId renderId,
-                                    const std::string &vertex_shader,
-                                    const std::string &vertex_ir,
-                                    const std::string &vertex_nir,
-                                    const std::string &vertex_ssa,
-                                    const std::string &vertex_vec4,
-                                    const std::string &fragment_shader,
-                                    const std::string &fragment_ir,
-                                    const std::string &fragment_simd8,
-                                    const std::string &fragment_simd16,
-                                    const std::string &fragment_nir_ssa,
-                                    const std::string &fragment_nir_final,
-                                    const std::string &tess_control_shader,
-                                    const std::string &tess_control_ir,
-                                    const std::string &tess_control_nir_ssa,
-                                    const std::string &tess_control_nir_final,
-                                    const std::string &tess_control_simd8,
-                                    const std::string &tess_eval_shader,
-                                    const std::string &tess_eval_ir,
-                                    const std::string &tess_eval_nir_ssa,
-                                    const std::string &tess_eval_nir_final,
-                                    const std::string &tess_eval_simd8) {
+                                    const ShaderAssembly &vertex,
+                                    const ShaderAssembly &fragment,
+                                    const ShaderAssembly &tess_control,
+                                    const ShaderAssembly &tess_eval)  {
   ScopedLock s(m_protect);
-  m_vs_ir = vertex_ir.c_str();
-  m_fs_ir = fragment_ir.c_str();
-  m_vs_shader = vertex_shader.c_str();
-  m_fs_shader = fragment_shader.c_str();
-  m_vs_vec4 = vertex_vec4.c_str();
-  m_fs_simd8 = fragment_simd8.c_str();
-  m_fs_simd16 = fragment_simd16.c_str();
-  m_vs_ssa = vertex_ssa.c_str();
-  m_vs_nir = vertex_nir.c_str();
-  m_fs_ssa = fragment_nir_ssa.c_str();
-  m_fs_nir = fragment_nir_final.c_str();
-  m_tess_control_shader = tess_control_shader.c_str();
-  m_tess_control_ir = tess_control_ir.c_str();
-  m_tess_control_ssa = tess_control_nir_ssa.c_str();
-  m_tess_control_nir = tess_control_nir_final.c_str();
-  m_tess_control_simd8 = tess_control_simd8.c_str();
-  m_tess_eval_shader = tess_eval_shader.c_str();
-  m_tess_eval_ir = tess_eval_ir.c_str();
-  m_tess_eval_ssa = tess_eval_nir_ssa.c_str();
-  m_tess_eval_nir = tess_eval_nir_final.c_str();
-  m_tess_eval_simd8 = tess_eval_simd8.c_str();
+  m_vs.onShaderAssembly(vertex);
+  m_fs.onShaderAssembly(fragment);
+  m_tess_control.onShaderAssembly(tess_control);
+  m_tess_eval.onShaderAssembly(tess_eval);
   emit onShaders();
 }
 
@@ -401,65 +368,5 @@ FrameRetraceModel::onApi(RenderId renderId,
     m_api_calls.append(QString::fromStdString(i));
   }
   emit onApiCalls();
-}
-
-QString
-FrameRetraceModel::tessEvalSource() const {
-  ScopedLock s(m_protect);
-  return m_tess_eval_shader;
-}
-
-QString
-FrameRetraceModel::tessEvalIR() const {
-  ScopedLock s(m_protect);
-  return m_tess_eval_ir;
-}
-
-QString
-FrameRetraceModel::tessEvalSSA() const {
-  ScopedLock s(m_protect);
-  return m_tess_eval_ssa;
-}
-
-QString
-FrameRetraceModel::tessEvalNIR() const {
-  ScopedLock s(m_protect);
-  return m_tess_eval_nir;
-}
-
-QString
-FrameRetraceModel::tessEvalSimd8() const {
-  ScopedLock s(m_protect);
-  return m_tess_eval_simd8;
-}
-
-QString
-FrameRetraceModel::tessControlSource() const {
-  ScopedLock s(m_protect);
-  return m_tess_control_shader;
-}
-
-QString
-FrameRetraceModel::tessControlIR() const {
-  ScopedLock s(m_protect);
-  return m_tess_control_ir;
-}
-
-QString
-FrameRetraceModel::tessControlSSA() const {
-  ScopedLock s(m_protect);
-  return m_tess_control_ssa;
-}
-
-QString
-FrameRetraceModel::tessControlNIR() const {
-  ScopedLock s(m_protect);
-  return m_tess_control_nir;
-}
-
-QString
-FrameRetraceModel::tessControlSimd8() const {
-  ScopedLock s(m_protect);
-  return m_tess_control_simd8;
 }
 

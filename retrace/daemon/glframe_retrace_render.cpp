@@ -83,9 +83,9 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
       break;
   }
   const int p = tracker->CurrentProgram();
-  m_original_vs = tracker->currentVertexShader();
+  m_original_vs = tracker->currentVertexShader().shader;
   m_modified_vs = m_original_vs;
-  m_original_fs = tracker->currentFragmentShader();
+  m_original_fs = tracker->currentFragmentShader().shader;
   m_modified_fs = m_original_fs;
 
   // generate the highlight rt program, for later use

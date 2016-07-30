@@ -23,6 +23,7 @@ set (UI_SRC
   glframe_retrace_images.cpp
   glframe_retrace_model.hpp
   glframe_retrace_model.cpp
+  glframe_shader_model.hpp
   )
 
 add_executable(frame_retrace

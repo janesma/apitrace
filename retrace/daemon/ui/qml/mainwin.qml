@@ -201,8 +201,10 @@ ApplicationWindow {
             id: vsCompileButton
             visible: false
             text: "Compile"
-            property var vsText: frameRetrace.vsSource
-            property var fsText: frameRetrace.fsSource
+            property var vsText: frameRetrace.vsShader.source
+            property var fsText: frameRetrace.fsShader.source
+            property var tessControlText: frameRetrace.tessControlShader.source
+            property var tessEvalText: frameRetrace.tessEvalShader.source
             onClicked: {
                 visible = false
                 frameRetrace.overrideShaders(vsText, fsText);
@@ -220,162 +222,18 @@ ApplicationWindow {
                 TabView {
                     Tab {
                         title: "Vertex"
-                        TabView {
-                            Tab {
-                                title: "Source"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: vsSource.width; contentHeight: vsSource.height
-                                        clip: true
-                                        TextEdit {
-                                            id: vsSource
-                                            text: frameRetrace.vsSource
-                                            onTextChanged: { vsCompileButton.vsText = text; vsCompileButton.visible=true; }
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "IR"
-                                ScrollView {
-                                    Flickable {
-                                        anchors.fill: parent
-                                        contentWidth: vsIR.width; contentHeight: vsIR.height
-                                        clip: true
-                                        Text {
-                                            id: vsIR
-                                            text: frameRetrace.vsIR
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "NIR"
-                                ScrollView {
-                                    Flickable {
-                                        anchors.fill: parent
-                                        contentWidth: vsNIR.width; contentHeight: vsNIR.height
-                                        clip: true
-                                        Text {
-                                            id: vsNIR
-                                            text: frameRetrace.vsNIR
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "SSA"
-                                ScrollView {
-                                    Flickable {
-                                        anchors.fill: parent
-                                        contentWidth: vsSSA.width; contentHeight: vsSSA.height
-                                        clip: true
-                                        Text {
-                                            id: vsSSA
-                                            text: frameRetrace.vsSSA
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "Vec4"
-                                ScrollView {
-                                    Flickable {
-                                        anchors.fill: parent
-                                        contentWidth: vsVec4.width; contentHeight: vsVec4.height
-                                        clip: true
-                                        Text {
-                                            id: vsVec4
-                                            text: frameRetrace.vsVec4
-                                        }
-                                    }
-                                }
-                            }
+                        ShaderControl {
+                            shader_type: "vs"
+                            model: frameRetrace.vsShader
+                            compile_button: vsCompileButton
                         }
                     }
                     Tab {
                         title: "Fragment"
-                        TabView {
-                            anchors.fill: parent
-                            Tab {
-                                title: "Source"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: fsSource.width; contentHeight: fsSource.height
-                                        clip: true
-                                        TextEdit {
-                                            id: fsSource
-                                            text: frameRetrace.fsSource
-                                            onTextChanged: { vsCompileButton.fsText = text; vsCompileButton.visible=true; }
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "IR"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: fsIR.width; contentHeight: fsIR.height
-                                        clip: true
-                                        Text {
-                                            id: fsIR
-                                            text: frameRetrace.fsIR
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "Simd8"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: fsSimd8.width; contentHeight: fsSimd8.height
-                                        clip: true
-                                        Text {
-                                            id: fsSimd8
-                                            text: frameRetrace.fsSimd8
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "Simd16"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: fsSimd16.width; contentHeight: fsSimd16.height
-                                        clip: true
-                                        Text {
-                                            id: fsSimd16
-                                            text: frameRetrace.fsSimd16
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "SSA"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: fsSSA.width; contentHeight: fsSSA.height
-                                        clip: true
-                                        Text {
-                                            id: fsSSA
-                                            text: frameRetrace.fsSSA
-                                        }
-                                    }
-                                }
-                            }
-                            Tab {
-                                title: "NIR"
-                                ScrollView {
-                                    Flickable {
-                                        contentWidth: fsNIR.width; contentHeight: fsNIR.height
-                                        clip: true
-                                        Text {
-                                            id: fsNIR
-                                            text: frameRetrace.fsNIR
-                                        }
-                                    }
-                                }
-                            }
+                        ShaderControl {
+                            shader_type: "fs"
+                            model: frameRetrace.fsShader
+                            compile_button: vsCompileButton
                         }
                     }
                     Tab {
@@ -384,144 +242,18 @@ ApplicationWindow {
                             anchors.fill: parent
                             Tab {
                                 title: "Control"
-                                TabView {
-                                    anchors.fill: parent
-                                    Tab {
-                                        title: "Source"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessControlSource.width; contentHeight: tessControlSource.height
-                                                clip: true
-                                                Text {
-                                                    id: tessControlSource
-                                                    text: frameRetrace.tessControlSource
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "IR"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessControlIR.width; contentHeight: tessControlIR.height
-                                                clip: true
-                                                Text {
-                                                    id: tessControlIR
-                                                    text: frameRetrace.tessControlIR
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "SSA"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessControlSSA.width; contentHeight: tessControlSSA.height
-                                                clip: true
-                                                Text {
-                                                    id: tessControlSSA
-                                                    text: frameRetrace.tessControlSSA
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "NIR"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessControlNIR.width; contentHeight: tessControlNIR.height
-                                                clip: true
-                                                Text {
-                                                    id: tessControlNIR
-                                                    text: frameRetrace.tessControlNIR
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "SIMD8"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessControlSimd8.width; contentHeight: tessControlSimd8.height
-                                                clip: true
-                                                Text {
-                                                    id: tessControlSimd8
-                                                    text: frameRetrace.tessControlSimd8
-                                                }
-                                            }
-                                        }
-                                    }
+                                ShaderControl {
+                                    shader_type: "tess_control"
+                                    model: frameRetrace.tessControlShader
+                                    compile_button: vsCompileButton
                                 }
                             }
                             Tab {
                                 title: "Evaluation"
-                                TabView {
-                                    anchors.fill: parent
-                                    Tab {
-                                        title: "Source"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessEvalSource.width; contentHeight: tessEvalSource.height
-                                                clip: true
-                                                Text {
-                                                    id: tessEvalSource
-                                                    text: frameRetrace.tessEvalSource
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "IR"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessEvalIR.width; contentHeight: tessEvalIR.height
-                                                clip: true
-                                                Text {
-                                                    id: tessEvalIR
-                                                    text: frameRetrace.tessEvalIR
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "SSA"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessEvalSSA.width; contentHeight: tessEvalSSA.height
-                                                clip: true
-                                                Text {
-                                                    id: tessEvalSSA
-                                                    text: frameRetrace.tessEvalSSA
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "NIR"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessEvalNIR.width; contentHeight: tessEvalNIR.height
-                                                clip: true
-                                                Text {
-                                                    id: tessEvalNIR
-                                                    text: frameRetrace.tessEvalNIR
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Tab {
-                                        title: "SIMD8"
-                                        ScrollView {
-                                            Flickable {
-                                                contentWidth: tessEvalSimd8.width; contentHeight: tessEvalSimd8.height
-                                                clip: true
-                                                Text {
-                                                    id: tessEvalSimd8
-                                                    text: frameRetrace.tessEvalSimd8
-                                                }
-                                            }
-                                        }
-                                    }
+                                ShaderControl {
+                                    shader_type: "tess_eval"
+                                    model: frameRetrace.tessEvalShader
+                                    compile_button: vsCompileButton
                                 }
                             }
                         }

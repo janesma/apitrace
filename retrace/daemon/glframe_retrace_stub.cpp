@@ -50,13 +50,13 @@ using glretrace::RenderOptions;
 using glretrace::RenderTargetType;
 using glretrace::ScopedLock;
 using glretrace::Semaphore;
+using glretrace::ShaderAssembly;
 using glretrace::Socket;
 using glretrace::Thread;
 using google::protobuf::io::ArrayInputStream;
 using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
-
 namespace {
 
 
@@ -150,6 +150,17 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
 };
+
+void set_shader_assembly(const ApiTrace::ShaderAssembly &response,
+                         ShaderAssembly *assembly) {
+  assembly->shader = response.shader();
+  assembly->ir = response.ir();
+  assembly->ssa = response.nir_ssa();
+  assembly->nir = response.nir_final();
+  assembly->simd8 = response.simd8();
+  assembly->simd16 = response.simd16();
+}
+
 class RetraceShaderAssemblyRequest : public IRetraceRequest {
  public:
   RetraceShaderAssemblyRequest(RenderId id, OnFrameRetrace *cb)
@@ -163,29 +174,14 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
     s->retrace(m_proto_msg, &response);
     assert(response.has_shaderassembly());
     auto shader = response.shaderassembly();
+    std::vector<ShaderAssembly> assemblies(4);
+    set_shader_assembly(shader.vertex(), &(assemblies[0]));
+    set_shader_assembly(shader.fragment(), &(assemblies[1]));
+    set_shader_assembly(shader.tess_control(), &(assemblies[2]));
+    set_shader_assembly(shader.tess_eval(), &(assemblies[3]));
     m_callback->onShaderAssembly(
         RenderId(m_proto_msg.rendertarget().renderid()),
-        shader.vertex_shader(),
-        shader.vertex_ir(),
-        shader.vertex_nir_ssa(),
-        shader.vertex_nir_final(),
-        shader.vertex_simd8(),
-        shader.fragment_shader(),
-        shader.fragment_ir(),
-        shader.fragment_simd8(),
-        shader.fragment_simd16(),
-        shader.fragment_nir_ssa(),
-        shader.fragment_nir_final(),
-        shader.tess_control_shader(),
-        shader.tess_control_ir(),
-        shader.tess_control_nir_ssa(),
-        shader.tess_control_nir_final(),
-        shader.tess_control_simd8(),
-        shader.tess_eval_shader(),
-        shader.tess_eval_ir(),
-        shader.tess_eval_nir_ssa(),
-        shader.tess_eval_nir_final(),
-        shader.tess_eval_simd8());
+        assemblies[0], assemblies[1], assemblies[2], assemblies[3]);
   }
 
  private:
