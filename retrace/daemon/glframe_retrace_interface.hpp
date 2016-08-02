@@ -203,6 +203,8 @@ class IFrameRetrace {
                               ExperimentId experimentCount,
                               const std::string &vs,
                               const std::string &fs,
+                              const std::string &tessControl,
+                              const std::string &tessEval,
                               OnFrameRetrace *callback) = 0;
   virtual void retraceApi(RenderId renderId,
                           OnFrameRetrace *callback) = 0;

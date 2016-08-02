@@ -136,6 +136,8 @@ FrameRetraceSkeleton::Run() {
                                   ExperimentId(shader.experiment_count()),
                                   shader.vs(),
                                   shader.fs(),
+                                  shader.tess_control(),
+                                  shader.tess_eval(),
                                   this);
           break;
         }

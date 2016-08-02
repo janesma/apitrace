@@ -56,9 +56,11 @@ class FrameRetraceStub : public IFrameRetrace {
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const;
   virtual void replaceShaders(RenderId renderId,
-                             ExperimentId experimentCount,
-                             const std::string &vs,
-                             const std::string &fs,
+                              ExperimentId experimentCount,
+                              const std::string &vs,
+                              const std::string &fs,
+                              const std::string &tessControl,
+                              const std::string &tessEval,
                              OnFrameRetrace *callback);
   virtual void retraceApi(RenderId renderId,
                           OnFrameRetrace *callback);

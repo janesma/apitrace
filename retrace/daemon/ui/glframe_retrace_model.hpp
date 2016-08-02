@@ -120,7 +120,9 @@ class FrameRetraceModel : public QObject,
 
   Q_INVOKABLE void setFrame(const QString &filename, int framenumber);
   Q_INVOKABLE void setMetric(int index, int id);
-  Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs);
+  Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs,
+                                   const QString &tess_control,
+                                   const QString &tess_eval);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
   QSelection *selection();
