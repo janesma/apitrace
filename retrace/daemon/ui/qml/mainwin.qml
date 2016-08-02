@@ -197,19 +197,39 @@ ApplicationWindow {
             Layout.fillHeight: true
         }
 
-        Button {
-            id: vsCompileButton
+        RowLayout {
+            id: compileRow
             visible: false
-            text: "Compile"
-            property var vsText: frameRetrace.vsShader.source
-            property var fsText: frameRetrace.fsShader.source
-            property var tessControlText: frameRetrace.tessControlShader.source
-            property var tessEvalText: frameRetrace.tessEvalShader.source
-            onClicked: {
-                visible = false
-                frameRetrace.overrideShaders(vsText, fsText,
-                                             tessControlText,
-                                             tessEvalText);
+            Button {
+                id: compileButton
+                visible: false
+                text: "Compile"
+                property var vsText: frameRetrace.vsShader.source
+                property var fsText: frameRetrace.fsShader.source
+                property var tessControlText: frameRetrace.tessControlShader.source
+                property var tessEvalText: frameRetrace.tessEvalShader.source
+                onClicked: {
+                    visible = false
+                    compileRow.visible = false;
+                    frameRetrace.overrideShaders(vsText, fsText,
+                                                 tessControlText,
+                                                 tessEvalText);
+                }
+                Component.onCompleted: { visible = false; }
+            }
+            Text {
+                id: compileError
+                text: frameRetrace.shaderCompileError
+                visible: false
+                onTextChanged: {
+                    if (text == "") {
+                        visible = false;
+                        compileRow.visible = false;
+                    } else {
+                        visible = true;
+                        compileRow.visible = true;
+                    }
+                }
             }
             Component.onCompleted: { visible = false; }
         }
@@ -228,7 +248,8 @@ ApplicationWindow {
                         ShaderControl {
                             shader_type: "vs"
                             model: frameRetrace.vsShader
-                            compile_button: vsCompileButton
+                            compile_button: compileButton
+                            compile_row: compileRow
                         }
                     }
                     Tab {
@@ -237,7 +258,8 @@ ApplicationWindow {
                         ShaderControl {
                             shader_type: "fs"
                             model: frameRetrace.fsShader
-                            compile_button: vsCompileButton
+                            compile_button: compileButton
+                            compile_row: compileRow
                         }
                     }
                     Tab {
@@ -251,7 +273,8 @@ ApplicationWindow {
                                 ShaderControl {
                                     shader_type: "tess_control"
                                     model: frameRetrace.tessControlShader
-                                    compile_button: vsCompileButton
+                                    compile_button: compileButton
+                                    compile_row: compileRow
                                 }
                             }
                             Tab {
@@ -260,7 +283,8 @@ ApplicationWindow {
                                 ShaderControl {
                                     shader_type: "tess_eval"
                                     model: frameRetrace.tessEvalShader
-                                    compile_button: vsCompileButton
+                                    compile_button: compileButton
+                                    compile_row: compileRow
                                 }
                             }
                         }
