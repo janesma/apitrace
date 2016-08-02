@@ -15,7 +15,7 @@ Item {
             title: "Source"
             ScrollView {
                 Flickable {
-                    contentWidth: model.source.width; contentHeight: model.source.height
+                    contentWidth: source.width; contentHeight: source.height
                     clip: true
                     TextEdit {
                         id: source
@@ -41,7 +41,7 @@ Item {
             ScrollView {
                 Flickable {
                     anchors.fill: parent
-                    contentWidth: model.ir.width; contentHeight: model.ir.height
+                    contentWidth: ir.width; contentHeight: ir.height
                     clip: true
                     Text {
                         id: ir
@@ -55,10 +55,10 @@ Item {
             ScrollView {
                 Flickable {
                     anchors.fill: parent
-                    contentWidth: model.nirSsa.width; contentHeight: model.nirSsa.height
+                    contentWidth: nirSsa.width; contentHeight: nirSsa.height
                     clip: true
                     Text {
-                        id: ssa
+                        id: nirSsa
                         text: model.nirSsa
                     }
                 }
@@ -69,10 +69,10 @@ Item {
             ScrollView {
                 Flickable {
                     anchors.fill: parent
-                    contentWidth: model.nirFinal.width; contentHeight: model.nirFinal.height
+                    contentWidth: nirFinal.width; contentHeight: nirFinal.height
                     clip: true
                     Text {
-                        id: vsNIR
+                        id: nirFinal
                         text: model.nirFinal
                     }
                 }
@@ -83,10 +83,10 @@ Item {
             ScrollView {
                 Flickable {
                     anchors.fill: parent
-                    contentWidth: model.simd8.width; contentHeight: model.simd8.height
+                    contentWidth: simd8.width; contentHeight: simd8.height
                     clip: true
                     Text {
-                        id: vec4
+                        id: simd8
                         text: model.simd8
                     }
                 }
@@ -97,7 +97,7 @@ Item {
             ScrollView {
                 Flickable {
                     anchors.fill: parent
-                    contentWidth: model.simd16.width; contentHeight: model.simd16.height
+                    contentWidth: simd16.width; contentHeight: simd16.height
                     clip: true
                     Text {
                         id: simd16

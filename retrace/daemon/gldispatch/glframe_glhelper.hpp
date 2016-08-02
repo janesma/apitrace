@@ -142,8 +142,10 @@ inline void GetCompileError(GLint shader, std::string *message) {
 inline void GetLinkError(GLint program, std::string *message) {
   GLint status;
   GL::GetProgramiv(program, GL_LINK_STATUS, &status);
-  if (status == GL_TRUE)
+  if (status == GL_TRUE) {
+    *message = "";
     return;
+  }
   static const int MAXLEN = 1024;
   std::vector<char> log(MAXLEN);
   GLsizei len;

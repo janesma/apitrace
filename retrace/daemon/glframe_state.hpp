@@ -63,6 +63,8 @@ class StateTrack {
   const ShaderAssembly &currentTessEvalShader() const;
   uint64_t currentContext() const { return current_context; }
   int useProgram(const std::string &vs, const std::string &fs,
+                 const std::string &tessControl,
+                 const std::string &tessEval,
                  std::string *message = NULL);
   void useProgram(int program);
   void onApi(OnFrameRetrace *callback);

@@ -403,8 +403,10 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
 int
 StateTrack::useProgram(const std::string &vs,
                        const std::string &fs,
+                       const std::string &tessControl,
+                       const std::string &tessEval,
                        std::string *message) {
-  const ProgramKey k(vs, fs, "", "");
+  const ProgramKey k(vs, fs, tessControl, tessEval);
   auto i = m_sources_to_program.find(k);
   if (i != m_sources_to_program.end())
     return i->second;
@@ -428,7 +430,7 @@ StateTrack::useProgram(const std::string &vs,
     if (message) {
       GetCompileError(vsid, message);
       if (message->size()) {
-          GRLOGF(WARN, "compile error: %s", message->c_str());
+        GRLOGF(WARN, "compile error: %s", message->c_str());
         return -1;
       }
     }
@@ -441,6 +443,8 @@ StateTrack::useProgram(const std::string &vs,
     vshader = source_to_shader.find(vs);
   }
   program_to_vertex[pid].shader = vs;
+  GlFunctions::AttachShader(pid, vshader->second);
+  GL_CHECK();
 
   auto fshader = source_to_shader.find(fs);
   if (fshader == source_to_shader.end()) {
@@ -454,9 +458,9 @@ StateTrack::useProgram(const std::string &vs,
     if (message) {
       GetCompileError(fsid, message);
       if (message->size()) {
-          GRLOGF(WARN, "compile error: %s", message->c_str());
-          return -1;
-        }
+        GRLOGF(WARN, "compile error: %s", message->c_str());
+        return -1;
+      }
     }
     if (GL_NO_ERROR != GlFunctions::GetError()) {
       return -1;
@@ -467,21 +471,81 @@ StateTrack::useProgram(const std::string &vs,
     fshader = source_to_shader.find(fs);
   }
   program_to_fragment[pid].shader = fs;
-
   GlFunctions::AttachShader(pid, fshader->second);
   GL_CHECK();
-  GlFunctions::AttachShader(pid, vshader->second);
-  GL_CHECK();
+
+  // TODO(majanes) compile/attach tess shaders if not empty
+  if (tessControl.size()) {
+    auto shader = source_to_shader.find(tessControl);
+    if (shader == source_to_shader.end()) {
+      // have to compile the fs
+      const GLint len = tessControl.size();
+      const GLchar *cstr = tessControl.c_str();
+      const GLuint id = GlFunctions::CreateShader(GL_TESS_CONTROL_SHADER);
+      GlFunctions::ShaderSource(id, 1, &cstr, &len);
+      GL_CHECK();
+      GlFunctions::CompileShader(id);
+      if (message) {
+        GetCompileError(id, message);
+        if (message->size()) {
+          GRLOGF(WARN, "compile error: %s", message->c_str());
+          return -1;
+        }
+      }
+      if (GL_NO_ERROR != GlFunctions::GetError()) {
+        return -1;
+      }
+      GL_CHECK();
+      // TODO(majanes) check error and poll
+      source_to_shader[tessControl] = id;
+    }
+    shader = source_to_shader.find(tessControl);
+    GlFunctions::AttachShader(pid, shader->second);
+    GL_CHECK();
+    program_to_tess_control[pid].shader = tessControl;
+  }
+
+  // TODO(majanes) compile/attach tess shaders if not empty
+  if (tessEval.size()) {
+    auto shader = source_to_shader.find(tessEval);
+    if (shader == source_to_shader.end()) {
+      // have to compile the fs
+      const GLint len = tessEval.size();
+      const GLchar *cstr = tessEval.c_str();
+      const GLuint id = GlFunctions::CreateShader(GL_TESS_EVALUATION_SHADER);
+      GlFunctions::ShaderSource(id, 1, &cstr, &len);
+      GL_CHECK();
+      GlFunctions::CompileShader(id);
+      if (message) {
+        GetCompileError(id, message);
+        if (message->size()) {
+          GRLOGF(WARN, "compile error: %s", message->c_str());
+          return -1;
+        }
+      }
+      if (GL_NO_ERROR != GlFunctions::GetError()) {
+        return -1;
+      }
+      GL_CHECK();
+      // TODO(majanes) check error and poll
+      source_to_shader[tessEval] = id;
+    }
+    shader = source_to_shader.find(tessEval);
+    GlFunctions::AttachShader(pid, shader->second);
+    program_to_tess_eval[pid].shader = tessEval;
+  }
   GlFunctions::LinkProgram(pid);
-  const int error = GlFunctions::GetError();
-  if (GL_NO_ERROR != error) {
+  if (message) {
     GetLinkError(pid, message);
-    return -1;
+    if (message->size()) {
+      return -1;
+    }
   }
   GL_CHECK();
 
   // TODO(majanes) check error
   parse();
+  m_sources_to_program[k] = pid;
   return pid;
 }
 
