@@ -207,7 +207,9 @@ ApplicationWindow {
             property var tessEvalText: frameRetrace.tessEvalShader.source
             onClicked: {
                 visible = false
-                frameRetrace.overrideShaders(vsText, fsText);
+                frameRetrace.overrideShaders(vsText, fsText,
+                                             tessControlText,
+                                             tessEvalText);
             }
             Component.onCompleted: { visible = false; }
         }
@@ -222,6 +224,7 @@ ApplicationWindow {
                 TabView {
                     Tab {
                         title: "Vertex"
+                        anchors.fill: parent
                         ShaderControl {
                             shader_type: "vs"
                             model: frameRetrace.vsShader
@@ -230,6 +233,7 @@ ApplicationWindow {
                     }
                     Tab {
                         title: "Fragment"
+                        anchors.fill: parent
                         ShaderControl {
                             shader_type: "fs"
                             model: frameRetrace.fsShader
@@ -238,10 +242,12 @@ ApplicationWindow {
                     }
                     Tab {
                         title: "Tesselation"
+                        anchors.fill: parent
                         TabView {
                             anchors.fill: parent
                             Tab {
                                 title: "Control"
+                                anchors.fill: parent
                                 ShaderControl {
                                     shader_type: "tess_control"
                                     model: frameRetrace.tessControlShader
@@ -250,6 +256,7 @@ ApplicationWindow {
                             }
                             Tab {
                                 title: "Evaluation"
+                                anchors.fill: parent
                                 ShaderControl {
                                     shader_type: "tess_eval"
                                     model: frameRetrace.tessEvalShader

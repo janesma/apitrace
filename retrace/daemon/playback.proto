@@ -82,6 +82,8 @@ message ReplaceShadersRequest {
   required uint32 experiment_count = 2;
   required string vs = 3;
   required string fs = 4;
+  required string tess_control = 5;
+  required string tess_eval = 6;
 }
 
 message ReplaceShadersResponse {

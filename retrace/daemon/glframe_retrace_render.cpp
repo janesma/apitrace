@@ -87,10 +87,16 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
   m_modified_vs = m_original_vs;
   m_original_fs = tracker->currentFragmentShader().shader;
   m_modified_fs = m_original_fs;
+  m_original_tess_control = tracker->currentTessControlShader().shader;
+  m_modified_tess_control = m_original_tess_control;
+  m_original_tess_eval = tracker->currentTessEvalShader().shader;
+  m_modified_tess_eval = m_original_tess_eval;
 
   // generate the highlight rt program, for later use
   m_rt_program = tracker->useProgram(m_modified_vs,
-                                     simple_fs);
+                                     simple_fs,
+                                     m_modified_tess_eval,
+                                     m_modified_tess_control);
   tracker->useProgram(p);
 }
 
@@ -164,18 +170,26 @@ bool
 RetraceRender::replaceShaders(StateTrack *tracker,
                               const std::string &vs,
                               const std::string &fs,
+                              const std::string &tessControl,
+                              const std::string &tessEval,
                               std::string *message) {
-  GRLOGF(DEBUG, "RetraceRender: %s \n %s", vs.c_str(), fs.c_str());
-  const int result = tracker->useProgram(vs, fs, message);
+  GRLOGF(DEBUG, "RetraceRender: %s \n %s \n %s \n %s", vs.c_str(), fs.c_str(),
+         tessControl.c_str(), tessEval.c_str());
+  const int result = tracker->useProgram(vs, fs,
+                                         tessControl, tessEval, message);
   if (result == -1)
     return false;
 
   // else
   m_modified_vs = vs;
   m_modified_fs = fs;
+  m_modified_tess_control = tessControl;
+  m_modified_tess_eval = tessEval;
   m_retrace_program = result;
   *message = "";
-  m_rt_program = tracker->useProgram(vs, simple_fs, message);
+  m_rt_program = tracker->useProgram(vs, simple_fs,
+                                     tessControl, tessEval,
+                                     message);
   tracker->useProgram(result);
   return true;
 }

@@ -39,8 +39,8 @@ class QShader : public QObject,
   Q_OBJECT
 
  public:
-  QShader() {}
-  QShader(const QShader&) {}
+  QShader() : m_source(""), m_ir(""), m_nir_ssa(""),
+              m_nir_final(""), m_simd8(""), m_simd16("") {}
   virtual ~QShader() {}
   Q_PROPERTY(QString source READ source NOTIFY onShaders)
   Q_PROPERTY(QString ir READ ir NOTIFY onShaders)

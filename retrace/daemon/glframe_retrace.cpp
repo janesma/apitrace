@@ -289,11 +289,15 @@ FrameRetrace::replaceShaders(RenderId renderId,
                              ExperimentId experimentCount,
                              const std::string &vs,
                              const std::string &fs,
+                             const std::string &tessControl,
+                             const std::string &tessEval,
                              OnFrameRetrace *callback) {
   GRLOGF(DEBUG, "%s\n%s", vs.c_str(), fs.c_str());
   std::string message;
   const bool result = m_renders[renderId.index()]->replaceShaders(&m_tracker,
                                                                   vs, fs,
+                                                                  tessControl,
+                                                                  tessEval,
                                                                   &message);
   if (!result)
     GRLOGF(WARN, "compile failed: %s", message.c_str());

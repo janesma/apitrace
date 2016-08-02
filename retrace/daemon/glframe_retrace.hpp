@@ -71,12 +71,14 @@ class FrameRetrace : public IFrameRetrace {
   void retraceShaderAssembly(RenderId renderId,
                              OnFrameRetrace *callback);
   void retraceMetrics(const std::vector<MetricId> &ids,
-                              ExperimentId experimentCount,
-                              OnFrameRetrace *callback) const;
+                      ExperimentId experimentCount,
+                      OnFrameRetrace *callback) const;
   void replaceShaders(RenderId renderId,
-                     ExperimentId experimentCount,
-                     const std::string &vs,
-                     const std::string &fs,
+                      ExperimentId experimentCount,
+                      const std::string &vs,
+                      const std::string &fs,
+                      const std::string &tessControl,
+                      const std::string &tessEval,
                      OnFrameRetrace *callback);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,

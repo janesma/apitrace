@@ -101,7 +101,7 @@ TEST_F(RetraceTest, ReplaceShaders) {
   NullCallback cb;
   FrameRetrace rt;
   rt.openFile(test_file, 7, &cb);
-  rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", &cb);
+  rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "", "", &cb);
   EXPECT_GT(cb.compile_error.size(), 0);
 
   rt.retraceShaderAssembly(RenderId(1), &cb);
@@ -112,7 +112,7 @@ TEST_F(RetraceTest, ReplaceShaders) {
                  "  gl_Position = vec4(coord2d.x, -1.0 * coord2d.y, 0, 1);\n"
                  "  v_TexCoordinate = vec2(coord2d.x, coord2d.y);\n"
                  "}\n");
-  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs, &cb);
+  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs, "", "", &cb);
   EXPECT_EQ(cb.compile_error.size(), 0);
 }
 

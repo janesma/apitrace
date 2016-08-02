@@ -271,16 +271,20 @@ class RetraceMetricsRequest : public IRetraceRequest {
 class ReplaceShadersRequest : public IRetraceRequest {
  public:
   ReplaceShadersRequest(RenderId renderId,
-                                 ExperimentId experimentCount,
-                                 const std::string &vs,
-                                 const std::string &fs,
-                                 OnFrameRetrace *cb)
+                        ExperimentId experimentCount,
+                        const std::string &vs,
+                        const std::string &fs,
+                        const std::string &tessControl,
+                        const std::string &tessEval,
+                        OnFrameRetrace *cb)
       : m_callback(cb) {
     auto shaderRequest = m_proto_msg.mutable_shaders();
     shaderRequest->set_render_id(renderId());
     shaderRequest->set_experiment_count(experimentCount());
     shaderRequest->set_vs(vs);
     shaderRequest->set_fs(fs);
+    shaderRequest->set_tess_control(tessControl);
+    shaderRequest->set_tess_eval(tessEval);
     m_proto_msg.set_requesttype(ApiTrace::REPLACE_SHADERS_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
@@ -435,9 +439,12 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
                                  ExperimentId experimentCount,
                                  const std::string &vs,
                                  const std::string &fs,
+                                 const std::string &tessControl,
+                                 const std::string &tessEval,
                                  OnFrameRetrace *callback) {
   thread->push(new ReplaceShadersRequest(renderId, experimentCount,
-                                         vs, fs, callback));
+                                         vs, fs, tessControl, tessEval,
+                                         callback));
 }
 
 void

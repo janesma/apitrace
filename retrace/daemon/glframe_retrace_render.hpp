@@ -55,9 +55,11 @@ class RetraceRender {
   void retrace(StateTrack *tracker = NULL) const;
   bool endsFrame() const { return m_end_of_frame; }
   bool replaceShaders(StateTrack *tracker,
-                     const std::string &vs,
-                     const std::string &fs,
-                     std::string *message);
+                      const std::string &vs,
+                      const std::string &fs,
+                      const std::string &tessControl,
+                      const std::string &tessEval,
+                   std::string *message);
   void overrideVertexShader(StateTrack *tracker, bool enable,
                             const std::string &vs);
   void overrideFragmentShader(StateTrack *tracker, bool enable,
@@ -70,7 +72,9 @@ class RetraceRender {
   retrace::Retracer *m_retracer;
   RenderBookmark m_bookmark;
   std::string m_original_vs, m_original_fs,
-    m_modified_fs, m_modified_vs;
+    m_original_tess_control, m_original_tess_eval,
+    m_modified_fs, m_modified_vs,
+    m_modified_tess_eval, m_modified_tess_control;
   int m_rt_program, m_retrace_program;
   bool m_end_of_frame, m_highlight_rt;
   std::vector<std::string> m_api_calls;
