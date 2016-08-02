@@ -7,6 +7,7 @@ import ApiTrace 1.0
 Item {
     property var model
     property var compile_button
+    property var compile_row
     property var shader_type
     id: shader_tab
     TabView {
@@ -31,6 +32,7 @@ Item {
                                 compile_button.fsText = text;
                             } 
                             compile_button.visible=true;
+                            compile_row.visible=true
                         }
                     }
                 }
