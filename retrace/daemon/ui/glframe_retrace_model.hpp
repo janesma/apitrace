@@ -111,6 +111,8 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(glretrace::QShader* fsShader READ fsShader)
   Q_PROPERTY(glretrace::QShader* tessControlShader READ tessControlShader)
   Q_PROPERTY(glretrace::QShader* tessEvalShader READ tessEvalShader)
+  Q_PROPERTY(QString shaderCompileError READ shaderCompileError
+             NOTIFY onShaderCompileError)
 
  public:
   FrameRetraceModel();
@@ -154,6 +156,7 @@ class FrameRetraceModel : public QObject,
   QShader *fsShader() { return &m_fs; }
   QShader *tessControlShader() { return &m_tess_control; }
   QShader *tessEvalShader() { return &m_tess_eval; }
+  QString shaderCompileError() { return m_shader_compile_error; }
 
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
@@ -174,6 +177,7 @@ class FrameRetraceModel : public QObject,
   void onOpenPercent();
   void onMaxMetric();
   void onApiCalls();
+  void onShaderCompileError();
 
   // this signal transfers onMetricList to be handled in the UI
   // thread.  The handler generates QObjects which are passed to qml
@@ -193,6 +197,7 @@ class FrameRetraceModel : public QObject,
   QList<BarMetrics> m_metrics;
 
   QShader m_vs, m_fs, m_tess_control, m_tess_eval;
+  QString m_shader_compile_error;
 
   QStringList m_api_calls;
   int m_open_percent;

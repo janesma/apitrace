@@ -129,6 +129,8 @@ FrameRetraceModel::onShaderCompile(RenderId renderId,
                                    const std::string &errorString) {
   if (errorString.size())
     GRLOGF(WARN, "Compilation error: %s", errorString.c_str());
+  m_shader_compile_error = errorString.c_str();
+  emit onShaderCompileError();
 }
 
 void
