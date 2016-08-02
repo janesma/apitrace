@@ -82,7 +82,7 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     if (render || m_end_of_frame)
       break;
   }
-  const int p = tracker->CurrentProgram();
+  m_original_program = tracker->CurrentProgram();
   m_original_vs = tracker->currentVertexShader().shader;
   m_modified_vs = m_original_vs;
   m_original_fs = tracker->currentFragmentShader().shader;
@@ -97,7 +97,7 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
                                      simple_fs,
                                      m_modified_tess_eval,
                                      m_modified_tess_control);
-  tracker->useProgram(p);
+  tracker->useProgram(m_original_program);
 }
 
 void
@@ -125,6 +125,8 @@ RetraceRender::retraceRenderTarget(RenderTargetType type) const {
   assert(call);
   m_retracer->retrace(*call);
   delete(call);
+  if (type == HIGHLIGHT_RENDER || m_retrace_program)
+    GlFunctions::UseProgram(m_original_program);
 }
 
 
@@ -163,6 +165,8 @@ RetraceRender::retrace(StateTrack *tracker) const {
   if (tracker)
     tracker->track(*call);
   delete(call);
+  if (m_retrace_program)
+    GlFunctions::UseProgram(m_original_program);
 }
 
 
