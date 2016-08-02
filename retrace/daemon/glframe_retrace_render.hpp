@@ -75,7 +75,7 @@ class RetraceRender {
     m_original_tess_control, m_original_tess_eval,
     m_modified_fs, m_modified_vs,
     m_modified_tess_eval, m_modified_tess_control;
-  int m_rt_program, m_retrace_program;
+  int m_rt_program, m_retrace_program, m_original_program;
   bool m_end_of_frame, m_highlight_rt;
   std::vector<std::string> m_api_calls;
 };
