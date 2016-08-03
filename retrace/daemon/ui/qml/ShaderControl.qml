@@ -30,6 +30,8 @@ Item {
                                 compile_button.fsText = text;
                             } else if (shader_type == "tess_control") {
                                 compile_button.fsText = text;
+                            } else if (shader_type == "geom") {
+                                compile_button.geomText = text;
                             } 
                             compile_button.visible=true;
                             compile_row.visible=true

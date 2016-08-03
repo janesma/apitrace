@@ -97,6 +97,7 @@ StateTrack::track(const Call &call) {
     trace::dump(const_cast<Call&>(call), call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
     tracked_calls.push_back(call_stream.str());
+    GRLOG(glretrace::WARN, call_stream.str().c_str());
   }
 
   if (changesContext(call))
@@ -117,11 +118,14 @@ StateTrack::trackAttachShader(const Call &call) {
     program_to_tess_control[program].shader = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_TESS_EVALUATION_SHADER)
     program_to_tess_eval[program].shader = shader_to_source[shader];
+  else if (shader_to_type[shader] == GL_GEOMETRY_SHADER)
+    program_to_geom[program].shader = shader_to_source[shader];
 
   auto vs = program_to_vertex.find(program);
   auto fs = program_to_fragment.find(program);
   auto tess_control = program_to_tess_control.find(program);
   auto tess_eval = program_to_tess_eval.find(program);
+  auto geom = program_to_geom.find(program);
   const ProgramKey k(vs == program_to_vertex.end()
                      ? "" : vs->second.shader,
                      fs == program_to_fragment.end()
@@ -129,7 +133,9 @@ StateTrack::trackAttachShader(const Call &call) {
                      tess_control == program_to_tess_control.end()
                      ? "" : tess_control->second.shader,
                      tess_eval == program_to_tess_eval.end()
-                     ? "" : tess_eval->second.shader);
+                     ? "" : tess_eval->second.shader,
+                     geom == program_to_geom.end()
+                     ? "" : geom->second.shader);
   m_sources_to_program[k] = program;
 }
 
@@ -168,6 +174,7 @@ StateTrack::parse() {
       fs_nir_ssa, fs_nir_final, vs_nir_ssa, vs_nir_final,
       tess_eval_ir, tess_eval_ssa, tess_eval_final, tess_eval_simd8,
       tess_control_ir, tess_control_ssa, tess_control_final, tess_control_simd8,
+      geom_ir, geom_ssa, geom_final, geom_simd8,
       *current_target = NULL;
   int line_shader = -1;
   while (true) {
@@ -255,10 +262,6 @@ StateTrack::parse() {
                       "NIR (final form) for tessellation evaluation shader:"))
         current_target = &tess_eval_final;
 
-      if (0 == strcmp(line.c_str(),
-                      "NIR (final form) for tessellation evaluation shader:"))
-        current_target = &tess_eval_final;
-
       if (matches <= 0) {
         matches = sscanf(line.c_str(),
                          "Native code for unnamed tessellation "
@@ -283,10 +286,6 @@ StateTrack::parse() {
                       "NIR (final form) for tessellation control shader:"))
         current_target = &tess_control_final;
 
-      if (0 == strcmp(line.c_str(),
-                      "NIR (final form) for tessellation control shader:"))
-        current_target = &tess_control_final;
-
       if (matches <= 0) {
         matches = sscanf(line.c_str(),
                          "Native code for unnamed tessellation "
@@ -294,6 +293,30 @@ StateTrack::parse() {
                          &line_shader);
         if (matches > 0)
           current_target = &tess_control_simd8;
+      }
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "GLSL IR for native geometry shader %d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &geom_ir;
+      }
+      if (0 == strcmp(line.c_str(),
+                      "NIR (SSA form) for geometry shader:"))
+        current_target = &geom_ssa;
+
+      if (0 == strcmp(line.c_str(),
+                      "NIR (final form) for geometry shader:"))
+        current_target = &geom_final;
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "Native code for unnamed geometry "
+                         "shader GLSL%d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &geom_simd8;
       }
 
       if (current_target) {
@@ -344,6 +367,15 @@ StateTrack::parse() {
     program_to_tess_control[current_program].nir = tess_control_final;
   if (tess_control_simd8.length() > 0)
     program_to_tess_control[current_program].simd8 = tess_control_simd8;
+
+  if (geom_ir.length() > 0)
+    program_to_geom[current_program].ir = geom_ir;
+  if (geom_ssa.length() > 0)
+    program_to_geom[current_program].ssa = geom_ssa;
+  if (geom_final.length() > 0)
+    program_to_geom[current_program].nir = geom_final;
+  if (geom_simd8.length() > 0)
+    program_to_geom[current_program].simd8 = geom_simd8;
 }
 
 const ShaderAssembly &
@@ -371,6 +403,11 @@ StateTrack::currentTessEvalShader() const {
   return (sh == program_to_tess_eval.end() ? empty_shader : sh->second);
 }
 
+const ShaderAssembly &
+StateTrack::currentGeomShader() const {
+  auto sh = program_to_geom.find(current_program);
+  return (sh == program_to_geom.end() ? empty_shader : sh->second);
+}
 
 void
 StateTrack::flush() { m_poller->poll(); }
@@ -378,8 +415,10 @@ StateTrack::flush() { m_poller->poll(); }
 StateTrack::ProgramKey::ProgramKey(const std::string &v,
                                    const std::string &f,
                                    const std::string &t_c,
-                                   const std::string &t_e)
-    : vs(v), fs(f), tess_control(t_c), tess_eval(t_e) {}
+                                   const std::string &t_e,
+                                   const std::string &g)
+    : vs(v), fs(f), tess_control(t_c),
+      tess_eval(t_e), geom(g) {}
 
 bool
 StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
@@ -397,6 +436,10 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
     return false;
   if (tess_eval < o.tess_eval)
     return true;
+  if (tess_eval > o.tess_eval)
+    return false;
+  if (geom < o.geom)
+    return true;
   return false;
 }
 
@@ -405,8 +448,9 @@ StateTrack::useProgram(const std::string &vs,
                        const std::string &fs,
                        const std::string &tessControl,
                        const std::string &tessEval,
+                       const std::string &geom,
                        std::string *message) {
-  const ProgramKey k(vs, fs, tessControl, tessEval);
+  const ProgramKey k(vs, fs, tessControl, tessEval, geom);
   auto i = m_sources_to_program.find(k);
   if (i != m_sources_to_program.end())
     return i->second;
@@ -474,7 +518,7 @@ StateTrack::useProgram(const std::string &vs,
   GlFunctions::AttachShader(pid, fshader->second);
   GL_CHECK();
 
-  // TODO(majanes) compile/attach tess shaders if not empty
+  // compile/attach tess shaders if not empty
   if (tessControl.size()) {
     auto shader = source_to_shader.find(tessControl);
     if (shader == source_to_shader.end()) {
@@ -505,7 +549,7 @@ StateTrack::useProgram(const std::string &vs,
     program_to_tess_control[pid].shader = tessControl;
   }
 
-  // TODO(majanes) compile/attach tess shaders if not empty
+  // compile/attach tess shaders if not empty
   if (tessEval.size()) {
     auto shader = source_to_shader.find(tessEval);
     if (shader == source_to_shader.end()) {
@@ -534,6 +578,38 @@ StateTrack::useProgram(const std::string &vs,
     GlFunctions::AttachShader(pid, shader->second);
     program_to_tess_eval[pid].shader = tessEval;
   }
+
+  // compile/attach geometry shader if not empty
+  if (geom.size()) {
+    auto shader = source_to_shader.find(geom);
+    if (shader == source_to_shader.end()) {
+      // have to compile the fs
+      const GLint len = geom.size();
+      const GLchar *cstr = geom.c_str();
+      const GLuint id = GlFunctions::CreateShader(GL_GEOMETRY_SHADER);
+      GlFunctions::ShaderSource(id, 1, &cstr, &len);
+      GL_CHECK();
+      GlFunctions::CompileShader(id);
+      if (message) {
+        GetCompileError(id, message);
+        if (message->size()) {
+          GRLOGF(WARN, "compile error: %s", message->c_str());
+          return -1;
+        }
+      }
+      if (GL_NO_ERROR != GlFunctions::GetError()) {
+        return -1;
+      }
+      GL_CHECK();
+      // TODO(majanes) check error and poll
+      source_to_shader[geom] = id;
+    }
+    shader = source_to_shader.find(geom);
+    GlFunctions::AttachShader(pid, shader->second);
+    GL_CHECK();
+    program_to_geom[pid].shader = geom;
+  }
+
   GlFunctions::LinkProgram(pid);
   if (message) {
     GetLinkError(pid, message);

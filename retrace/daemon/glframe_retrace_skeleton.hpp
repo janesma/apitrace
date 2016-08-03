@@ -55,7 +55,8 @@ class FrameRetraceSkeleton : public Thread,
                                 const ShaderAssembly &vertex_shader,
                                 const ShaderAssembly &fragment_shader,
                                 const ShaderAssembly &tess_control_shader,
-                                const ShaderAssembly &tess_eval_shader);
+                                const ShaderAssembly &tess_eval_shader,
+                                const ShaderAssembly &geom_shader);
   virtual void onFileOpening(bool finished,
                              uint32_t percent_complete);
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
