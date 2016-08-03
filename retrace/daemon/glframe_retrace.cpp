@@ -172,9 +172,14 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
   for (int i = 0; i < renderId.index(); ++i)
     m_renders[i]->retraceRenderTarget(NORMAL_RENDER);
 
-  if (options & glretrace::CLEAR_BEFORE_RENDER)
-    GlFunctions::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
-                       GL_ACCUM_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  if (options & glretrace::CLEAR_BEFORE_RENDER) {
+    GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
+    GlFunctions::Clear(GL_DEPTH_BUFFER_BIT);
+    GlFunctions::Clear(GL_STENCIL_BUFFER_BIT);
+    GlFunctions::Clear(GL_ACCUM_BUFFER_BIT);
+    // ignore errors from unsupported clears
+    GlFunctions::GetError();
+  }
 
   // play up to the end of the render
   m_renders[renderId.index()]->retraceRenderTarget(type);
