@@ -59,6 +59,7 @@ class RetraceRender {
                       const std::string &fs,
                       const std::string &tessControl,
                       const std::string &tessEval,
+                      const std::string &geom,
                    std::string *message);
   void overrideVertexShader(StateTrack *tracker, bool enable,
                             const std::string &vs);
@@ -73,8 +74,10 @@ class RetraceRender {
   RenderBookmark m_bookmark;
   std::string m_original_vs, m_original_fs,
     m_original_tess_control, m_original_tess_eval,
+    m_original_geom,
     m_modified_fs, m_modified_vs,
-    m_modified_tess_eval, m_modified_tess_control;
+    m_modified_tess_eval, m_modified_tess_control,
+    m_modified_geom;
   int m_rt_program, m_retrace_program, m_original_program;
   bool m_end_of_frame, m_highlight_rt;
   std::vector<std::string> m_api_calls;

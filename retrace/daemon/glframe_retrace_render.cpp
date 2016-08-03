@@ -91,12 +91,15 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
   m_modified_tess_control = m_original_tess_control;
   m_original_tess_eval = tracker->currentTessEvalShader().shader;
   m_modified_tess_eval = m_original_tess_eval;
+  m_original_geom = tracker->currentGeomShader().shader;
+  m_modified_geom = m_original_geom;
 
   // generate the highlight rt program, for later use
   m_rt_program = tracker->useProgram(m_modified_vs,
                                      simple_fs,
                                      m_modified_tess_eval,
-                                     m_modified_tess_control);
+                                     m_modified_tess_control,
+                                     m_original_geom);
   tracker->useProgram(m_original_program);
 }
 
@@ -176,11 +179,13 @@ RetraceRender::replaceShaders(StateTrack *tracker,
                               const std::string &fs,
                               const std::string &tessControl,
                               const std::string &tessEval,
+                              const std::string &geom,
                               std::string *message) {
   GRLOGF(DEBUG, "RetraceRender: %s \n %s \n %s \n %s", vs.c_str(), fs.c_str(),
          tessControl.c_str(), tessEval.c_str());
   const int result = tracker->useProgram(vs, fs,
-                                         tessControl, tessEval, message);
+                                         tessControl, tessEval,
+                                         geom, message);
   if (result == -1)
     return false;
 
@@ -189,11 +194,12 @@ RetraceRender::replaceShaders(StateTrack *tracker,
   m_modified_fs = fs;
   m_modified_tess_control = tessControl;
   m_modified_tess_eval = tessEval;
+  m_modified_geom = geom;
   m_retrace_program = result;
   *message = "";
   m_rt_program = tracker->useProgram(vs, simple_fs,
                                      tessControl, tessEval,
-                                     message);
+                                     geom, message);
   tracker->useProgram(result);
   return true;
 }

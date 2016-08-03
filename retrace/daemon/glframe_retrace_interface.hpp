@@ -168,7 +168,8 @@ class OnFrameRetrace {
                                 const ShaderAssembly &vertex,
                                 const ShaderAssembly &fragment,
                                 const ShaderAssembly &tess_control,
-                                const ShaderAssembly &tess_eval) = 0;
+                                const ShaderAssembly &tess_eval,
+                                const ShaderAssembly &geon) = 0;
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
                               const uvec & pngImageData) = 0;
   virtual void onMetricList(const std::vector<MetricId> &ids,
@@ -205,6 +206,7 @@ class IFrameRetrace {
                               const std::string &fs,
                               const std::string &tessControl,
                               const std::string &tessEval,
+                              const std::string &geom,
                               OnFrameRetrace *callback) = 0;
   virtual void retraceApi(RenderId renderId,
                           OnFrameRetrace *callback) = 0;

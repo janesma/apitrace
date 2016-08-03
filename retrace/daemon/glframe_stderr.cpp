@@ -61,6 +61,6 @@ StdErrRedirect::~StdErrRedirect() {
 
 void
 StdErrRedirect::init() {
-  setenv("INTEL_DEBUG", "vs,fs,tcs,tes", 1);
+  setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs", 1);
   setenv("vblank_mode", "0", 1);
 }
