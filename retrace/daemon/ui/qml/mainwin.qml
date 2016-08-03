@@ -208,12 +208,14 @@ ApplicationWindow {
                 property var fsText: frameRetrace.fsShader.source
                 property var tessControlText: frameRetrace.tessControlShader.source
                 property var tessEvalText: frameRetrace.tessEvalShader.source
+                property var geomText: frameRetrace.geomShader.source
                 onClicked: {
                     visible = false
                     compileRow.visible = false;
                     frameRetrace.overrideShaders(vsText, fsText,
                                                  tessControlText,
-                                                 tessEvalText);
+                                                 tessEvalText,
+                                                 geomText);
                 }
                 Component.onCompleted: { visible = false; }
             }
@@ -287,6 +289,16 @@ ApplicationWindow {
                                     compile_row: compileRow
                                 }
                             }
+                        }
+                    }
+                    Tab {
+                        title: "Geometry"
+                        anchors.fill: parent
+                        ShaderControl {
+                            shader_type: "geom"
+                            model: frameRetrace.geomShader
+                            compile_button: compileButton
+                            compile_row: compileRow
                         }
                     }
                 }

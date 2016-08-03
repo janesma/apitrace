@@ -61,7 +61,8 @@ class FrameRetraceStub : public IFrameRetrace {
                               const std::string &fs,
                               const std::string &tessControl,
                               const std::string &tessEval,
-                             OnFrameRetrace *callback);
+                              const std::string &geom,
+                              OnFrameRetrace *callback);
   virtual void retraceApi(RenderId renderId,
                           OnFrameRetrace *callback);
 };

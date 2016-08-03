@@ -111,6 +111,7 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(glretrace::QShader* fsShader READ fsShader)
   Q_PROPERTY(glretrace::QShader* tessControlShader READ tessControlShader)
   Q_PROPERTY(glretrace::QShader* tessEvalShader READ tessEvalShader)
+  Q_PROPERTY(glretrace::QShader* geomShader READ geomShader)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
 
@@ -124,7 +125,8 @@ class FrameRetraceModel : public QObject,
   Q_INVOKABLE void setMetric(int index, int id);
   Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs,
                                    const QString &tess_control,
-                                   const QString &tess_eval);
+                                   const QString &tess_eval,
+                                   const QString &geom);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
   QSelection *selection();
@@ -136,7 +138,8 @@ class FrameRetraceModel : public QObject,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
-                        const ShaderAssembly &tess_eval);
+                        const ShaderAssembly &tess_eval,
+                        const ShaderAssembly &geom);
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const std::vector<unsigned char> &data);
   void onShaderCompile(RenderId renderId,
@@ -156,6 +159,7 @@ class FrameRetraceModel : public QObject,
   QShader *fsShader() { return &m_fs; }
   QShader *tessControlShader() { return &m_tess_control; }
   QShader *tessEvalShader() { return &m_tess_eval; }
+  QShader *geomShader() { return &m_geom; }
   QString shaderCompileError() { return m_shader_compile_error; }
 
   bool clearBeforeRender() const;
@@ -196,7 +200,7 @@ class FrameRetraceModel : public QObject,
   QList<QMetric *> m_metrics_model;
   QList<BarMetrics> m_metrics;
 
-  QShader m_vs, m_fs, m_tess_control, m_tess_eval;
+  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom;
   QString m_shader_compile_error;
 
   QStringList m_api_calls;

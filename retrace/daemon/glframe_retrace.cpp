@@ -218,7 +218,8 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
                              tmp_tracker.currentVertexShader(),
                              tmp_tracker.currentFragmentShader(),
                              tmp_tracker.currentTessControlShader(),
-                             tmp_tracker.currentTessEvalShader());
+                             tmp_tracker.currentTessEvalShader(),
+                             tmp_tracker.currentGeomShader());
 }
 
 FrameState::FrameState(const std::string &filename,
@@ -291,6 +292,7 @@ FrameRetrace::replaceShaders(RenderId renderId,
                              const std::string &fs,
                              const std::string &tessControl,
                              const std::string &tessEval,
+                             const std::string &geom,
                              OnFrameRetrace *callback) {
   GRLOGF(DEBUG, "%s\n%s", vs.c_str(), fs.c_str());
   std::string message;
@@ -298,6 +300,7 @@ FrameRetrace::replaceShaders(RenderId renderId,
                                                                   vs, fs,
                                                                   tessControl,
                                                                   tessEval,
+                                                                  geom,
                                                                   &message);
   if (!result)
     GRLOGF(WARN, "compile failed: %s", message.c_str());
