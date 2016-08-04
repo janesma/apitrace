@@ -97,6 +97,7 @@ class StateTrack {
   void trackShaderSource(const trace::Call &);
   void trackLinkProgram(const trace::Call &);
   void trackUseProgram(const trace::Call &);
+  void trackDeleteProgram(const trace::Call &);
 
   OutputPoller *m_poller;
   int current_program;
