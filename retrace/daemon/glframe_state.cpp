@@ -64,6 +64,7 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glLinkProgram"] = &StateTrack::trackLinkProgram;
   lookup["glShaderSource"] = &StateTrack::trackShaderSource;
   lookup["glUseProgram"] = &StateTrack::trackUseProgram;
+  lookup["glDeleteProgram"] = &StateTrack::trackDeleteProgram;
 }
 
 bool
@@ -172,6 +173,27 @@ StateTrack::trackUseProgram(const trace::Call &call) {
   // glretrace_gl.cpp.  To track the actual program, we must retrieve
   // it from apitrace.
   current_program = getRetracedProgram(call.args[0].value->toDouble());
+}
+
+void
+StateTrack::trackDeleteProgram(const trace::Call &call) {
+  const int deleted_program =
+      getRetracedProgram(call.args[0].value->toDouble());
+  auto i = program_to_vertex.find(deleted_program);
+  if (i != program_to_vertex.end())
+      program_to_vertex.erase(i);
+  i = program_to_fragment.find(deleted_program);
+  if (i != program_to_fragment.end())
+      program_to_fragment.erase(i);
+  i = program_to_tess_control.find(deleted_program);
+  if (i != program_to_tess_control.end())
+      program_to_tess_control.erase(i);
+  i = program_to_tess_eval.find(deleted_program);
+  if (i != program_to_tess_eval.end())
+      program_to_tess_eval.erase(i);
+  i = program_to_geom.find(deleted_program);
+  if (i != program_to_geom.end())
+      program_to_geom.erase(i);
 }
 
 void
