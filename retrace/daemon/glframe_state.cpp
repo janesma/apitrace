@@ -33,11 +33,12 @@
 
 #include "GL/gl.h"
 #include "GL/glext.h"
-#include "trace_model.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
-#include "retrace.hpp"
 #include "glframe_retrace_interface.hpp"
+#include "glretrace.hpp"
+#include "retrace.hpp"
+#include "trace_model.hpp"
 
 using glretrace::StateTrack;
 using glretrace::WARN;
@@ -108,7 +109,8 @@ StateTrack::track(const Call &call) {
 
 void
 StateTrack::trackAttachShader(const Call &call) {
-  const int program = call.args[0].value->toDouble();
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
   const int shader = call.args[1].value->toDouble();
   if (shader_to_type[shader] == GL_FRAGMENT_SHADER)
     program_to_fragment[program].shader = shader_to_source[shader];
@@ -160,12 +162,16 @@ StateTrack::trackShaderSource(const Call &call) {
 
 void
 StateTrack::trackLinkProgram(const trace::Call &call) {
-  current_program = call.args[0].value->toDouble();
+  current_program = getRetracedProgram(call.args[0].value->toDouble());
 }
 
 void
 StateTrack::trackUseProgram(const trace::Call &call) {
-  current_program = call.args[0].value->toDouble();
+  // the program in use will not be the id in the Call, but rather the
+  // program id generated during retrace, which is mapped within
+  // glretrace_gl.cpp.  To track the actual program, we must retrieve
+  // it from apitrace.
+  current_program = getRetracedProgram(call.args[0].value->toDouble());
 }
 
 void
@@ -627,7 +633,7 @@ StateTrack::useProgram(const std::string &vs,
 
 void
 StateTrack::useProgram(int program) {
-  current_program = program;
+  current_program = getRetracedProgram(program);
   parse();
 }
 

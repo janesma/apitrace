@@ -118,6 +118,9 @@ blockOnFence(trace::Call &call, GLsync sync, GLbitfield flags);
 GLenum
 clientWaitSync(trace::Call &call, GLsync sync, GLbitfield flags, GLuint64 timeout);
 
+GLint
+getRetracedProgram(GLint traced_program);
+
 } /* namespace glretrace */
 
 

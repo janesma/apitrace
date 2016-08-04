@@ -602,4 +602,9 @@ _validateActiveProgram(trace::Call &call)
     }
 }
 
+GLint 
+glretrace::getRetracedProgram(GLint traced_program) {
+    return _program_map[traced_program];
+}
+
 '''
