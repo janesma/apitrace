@@ -201,6 +201,12 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
   d.resize(bytes);
   memcpy(d.data(), png.str().c_str(), bytes);
 
+  if (options & glretrace::STOP_AT_RENDER) {
+    // play to the rest of the frame
+    for (int i = renderId.index() + 1; i < m_renders.size(); ++i)
+      m_renders[i]->retraceRenderTarget(type);
+  }
+
   if (callback)
     callback->onRenderTarget(renderId, type, d);
 }
@@ -212,7 +218,6 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
   StateTrack tmp_tracker = m_tracker;
-  tmp_tracker.reset();
 
   // play up to the end of the render
   for (int i = 0; i <= renderId.index(); ++i)
@@ -224,6 +229,10 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
                              tmp_tracker.currentTessControlShader(),
                              tmp_tracker.currentTessEvalShader(),
                              tmp_tracker.currentGeomShader());
+
+  // play to the rest of the frame
+  for (int i = renderId.index() + 1; i < m_renders.size(); ++i)
+    m_renders[i]->retrace(&tmp_tracker);
 }
 
 FrameState::FrameState(const std::string &filename,
