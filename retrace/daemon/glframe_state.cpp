@@ -518,33 +518,36 @@ StateTrack::useProgram(const std::string &vs,
   GlFunctions::AttachShader(pid, vshader->second);
   GL_CHECK();
 
-  auto fshader = source_to_shader.find(fs);
-  if (fshader == source_to_shader.end()) {
-    // have to compile the fs
-    const GLint len = fs.size();
-    const GLchar *fsstr = fs.c_str();
-    const GLuint fsid = GlFunctions::CreateShader(GL_FRAGMENT_SHADER);
-    GlFunctions::ShaderSource(fsid, 1, &fsstr, &len);
-    GL_CHECK();
-    GlFunctions::CompileShader(fsid);
-    if (message) {
-      GetCompileError(fsid, message);
-      if (message->size()) {
-        GRLOGF(WARN, "compile error: %s", message->c_str());
+  // compile/attach fragment shader if not empty
+  if (fs.size()) {
+    auto fshader = source_to_shader.find(fs);
+    if (fshader == source_to_shader.end()) {
+      // have to compile the fs
+      const GLint len = fs.size();
+      const GLchar *fsstr = fs.c_str();
+      const GLuint fsid = GlFunctions::CreateShader(GL_FRAGMENT_SHADER);
+      GlFunctions::ShaderSource(fsid, 1, &fsstr, &len);
+      GL_CHECK();
+      GlFunctions::CompileShader(fsid);
+      if (message) {
+        GetCompileError(fsid, message);
+        if (message->size()) {
+          GRLOGF(WARN, "compile error: %s", message->c_str());
+          return -1;
+        }
+      }
+      if (GL_NO_ERROR != GlFunctions::GetError()) {
         return -1;
       }
+      GL_CHECK();
+      // TODO(majanes) check error and poll
+      source_to_shader[fs] = fsid;
+      fshader = source_to_shader.find(fs);
     }
-    if (GL_NO_ERROR != GlFunctions::GetError()) {
-      return -1;
-    }
+    program_to_fragment[pid].shader = fs;
+    GlFunctions::AttachShader(pid, fshader->second);
     GL_CHECK();
-    // TODO(majanes) check error and poll
-    source_to_shader[fs] = fsid;
-    fshader = source_to_shader.find(fs);
   }
-  program_to_fragment[pid].shader = fs;
-  GlFunctions::AttachShader(pid, fshader->second);
-  GL_CHECK();
 
   // compile/attach tess shaders if not empty
   if (tessControl.size()) {
