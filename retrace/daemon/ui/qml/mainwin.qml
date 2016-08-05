@@ -175,19 +175,7 @@ ApplicationWindow {
         id: mainUI
         anchors.fill: parent
         visible: false
-        Component {
-            id: highlightBar
-            Rectangle {
-                clip: false
-                width: renderList.width; height: 20 //heightCalculation.height * 1.5
-                color: "light blue"
-                opacity: .4
-                y: renderList.currentItem.y;
-                onYChanged: {
-                    visible = true
-                }
-            }
-        }
+
         BarGraphControl {
             selection: selection
             metric_model: frameRetrace
@@ -204,11 +192,11 @@ ApplicationWindow {
                 id: compileButton
                 visible: false
                 text: "Compile"
-                property var vsText: frameRetrace.vsShader.source
-                property var fsText: frameRetrace.fsShader.source
-                property var tessControlText: frameRetrace.tessControlShader.source
-                property var tessEvalText: frameRetrace.tessEvalShader.source
-                property var geomText: frameRetrace.geomShader.source
+                property var vsText
+                property var fsText
+                property var tessControlText
+                property var tessEvalText
+                property var geomText
                 onClicked: {
                     visible = false
                     compileRow.visible = false;
@@ -246,6 +234,7 @@ ApplicationWindow {
                 TabView {
                     Tab {
                         title: "Vertex"
+                        active: true
                         anchors.fill: parent
                         ShaderControl {
                             shader_type: "vs"
@@ -256,6 +245,7 @@ ApplicationWindow {
                     }
                     Tab {
                         title: "Fragment"
+                        active: true
                         anchors.fill: parent
                         ShaderControl {
                             shader_type: "fs"
@@ -266,11 +256,13 @@ ApplicationWindow {
                     }
                     Tab {
                         title: "Tesselation"
+                        active: true
                         anchors.fill: parent
                         TabView {
                             anchors.fill: parent
                             Tab {
                                 title: "Control"
+                                active: true
                                 anchors.fill: parent
                                 ShaderControl {
                                     shader_type: "tess_control"
@@ -281,6 +273,7 @@ ApplicationWindow {
                             }
                             Tab {
                                 title: "Evaluation"
+                                active: true
                                 anchors.fill: parent
                                 ShaderControl {
                                     shader_type: "tess_eval"
@@ -293,6 +286,7 @@ ApplicationWindow {
                     }
                     Tab {
                         title: "Geometry"
+                        active: true
                         anchors.fill: parent
                         ShaderControl {
                             shader_type: "geom"

@@ -108,10 +108,13 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(QStringList apiCalls
              READ apiCalls NOTIFY onApiCalls)
   Q_PROPERTY(glretrace::QShader* vsShader READ vsShader NOTIFY onShaders)
-  Q_PROPERTY(glretrace::QShader* fsShader READ fsShader)
-  Q_PROPERTY(glretrace::QShader* tessControlShader READ tessControlShader)
-  Q_PROPERTY(glretrace::QShader* tessEvalShader READ tessEvalShader)
-  Q_PROPERTY(glretrace::QShader* geomShader READ geomShader)
+  Q_PROPERTY(glretrace::QShader* fsShader READ fsShader NOTIFY onShaders)
+  Q_PROPERTY(glretrace::QShader* tessControlShader READ tessControlShader
+             NOTIFY onShaders)
+  Q_PROPERTY(glretrace::QShader* tessEvalShader READ tessEvalShader
+             NOTIFY onShaders)
+  Q_PROPERTY(glretrace::QShader* geomShader READ geomShader
+             NOTIFY onShaders)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
 

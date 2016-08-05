@@ -111,7 +111,9 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
   m_tess_control.onShaderAssembly(tess_control);
   m_tess_eval.onShaderAssembly(tess_eval);
   m_geom.onShaderAssembly(geom);
-  emit onShaders();
+  // do not emit onShaders().  The QShader model (reference) is
+  // unchanged, even if it's contents have.  The ShaderControl binds
+  // to the contenst of the QShader model.
 }
 
 
