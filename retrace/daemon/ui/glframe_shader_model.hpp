@@ -42,12 +42,12 @@ class QShader : public QObject,
   QShader() : m_source(""), m_ir(""), m_nir_ssa(""),
               m_nir_final(""), m_simd8(""), m_simd16("") {}
   virtual ~QShader() {}
-  Q_PROPERTY(QString source READ source NOTIFY onShaders)
-  Q_PROPERTY(QString ir READ ir NOTIFY onShaders)
-  Q_PROPERTY(QString nirSsa READ nirSsa NOTIFY onShaders)
-  Q_PROPERTY(QString nirFinal READ nirFinal NOTIFY onShaders)
-  Q_PROPERTY(QString simd8 READ simd8 NOTIFY onShaders)
-  Q_PROPERTY(QString simd16 READ simd16 NOTIFY onShaders)
+  Q_PROPERTY(QString source READ source NOTIFY shadersChanged)
+  Q_PROPERTY(QString ir READ ir NOTIFY shadersChanged)
+  Q_PROPERTY(QString nirSsa READ nirSsa NOTIFY shadersChanged)
+  Q_PROPERTY(QString nirFinal READ nirFinal NOTIFY shadersChanged)
+  Q_PROPERTY(QString simd8 READ simd8 NOTIFY shadersChanged)
+  Q_PROPERTY(QString simd16 READ simd16 NOTIFY shadersChanged)
 
   void onShaderAssembly(const ShaderAssembly &a) {
     m_source = a.shader.c_str();
@@ -56,7 +56,7 @@ class QShader : public QObject,
     m_nir_final = a.nir.c_str();
     m_simd8 = a.simd8.c_str();
     m_simd16 = a.simd16.c_str();
-    emit onShaders();
+    emit shadersChanged();
   }
 
   QString source() const { return m_source; }
@@ -67,7 +67,7 @@ class QShader : public QObject,
   QString simd16() const { return m_simd16; }
 
  signals:
-  void onShaders();
+  void shadersChanged();
 
  private:
   QString m_source, m_ir, m_nir_ssa, m_nir_final, m_simd8, m_simd16;
