@@ -32,6 +32,11 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 
+#ifndef NDEBUG
+#define QT_QML_DEBUG
+#include <QQmlDebuggingEnabler>
+#endif
+
 #include <sstream>
 #include <string>
 
@@ -80,6 +85,10 @@ Q_DECLARE_METATYPE(QList<glretrace::BarMetrics>)
 
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+#ifndef NDEBUG
+  QQmlDebuggingEnabler enabler;
+#endif
 
   GlFunctions::Init();
   Logger::Create();
