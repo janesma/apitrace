@@ -472,7 +472,8 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
 }
 
 int
-StateTrack::useProgram(const std::string &vs,
+StateTrack::useProgram(int orig_program,
+                       const std::string &vs,
                        const std::string &fs,
                        const std::string &tessControl,
                        const std::string &tessEval,
@@ -653,6 +654,7 @@ StateTrack::useProgram(const std::string &vs,
   // TODO(majanes) check error
   parse();
   m_sources_to_program[k] = pid;
+  program_to_replacements[orig_program].push_back(pid);
   return pid;
 }
 
@@ -665,4 +667,40 @@ StateTrack::useProgram(int program) {
 void
 StateTrack::onApi(OnFrameRetrace *callback) {
   callback->onApi(RenderId(-1), tracked_calls);
+}
+
+void
+StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
+                                      retrace::Retracer *retracer) const {
+  // glProgramUniform
+  if (strncmp("glProgramUniform", c->sig->name,
+              strlen("glProgramUniform")) == 0) {
+    const int program = c->arg(0).toUInt();
+    const int retraced_program = getRetracedProgram(program);
+    auto replacements = program_to_replacements.find(retraced_program);
+    if (replacements != program_to_replacements.end()) {
+      trace::Value * call_program = c->args[0].value;
+      for (auto replacement : replacements->second) {
+        trace::UInt replace_program(replacement);
+        c->args[0].value = &replace_program;
+        retracer->retrace(*c);
+      }
+      c->args[0].value = call_program;
+    }
+    return;
+  }
+  if (strncmp("glUniform", c->sig->name, strlen("glUniform")) == 0) {
+    glretrace::Context *currentContext = glretrace::getCurrentContext();
+    auto replacements = program_to_replacements.find(orig_program);
+    if (replacements != program_to_replacements.end()) {
+      for (auto replacement : replacements->second) {
+        GlFunctions::UseProgram(replacement);
+        currentContext->currentProgram = replacement;
+        retracer->retrace(*c);
+      }
+      GlFunctions::UseProgram(orig_program);
+      currentContext->currentProgram = orig_program;
+    }
+    return;
+  }
 }

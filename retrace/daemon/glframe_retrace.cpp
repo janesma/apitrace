@@ -170,7 +170,7 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
 
   // play up to the beginning of the render
   for (int i = 0; i < renderId.index(); ++i)
-    m_renders[i]->retraceRenderTarget(NORMAL_RENDER);
+    m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
 
   if (options & glretrace::CLEAR_BEFORE_RENDER) {
     GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
@@ -182,14 +182,14 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
   }
 
   // play up to the end of the render
-  m_renders[renderId.index()]->retraceRenderTarget(type);
+  m_renders[renderId.index()]->retraceRenderTarget(m_tracker, type);
 
   if (!(options & glretrace::STOP_AT_RENDER)) {
     // play to the end of the render target
 
     const RenderId last_render = lastRenderForRTRegion(renderId);
     for (int i = renderId.index() + 1; i <= last_render.index(); ++i)
-      m_renders[i]->retraceRenderTarget(NORMAL_RENDER);
+      m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
   }
 
   Image *i = glstate::getDrawBufferImage(0);
@@ -204,7 +204,7 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
   if (options & glretrace::STOP_AT_RENDER) {
     // play to the rest of the frame
     for (int i = renderId.index() + 1; i < m_renders.size(); ++i)
-      m_renders[i]->retraceRenderTarget(type);
+      m_renders[i]->retraceRenderTarget(m_tracker, type);
   }
 
   if (callback)
@@ -282,7 +282,7 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
     m_metrics->selectMetric(id);
     for (int i = 0; i < m_renders.size(); ++i) {
       m_metrics->begin(RenderId(i));
-      m_renders[i]->retrace();
+      m_renders[i]->retrace(m_tracker);
       m_metrics->end();
     }
     m_metrics->publish(experimentCount, callback);

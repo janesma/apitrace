@@ -51,8 +51,10 @@ class RetraceRender {
   RetraceRender(trace::AbstractParser *parser,
                 retrace::Retracer *retracer,
                 StateTrack *tracker);
-  void retraceRenderTarget(RenderTargetType type) const;
-  void retrace(StateTrack *tracker = NULL) const;
+  void retraceRenderTarget(const StateTrack &tracker,
+                           RenderTargetType type) const;
+  void retrace(StateTrack *tracker) const;
+  void retrace(const StateTrack &tracker) const;
   bool endsFrame() const { return m_end_of_frame; }
   bool replaceShaders(StateTrack *tracker,
                       const std::string &vs,
