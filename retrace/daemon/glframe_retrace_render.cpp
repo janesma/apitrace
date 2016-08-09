@@ -95,7 +95,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
   m_modified_geom = m_original_geom;
 
   // generate the highlight rt program, for later use
-  m_rt_program = tracker->useProgram(m_modified_vs,
+  m_rt_program = tracker->useProgram(m_original_program,
+                                     m_modified_vs,
                                      simple_fs,
                                      m_modified_tess_eval,
                                      m_modified_tess_control,
@@ -104,7 +105,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
 }
 
 void
-RetraceRender::retraceRenderTarget(RenderTargetType type) const {
+RetraceRender::retraceRenderTarget(const StateTrack &tracker,
+                                   RenderTargetType type) const {
   // check that the parser is in correct state
   trace::ParseBookmark bm;
   m_parser->getBookmark(bm);
@@ -114,6 +116,7 @@ RetraceRender::retraceRenderTarget(RenderTargetType type) const {
   for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
+    tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
     m_retracer->retrace(*call);
     delete(call);
   }
@@ -140,16 +143,17 @@ RetraceRender::retrace(StateTrack *tracker) const {
   m_parser->getBookmark(bm);
   assert(bm.offset == m_bookmark.start.offset);
 
-  if (tracker)
-    tracker->flush();
+  tracker->flush();
 
   // play up to but not past the end of the render
   for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
+
+    tracker->retraceProgramSideEffects(m_original_program, call, m_retracer);
+
     m_retracer->retrace(*call);
-    if (tracker)
-      tracker->track(*call);
+    tracker->track(*call);
     delete(call);
   }
 
@@ -172,6 +176,39 @@ RetraceRender::retrace(StateTrack *tracker) const {
     GlFunctions::UseProgram(m_original_program);
 }
 
+void
+RetraceRender::retrace(const StateTrack &tracker) const {
+  // check that the parser is in correct state
+  trace::ParseBookmark bm;
+  m_parser->getBookmark(bm);
+  assert(bm.offset == m_bookmark.start.offset);
+
+  // play up to but not past the end of the render
+  for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+    trace::Call *call = m_parser->parse_call();
+    assert(call);
+
+    tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
+
+    m_retracer->retrace(*call);
+
+    delete(call);
+  }
+
+  // select the shader override if necessary
+  if (m_retrace_program) {
+    GlFunctions::UseProgram(m_retrace_program);
+  }
+
+  // retrace the final render
+  trace::Call *call = m_parser->parse_call();
+  assert(call);
+  m_retracer->retrace(*call);
+  delete(call);
+  if (m_retrace_program)
+    GlFunctions::UseProgram(m_original_program);
+}
+
 
 bool
 RetraceRender::replaceShaders(StateTrack *tracker,
@@ -183,7 +220,8 @@ RetraceRender::replaceShaders(StateTrack *tracker,
                               std::string *message) {
   GRLOGF(DEBUG, "RetraceRender: %s \n %s \n %s \n %s", vs.c_str(), fs.c_str(),
          tessControl.c_str(), tessEval.c_str());
-  const int result = tracker->useProgram(vs, fs,
+  const int result = tracker->useProgram(m_original_program,
+                                         vs, fs,
                                          tessControl, tessEval,
                                          geom, message);
   if (result == -1)
@@ -197,7 +235,8 @@ RetraceRender::replaceShaders(StateTrack *tracker,
   m_modified_geom = geom;
   m_retrace_program = result;
   *message = "";
-  m_rt_program = tracker->useProgram(vs, simple_fs,
+  m_rt_program = tracker->useProgram(m_original_program,
+                                     vs, simple_fs,
                                      tessControl, tessEval,
                                      geom, message);
   tracker->useProgram(result);

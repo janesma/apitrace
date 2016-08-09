@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "glframe_retrace_interface.hpp"
+#include "retrace.hpp"
 
 namespace trace {
 class Call;
@@ -62,13 +63,15 @@ class StateTrack {
   const ShaderAssembly &currentTessEvalShader() const;
   const ShaderAssembly &currentGeomShader() const;
   uint64_t currentContext() const { return current_context; }
-  int useProgram(const std::string &vs, const std::string &fs,
-                 const std::string &tessControl,
-                 const std::string &tessEval,
+  int useProgram(int orig_program,
+                 const std::string &vs, const std::string &fs,
+                 const std::string &tessControl, const std::string &tessEval,
                  const std::string &geom,
                  std::string *message = NULL);
   void useProgram(int program);
   void onApi(OnFrameRetrace *callback);
+  void retraceProgramSideEffects(int orig_program, trace::Call *c,
+                                 retrace::Retracer *retracer) const;
 
  private:
   class TrackMap {
@@ -115,6 +118,10 @@ class StateTrack {
   const ShaderAssembly empty_shader;
 
   std::vector<std::string> tracked_calls;
+
+  // any call with program side effects (eg glUniform) needs to be
+  // executed on replacement programs (eg rendertarget highlighting)
+  std::map<int, std::vector<int>> program_to_replacements;
 };
 }  // namespace glretrace
 #endif
