@@ -71,7 +71,7 @@ void exec_retracer(const char *main_exe, int port) {
   const char *const args[] = {server_exe.c_str(),
                               "-p",
                               port_s.str().c_str(),
-                              ""};
+                              NULL};
   glretrace::fork_execv(server_exe.c_str(), args);
 }
 
