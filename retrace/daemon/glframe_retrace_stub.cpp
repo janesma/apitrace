@@ -62,7 +62,7 @@ namespace {
 
 class RetraceSocket {
  public:
-  explicit RetraceSocket(int port) : m_sock("localhost", port) {}
+  explicit RetraceSocket(const char *host, int port) : m_sock(host, port) {}
   void request(const RetraceRequest &req) {
     // write message
     const uint32_t write_size = req.ByteSize();
@@ -367,11 +367,16 @@ class BufferQueue {
   std::mutex m_mut;
 };
 
+}  // namespace
+
+namespace glretrace {
+
 class ThreadedRetrace : public Thread {
  public:
-  explicit ThreadedRetrace(int port) : Thread("retrace_stub"),
+  explicit ThreadedRetrace(const char *host,
+                           int port) : Thread("retrace_stub"),
                                        m_running(true),
-                                       m_sock(port) {}
+                                       m_sock(host, port) {}
   void push(IRetraceRequest *r) { m_queue.push(r); }
   void stop() {
     m_running = false;
@@ -391,28 +396,29 @@ class ThreadedRetrace : public Thread {
   RetraceSocket m_sock;
 };
 
-static ThreadedRetrace *thread = NULL;
-}  // namespace
+}  // namespace glretrace
+
+using glretrace::ThreadedRetrace;
 
 void
-FrameRetraceStub::Init(int port) {
-  assert(thread == NULL);
-  thread = new ThreadedRetrace(port);
-  thread->Start();
+FrameRetraceStub::Init(const char *host, int port) {
+  assert(m_thread == NULL);
+  m_thread = new ThreadedRetrace(host, port);
+  m_thread->Start();
 }
 
 void
 FrameRetraceStub::Shutdown() {
-  assert(thread != NULL);
-  thread->stop();
-  delete thread;
+  assert(m_thread != NULL);
+  m_thread->stop();
+  delete m_thread;
 }
 
 void
 FrameRetraceStub::openFile(const std::string &filename,
                            uint32_t frameNumber,
                            OnFrameRetrace *callback) {
-  thread->push(new RetraceOpenFileRequest(filename, frameNumber, callback));
+  m_thread->push(new RetraceOpenFileRequest(filename, frameNumber, callback));
 }
 
 void
@@ -421,21 +427,21 @@ FrameRetraceStub::retraceRenderTarget(RenderId renderId,
                                       RenderTargetType type,
                                       RenderOptions options,
                                       OnFrameRetrace *callback) const {
-  thread->push(new RetraceRenderTargetRequest(renderId, render_target_number,
+  m_thread->push(new RetraceRenderTargetRequest(renderId, render_target_number,
                                               type, options, callback));
 }
 
 void
 FrameRetraceStub::retraceShaderAssembly(RenderId renderId,
                                         OnFrameRetrace *callback) {
-  thread->push(new RetraceShaderAssemblyRequest(renderId, callback));
+  m_thread->push(new RetraceShaderAssemblyRequest(renderId, callback));
 }
 
 void
 FrameRetraceStub::retraceMetrics(const std::vector<MetricId> &ids,
                                  ExperimentId experimentCount,
                                  OnFrameRetrace *callback) const {
-  thread->push(new RetraceMetricsRequest(ids, experimentCount, callback));
+  m_thread->push(new RetraceMetricsRequest(ids, experimentCount, callback));
 }
 
 void
@@ -447,7 +453,7 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
                                  const std::string &tessEval,
                                  const std::string &geom,
                                  OnFrameRetrace *callback) {
-  thread->push(new ReplaceShadersRequest(renderId, experimentCount,
+  m_thread->push(new ReplaceShadersRequest(renderId, experimentCount,
                                          vs, fs, tessControl, tessEval,
                                          geom, callback));
 }
@@ -455,5 +461,5 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
 void
 FrameRetraceStub::retraceApi(RenderId renderId,
                              OnFrameRetrace *callback) {
-  thread->push(new ApiRequest(renderId, callback));
+  m_thread->push(new ApiRequest(renderId, callback));
 }

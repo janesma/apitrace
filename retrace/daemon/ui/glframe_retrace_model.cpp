@@ -38,6 +38,7 @@
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_socket.hpp"
 
 using glretrace::FrameRetraceModel;
 using glretrace::FrameState;
@@ -51,6 +52,7 @@ using glretrace::RenderTargetType;
 using glretrace::ExperimentId;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
+using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
 
 FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
@@ -69,6 +71,7 @@ FrameRetraceModel::~FrameRetraceModel() {
     m_state = NULL;
   }
   m_api_calls.clear();
+  m_retrace.Shutdown();
 }
 
 FrameState *frame_state_off_thread(std::string filename,
@@ -79,10 +82,43 @@ FrameState *frame_state_off_thread(std::string filename,
 static QFuture<FrameState *> future;
 
 void
-FrameRetraceModel::setFrame(const QString &filename, int framenumber) {
+exec_retracer(const char *main_exe, int port) {
+  // frame_retrace_server should be at the same path as frame_retrace
+  std::string server_exe(main_exe);
+  size_t last_sep = server_exe.rfind('/');
+  if (last_sep != std::string::npos)
+    server_exe.resize(last_sep + 1);
+  else
+    server_exe = std::string("");
+  server_exe += "frame_retrace_server";
+
+  std::stringstream port_s;
+  port_s << port;
+  const char *const args[] = {server_exe.c_str(),
+                              "-p",
+                              port_s.str().c_str(),
+                              NULL};
+  glretrace::fork_execv(server_exe.c_str(), args);
+}
+
+void
+FrameRetraceModel::setFrame(const QString &filename, int framenumber,
+                            const QString &host) {
   // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
   future = QtConcurrent::run(frame_state_off_thread,
                              filename.toStdString(), framenumber);
+  m_state = future.result();
+  int port = 24642;
+  if (host == "localhost") {
+    {
+      ServerSocket sock(0);
+      port = sock.GetPort();
+    }
+    GRLOGF(glretrace::WARN, "using port: %d", port);
+    exec_retracer(main_exe.toStdString().c_str(), port);
+  }
+
+  m_retrace.Init(host.toStdString().c_str(), port);
   m_retrace.openFile(filename.toStdString(), framenumber, this);
   m_retrace.retraceApi(RenderId(-1), this);
 }
@@ -183,7 +219,6 @@ FrameRetraceModel::onFileOpening(bool finished,
                                  uint32_t percent_complete) {
   ScopedLock s(m_protect);
   if (finished) {
-    m_state = future.result();
     const int rcount = m_state->getRenderCount();
     for (int i = 0; i < rcount; ++i) {
       m_renders_model.append(new QRenderBookmark(i));

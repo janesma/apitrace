@@ -52,11 +52,12 @@ int parse_args(int argc, char *argv[]) {
         return atoi(optarg);
       case 'h':
       default: /* '?' */
-        printf("USAGE: frame_retrace_server -p port\n");
-        exit(-1);
+        printf("USAGE: frame_retrace_server [-p port]\n"
+               "\tdefault port: 24642");
+        break;
     }
   }
-  exit(-1);
+  return 24642;
 }
 
 
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   GlFunctions::Init();
   Logger::Create();
-  Logger::SetSeverity(glretrace::WARN);
+  Logger::SetSeverity(glretrace::INFO);
   Logger::Begin();
   Socket::Init();
   int port = parse_args(argc, argv);
