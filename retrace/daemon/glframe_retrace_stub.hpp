@@ -33,14 +33,16 @@
 
 namespace glretrace {
 
+class ThreadedRetrace;
+
 // offloads the request to a thread which serializes request to the
 // retrace process, and blocks on the result.
 class FrameRetraceStub : public IFrameRetrace {
  public:
   // call once, to set up the retrace socket, and shut it down at
   // exit
-  static void Init(int port);
-  static void Shutdown();
+  void Init(const char *host, int port);
+  void Shutdown();
 
   virtual void openFile(const std::string &filename,
                         uint32_t frameNumber,
@@ -65,6 +67,9 @@ class FrameRetraceStub : public IFrameRetrace {
                               OnFrameRetrace *callback);
   virtual void retraceApi(RenderId renderId,
                           OnFrameRetrace *callback);
+
+ private:
+  ThreadedRetrace *m_thread = NULL;
 };
 }  // namespace glretrace
 

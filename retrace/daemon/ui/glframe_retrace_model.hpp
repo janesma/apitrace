@@ -117,6 +117,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onShaders)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
+  Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
+             NOTIFY onArgvZero)
 
  public:
   FrameRetraceModel();
@@ -124,7 +126,8 @@ class FrameRetraceModel : public QObject,
 
   virtual void subscribe(QBarGraphRenderer *graph);
 
-  Q_INVOKABLE void setFrame(const QString &filename, int framenumber);
+  Q_INVOKABLE void setFrame(const QString &filename, int framenumber,
+                            const QString &host);
   Q_INVOKABLE void setMetric(int index, int id);
   Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs,
                                    const QString &tess_control,
@@ -164,6 +167,8 @@ class FrameRetraceModel : public QObject,
   QShader *tessEvalShader() { return &m_tess_eval; }
   QShader *geomShader() { return &m_geom; }
   QString shaderCompileError() { return m_shader_compile_error; }
+  QString argvZero() { return main_exe; }
+  void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
 
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
@@ -185,6 +190,7 @@ class FrameRetraceModel : public QObject,
   void onMaxMetric();
   void onApiCalls();
   void onShaderCompileError();
+  void onArgvZero();
 
   // this signal transfers onMetricList to be handled in the UI
   // thread.  The handler generates QObjects which are passed to qml
@@ -205,6 +211,7 @@ class FrameRetraceModel : public QObject,
 
   QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom;
   QString m_shader_compile_error;
+  QString main_exe;  // for path to frame_retrace_server
 
   QStringList m_api_calls;
   int m_open_percent;
