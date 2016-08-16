@@ -18,6 +18,7 @@ ApplicationWindow {
     FrameRetrace {
         id : frameRetrace
         selection: selection
+        argvZero: Qt.application.arguments[0]
         onOpenPercentChanged: {
             if (openPercent < 100) {
                 progressBar.percentComplete = openPercent;
@@ -126,21 +127,49 @@ ApplicationWindow {
                 }
             }
         }
+        Text {
+            id: hostText
+            anchors.top: frameBox.bottom
+            anchors.left: frameBox.left
+            text: "host:"
+        }
+        Rectangle {
+            width: 500
+            id: hostBox
+            border.width: 1
+            height: textHeight.height * 1.5
+            anchors.top: hostText.bottom
+            anchors.left: hostText.left
+            TextInput {
+                height: textHeight.height
+                anchors.verticalCenter: parent.verticalCenter
+                verticalAlignment: Text.AlignVCenter
+                activeFocusOnPress : true
+                width: parent.width
+                selectByMouse: true
+                focus: true
+                id: hostInput
+                text: "localhost"
+                Settings {
+                    property alias host_name: hostInput.text
+                }
+            }
+        }
         Button {
             id: okButton
-            anchors.left: frameBox.left
-            anchors.top: frameBox.bottom
+            anchors.left: hostBox.left
+            anchors.top: hostBox.bottom
             text: "OK"
             onClicked: {
                 openfile.visible = false
                 progressBar.visible = true
-                frameRetrace.setFrame(textInput.text, frameInput.text);
+                frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text);
             }
         }
         Button {
             text: "Cancel"
             anchors.left: okButton.right
-            anchors.top: frameBox.bottom
+            anchors.top: hostBox.bottom
             onClicked: {
                 Qt.quit();
             }
