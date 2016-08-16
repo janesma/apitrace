@@ -37,7 +37,7 @@ int fork_execv(const char *path, const char *const argv[]) {
   cmdLine << path << " ";
   int i = 1;
   const char *arg = argv[i];
-  while (*arg != '\0') {
+  while (arg != NULL) {
     cmdLine << arg << " ";
     arg = argv[++i];
   }
