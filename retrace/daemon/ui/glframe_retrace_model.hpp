@@ -138,7 +138,7 @@ class FrameRetraceModel : public QObject,
   QSelection *selection();
   void setSelection(QSelection *s);
 
-  void onFileOpening(bool finished,
+  void onFileOpening(bool needUpload, bool finished,
                      uint32_t percent_complete);
   void onShaderAssembly(RenderId renderId,
                         const ShaderAssembly &vertex,

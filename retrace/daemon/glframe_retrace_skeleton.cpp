@@ -29,8 +29,10 @@
 #include <google/protobuf/io/coded_stream.h>
 
 #include <string>
+#include <sstream>
 #include <vector>
 
+#include "glframe_os.hpp"
 #include "glframe_retrace_interface.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_socket.hpp"
@@ -46,6 +48,7 @@ using glretrace::ExperimentId;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
 using glretrace::ShaderAssembly;
+using glretrace::application_cache_directory;
 using ApiTrace::RetraceResponse;
 using ApiTrace::RetraceRequest;
 using google::protobuf::io::ArrayInputStream;
@@ -53,11 +56,14 @@ using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::ArrayOutputStream;
 
-FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock)
+FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock,
+                                           IFrameRetrace *frameretrace)
     : Thread("retrace_skeleton"), m_socket(sock),
-      m_frame(new FrameRetrace),
+      m_frame(frameretrace),
       m_remaining_metrics_requests(0),
       m_multi_metrics_response(new RetraceResponse) {
+  if (!m_frame)
+    m_frame = new FrameRetrace();
 }
 
 void
@@ -87,7 +93,48 @@ FrameRetraceSkeleton::Run() {
       case ApiTrace::OPEN_FILE_REQUEST:
         {
           auto of = request.fileopen();
-          m_frame->openFile(of.filename(), of.framenumber(), this);
+          std::string file_path = of.filename();
+          const std::vector<unsigned char> vsum(of.md5sum().begin(),
+                                                of.md5sum().end());
+          std::stringstream cache_file_s;
+          cache_file_s << application_cache_directory();
+          cache_file_s << std::hex;
+          for (auto byte : vsum)
+            cache_file_s << static_cast<unsigned int>(byte);
+          cache_file_s << ".trace";
+
+          FILE * fh = fopen(of.filename().c_str(), "rb");
+          if (!fh) {
+            file_path = cache_file_s.str();
+            fh = fopen(file_path.c_str(), "r");
+          }
+          if (!fh || m_force_upload) {
+            // request file data
+            file_path = cache_file_s.str();
+            onFileOpening(true, false, 0);
+
+            if (fh)
+              fclose(fh);
+            fh = fopen(file_path.c_str(), "wb");
+
+            uint32_t bytes_received = 0;
+            std::vector<unsigned char> buf;
+            while (true) {
+              uint32_t bytes;
+              m_socket->Read(&bytes);
+              buf.resize(bytes);
+              m_socket->ReadVec(&buf);
+              bytes_received += bytes;
+              const uint32_t w_bytes = fwrite(buf.data(), 1, bytes, fh);
+              assert(w_bytes == bytes);
+              if (bytes_received == of.filesize())
+                break;
+            }
+          }
+          fclose(fh);
+
+          m_frame->openFile(file_path, vsum, of.filesize(),
+                            of.framenumber(), this);
           break;
         }
       case ApiTrace::RENDER_TARGET_REQUEST:
@@ -177,10 +224,12 @@ writeResponse(Socket *s,
 }
 
 void
-FrameRetraceSkeleton::onFileOpening(bool finished,
+FrameRetraceSkeleton::onFileOpening(bool needUpload,
+                                    bool finished,
                                     uint32_t percent_complete) {
   RetraceResponse proto_response;
   auto status = proto_response.mutable_filestatus();
+  status->set_needs_upload(needUpload);
   status->set_finished(finished);
   status->set_percent_complete(percent_complete);
   writeResponse(m_socket, proto_response, &m_buf);

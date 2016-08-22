@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
   ${CMAKE_SOURCE_DIR}/retrace/daemon/bargraph
+  ${CMAKE_SOURCE_DIR}/thirdparty/md5
   )
 
 find_package(Qt5Widgets REQUIRED) 

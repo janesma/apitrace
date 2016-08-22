@@ -75,4 +75,9 @@ glretrace_delay(unsigned int ms) {
   Sleep(ms);
 }
 
+std::string application_cache_directory() {
+  // TODO(majanes): implement this
+  return "c:/tmp/";
+}
+
 }  // namespace glretrace
