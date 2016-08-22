@@ -47,7 +47,8 @@ class FrameRetraceSkeleton : public Thread,
  public:
   // call once, to set up the retrace socket, and shut it down at
   // exit
-  explicit FrameRetraceSkeleton(Socket *sock);
+  explicit FrameRetraceSkeleton(Socket *sock,
+                                IFrameRetrace *frameretrace = NULL);
   virtual void Run();
 
   // callback responses, to be sent through the socket to the caller
@@ -57,7 +58,8 @@ class FrameRetraceSkeleton : public Thread,
                                 const ShaderAssembly &tess_control_shader,
                                 const ShaderAssembly &tess_eval_shader,
                                 const ShaderAssembly &geom_shader);
-  virtual void onFileOpening(bool finished,
+  virtual void onFileOpening(bool needs_upload,
+                             bool finished,
                              uint32_t percent_complete);
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
                               const std::vector<unsigned char> &pngImageData);
@@ -72,10 +74,13 @@ class FrameRetraceSkeleton : public Thread,
   virtual void onApi(RenderId renderid,
                      const std::vector<std::string> &api_calls);
 
+ protected:
+  bool m_force_upload;  // for unit test
+
  private:
   Socket *m_socket;
   std::vector<unsigned char> m_buf;
-  FrameRetrace *m_frame;
+  IFrameRetrace *m_frame;
   int m_remaining_metrics_requests;
 
   // for aggregating metrics callbacks on a series of requests

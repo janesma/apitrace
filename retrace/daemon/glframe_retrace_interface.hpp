@@ -162,7 +162,8 @@ struct ShaderAssembly {
 class OnFrameRetrace {
  public:
   typedef std::vector<unsigned char> uvec;
-  virtual void onFileOpening(bool finished,
+  virtual void onFileOpening(bool needUpload,
+                             bool finished,
                              uint32_t percent_complete) = 0;
   virtual void onShaderAssembly(RenderId renderId,
                                 const ShaderAssembly &vertex,
@@ -187,7 +188,14 @@ class OnFrameRetrace {
 class IFrameRetrace {
  public:
   virtual ~IFrameRetrace() {}
+  // server responds with onFileOpening until finished.  For remote
+  // connections, client will immediately send file data if server
+  // responds that md5 is not located in the cache.  Sending file data
+  // is not expressed in this interface or in the protobuf interface,
+  // because data will be too large to format into a message.
   virtual void openFile(const std::string &filename,
+                        const std::vector<unsigned char> &md5,
+                        uint64_t fileSize,
                         uint32_t frameNumber,
                         OnFrameRetrace *callback) = 0;
   virtual void retraceRenderTarget(RenderId renderId,

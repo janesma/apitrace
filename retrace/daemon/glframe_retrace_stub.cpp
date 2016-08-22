@@ -105,6 +105,15 @@ class RetraceSocket {
     response(resp);
   }
 
+  void write(const std::vector<unsigned char> &buf) {
+    const uint32_t write_size = buf.size();
+    // std::cout << "RetraceSocket: writing size: " << write_size << "\n";
+    if (!m_sock.Write(write_size)) {
+      std::cout << "no write: len\n";
+      return;
+    }
+    m_sock.WriteVec(buf);
+  }
 
  private:
   Socket m_sock;
@@ -193,12 +202,17 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
 
 class RetraceOpenFileRequest: public IRetraceRequest {
  public:
-  RetraceOpenFileRequest(const std::string &fn, uint32_t frame,
+  RetraceOpenFileRequest(const std::string &fn,
+                         const std::vector<unsigned char> &md5,
+                         uint64_t fileSize,
+                         uint32_t frame,
                          OnFrameRetrace *cb)
       : m_callback(cb) {
     m_proto_msg.set_requesttype(ApiTrace::OPEN_FILE_REQUEST);
     auto file_open = m_proto_msg.mutable_fileopen();
     file_open->set_filename(fn);
+    file_open->set_md5sum(md5.data(), md5.size());
+    file_open->set_filesize(fileSize);
     file_open->set_framenumber(frame);
   }
   virtual void retrace(RetraceSocket *s) {
@@ -208,8 +222,26 @@ class RetraceOpenFileRequest: public IRetraceRequest {
       s->response(&response);
       if (response.has_filestatus()) {
         auto status = response.filestatus();
+        if (status.needs_upload()) {
+          m_callback->onFileOpening(true, false, 0);
+          // send data
+          auto file_open = m_proto_msg.fileopen();
+          FILE * fh = fopen(file_open.filename().c_str(), "rb");
+          assert(fh);
+          std::vector<unsigned char> buf(1024 * 1024);
+          while (true) {
+            const size_t bytes = fread(buf.data(), 1, 1024 * 1024, fh);
+            buf.resize(bytes);
+            s->write(buf);
+            if (feof(fh))
+              break;
+            assert(!ferror(fh));
+          }
+          continue;
+        }
         if (m_callback)
-          m_callback->onFileOpening(status.finished(),
+          m_callback->onFileOpening(status.needs_upload(),
+                                    status.finished(),
                                     status.percent_complete());
         if (status.finished())
           break;
@@ -343,6 +375,17 @@ class NullRequest : public IRetraceRequest {
   virtual void retrace(RetraceSocket *sock) {}
 };
 
+class FlushRequest : public IRetraceRequest {
+ public:
+  explicit FlushRequest(Semaphore *sem) : m_sem(sem) {}
+  // to block until the queue executes all outstanding requests
+  virtual void retrace(RetraceSocket *sock) {
+    m_sem->post();
+  }
+ private:
+  Semaphore *m_sem;
+};
+
 class BufferQueue {
  public:
   void push(IRetraceRequest *r) {
@@ -416,9 +459,12 @@ FrameRetraceStub::Shutdown() {
 
 void
 FrameRetraceStub::openFile(const std::string &filename,
+                           const std::vector<unsigned char> &md5,
+                           uint64_t fileSize,
                            uint32_t frameNumber,
                            OnFrameRetrace *callback) {
-  m_thread->push(new RetraceOpenFileRequest(filename, frameNumber, callback));
+  m_thread->push(new RetraceOpenFileRequest(filename, md5, fileSize,
+                                            frameNumber, callback));
 }
 
 void
@@ -462,4 +508,11 @@ void
 FrameRetraceStub::retraceApi(RenderId renderId,
                              OnFrameRetrace *callback) {
   m_thread->push(new ApiRequest(renderId, callback));
+}
+
+void
+FrameRetraceStub::Flush() {
+  Semaphore sem;
+  m_thread->push(new FlushRequest(&sem));
+  sem.wait();
 }

@@ -32,6 +32,7 @@
 
 #include <mutex>
 #include <condition_variable>
+#include <string>
 
 #include "glframe_traits.hpp"
 
@@ -64,6 +65,8 @@ class Semaphore : NoCopy, NoAssign, NoMove {
 int fork_execv(const char *path, const char *const argv[]);
 
 struct tm *glretrace_localtime(const time_t *timep, struct tm *result);
+
+std::string application_cache_directory();
 
 int glretrace_rand(unsigned int *seedp);
 void glretrace_delay(unsigned int ms);

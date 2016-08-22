@@ -3,6 +3,7 @@
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
   ${CMAKE_SOURCE_DIR}/retrace/daemon/bargraph/test
+  ${CMAKE_SOURCE_DIR}/thirdparty/md5
   )
 
 if (NOT WIN32)
@@ -14,6 +15,7 @@ endif()
 set (DAEMON_TEST_SRC
   ${DAEMON_TEST_OS_SRC}
   retrace_daemon_test.cpp
+  retrace_file_transfer_test.cpp
   retrace_log_test.cpp
   retrace_socket_test.cpp
   retrace_thread_test.cpp
@@ -48,6 +50,7 @@ target_link_libraries(retrace_daemon_test
   retrace_gldispatch
   glhelpers
   glproc_gl
+  ${PROTOBUF_LIBRARY}
   gtest
   ${DAEMON_TEST_OS_LIBS}
   )

@@ -25,12 +25,18 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#include <pwd.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
+
+#include <string>
+#include <sstream>
 
 namespace glretrace {
 
@@ -60,6 +66,25 @@ glretrace_rand(unsigned int *seedp) {
 void
 glretrace_delay(unsigned int ms) {
   usleep(1000 * ms);
+}
+
+std::string application_cache_directory() {
+  const char *homedir = "/tmp";
+
+  struct passwd pwd, *result;
+  char buf[16384];
+  if ((homedir = getenv("HOME")) == NULL) {
+    getpwuid_r(getuid(), &pwd, buf, 16384, &result);
+    homedir = pwd.pw_dir;
+  }
+
+  std::stringstream cache_path;
+  cache_path << homedir;
+  cache_path << "/.frameretrace";
+
+  mkdir(cache_path.str().c_str(), S_IRWXU);
+  cache_path << "/";
+  return cache_path.str();
 }
 
 }  // namespace glretrace
