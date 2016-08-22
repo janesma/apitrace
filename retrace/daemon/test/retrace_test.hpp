@@ -30,6 +30,10 @@
 #include "retrace.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
+#include "md5.h"  // NOLINT
+
+void get_md5(const std::string file_path, std::vector<unsigned char> *md5,
+             uint32_t *fileSize);
 
 class RetraceTest : public ::testing::Test {
  protected:
@@ -43,6 +47,9 @@ class RetraceTest : public ::testing::Test {
     glretrace::Logger::Destroy();
     retrace::cleanUp();
   }
+  std::vector<unsigned char> md5;
+  uint32_t fileSize;
 };
+
 
 #endif  // _RETRACE_TEST_HPP__

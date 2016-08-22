@@ -57,6 +57,8 @@ class FrameRetrace : public IFrameRetrace {
   FrameRetrace();
   ~FrameRetrace();
   void openFile(const std::string &filename,
+                const std::vector<unsigned char> &md5,
+                uint64_t fileSize,
                 uint32_t frameNumber,
                 OnFrameRetrace *callback);
 

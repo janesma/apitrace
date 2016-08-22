@@ -53,7 +53,8 @@ static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.trace";
 
 class NullCallback : public OnFrameRetrace {
  public:
-  void onFileOpening(bool finished,
+  void onFileOpening(bool needUpload,
+                     bool finished,
                      uint32_t percent_complete) {}
   void onShaderAssembly(RenderId renderId,
                         const ShaderAssembly &vertex,
@@ -82,6 +83,28 @@ class NullCallback : public OnFrameRetrace {
   std::vector<std::string> calls;
 };
 
+void
+get_md5(const std::string filename, std::vector<unsigned char> *md5,
+        uint32_t *fileSize) {
+  struct MD5Context md5c;
+  MD5Init(&md5c);
+  std::vector<unsigned char> buf(1024 * 1024);
+  FILE * fh = fopen(filename.c_str(), "r");
+  assert(fh);
+  size_t total_bytes = 0;
+  while (true) {
+    const size_t bytes = fread(buf.data(), 1, 1024 * 1024, fh);
+    total_bytes += bytes;
+    MD5Update(&md5c, buf.data(), bytes);
+    if (feof(fh))
+      break;
+    assert(!ferror(fh));
+  }
+  md5->resize(16);
+  MD5Final(md5->data(), &md5c);
+  *fileSize = total_bytes;
+}
+
 TEST_F(RetraceTest, LoadFile) {
   retrace::setUp();
   GlFunctions::Init();
@@ -89,7 +112,8 @@ TEST_F(RetraceTest, LoadFile) {
   NullCallback cb;
 
   FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
+  get_md5(test_file, &md5, &fileSize);
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
   int renderCount = rt.getRenderCount();
   EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
   for (int i = 0; i < renderCount; ++i) {
@@ -101,7 +125,8 @@ TEST_F(RetraceTest, LoadFile) {
 TEST_F(RetraceTest, ReplaceShaders) {
   NullCallback cb;
   FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
+  get_md5(test_file, &md5, &fileSize);
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
   rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "",
                     "", "", &cb);
   EXPECT_GT(cb.compile_error.size(), 0);
@@ -121,7 +146,8 @@ TEST_F(RetraceTest, ReplaceShaders) {
 TEST_F(RetraceTest, ApiCalls) {
   NullCallback cb;
   FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
+  get_md5(test_file, &md5, &fileSize);
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
   rt.retraceApi(RenderId(-1), &cb);
   EXPECT_GT(cb.calls.size(), 0);
   rt.retraceApi(RenderId(1), &cb);

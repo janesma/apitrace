@@ -16,12 +16,15 @@ enum RequestType {
 
 message OpenFileRequest {
   required string fileName = 1;
-  required uint32 frameNumber = 2;
+  required bytes md5Sum = 2;
+  required uint32 fileSize = 3;
+  required uint32 frameNumber = 4;
 };
 
 message OpenFileStatus {
-  required bool finished = 1;
-  required uint32 percent_complete = 2;
+  required bool needs_upload = 1;
+  required bool finished = 2;
+  required uint32 percent_complete = 3;
 }
 
 message MetricsList {

@@ -43,8 +43,11 @@ class FrameRetraceStub : public IFrameRetrace {
   // exit
   void Init(const char *host, int port);
   void Shutdown();
+  void Flush();
 
   virtual void openFile(const std::string &filename,
+                        const std::vector<unsigned char> &md5,
+                        uint64_t fileSize,
                         uint32_t frameNumber,
                         OnFrameRetrace *callback);
   virtual void retraceRenderTarget(RenderId renderId,

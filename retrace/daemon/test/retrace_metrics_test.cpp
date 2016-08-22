@@ -38,7 +38,8 @@
 namespace glretrace {
 class MetricsCallback : public OnFrameRetrace {
  public:
-  void onFileOpening(bool finished,
+  void onFileOpening(bool needUpload,
+                     bool finished,
                      uint32_t percent_complete) {}
   void onShaderAssembly(RenderId renderId,
                         const ShaderAssembly &vertex,
@@ -104,7 +105,7 @@ TEST_F(RetraceTest, SingleMetricData) {
   EXPECT_TRUE(found);
 
   FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
   p.begin(RenderId(1));
   rt.retraceRenderTarget(RenderId(1), 0, glretrace::NORMAL_RENDER,
                          glretrace::STOP_AT_RENDER, &cb);
@@ -123,7 +124,7 @@ TEST_F(RetraceTest, FrameMetricData) {
   MetricsCallback cb;
 
   FrameRetrace rt;
-  rt.openFile(test_file, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
   if (!cb.ids.size()) {
     retrace::cleanUp();
     return;

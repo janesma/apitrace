@@ -95,7 +95,10 @@ int currentRenderBuffer() {
 }
 
 void
-FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
+FrameRetrace::openFile(const std::string &filename,
+                       const std::vector<unsigned char> &md5,
+                       uint64_t fileSize,
+                       uint32_t framenumber,
                        OnFrameRetrace *callback) {
   assemblyOutput.init();
   retracer.addCallbacks(glretrace::gl_callbacks);
@@ -121,7 +124,7 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
     delete call;
     if (frame_boundary) {
       ++current_frame;
-      callback->onFileOpening(false, current_frame * 100 / framenumber);
+      callback->onFileOpening(false, false, current_frame * 100 / framenumber);
       if (current_frame == framenumber)
         break;
     }
@@ -151,7 +154,7 @@ FrameRetrace::openFile(const std::string &filename, uint32_t framenumber,
 
   // record the final render as ending a render target region
   render_target_regions.push_back(RenderId(m_renders.size() - 1));
-  callback->onFileOpening(true, 100);
+  callback->onFileOpening(false, true, 100);
 }
 
 int
