@@ -120,6 +120,11 @@ Item {
                             barGraph.mouseDrag(startx, starty, endx, endy)
                         }
                     }
+                    onWheel : {
+                        var wheelx = 1.0;
+                        wheelx = wheel.x / barGraph.width;
+                        barGraph.mouseWheel(wheel.angleDelta.y / 5, wheelx);
+                    }
                     onReleased : {
                         barGraph.mouseRelease();
                     }

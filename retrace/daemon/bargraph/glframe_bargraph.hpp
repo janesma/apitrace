@@ -65,13 +65,16 @@ class BarGraphRenderer : protected QOpenGLFunctions {
   void setSelection(const std::set<int> &selection);
   void setMouseArea(float x1, float y1, float x2, float y2);
   void selectMouseArea();  // on click or drag-release
+  void setZoom(float z, float t);
   void render();
   void subscribe(BarGraphSubscriber *s);
 
  private:
   static const char *vshader, *fshader;
   GLuint vbo;
-  GLint att_coord, uni_max_x, uni_max_y, uni_invert_y, uni_bar_color, prog;
+  GLint att_coord, uni_max_x, uni_max_y, uni_invert_y,
+    uni_zoom_translate_x, uni_zoom_x,
+    uni_bar_color, prog;
   struct Vertex {
     float x;
     float y;
@@ -86,15 +89,19 @@ class BarGraphRenderer : protected QOpenGLFunctions {
   void CheckError(const char * file, int line);
   void GetCompileError(GLint shader, std::string *message);
   void PrintCompileError(GLint shader);
+  float unzoomX(float x);
 
   std::vector<bool> selected;
   std::vector<Vertex> vertices;
   std::vector<Vertex> mouse_vertices;
-
   // selection box.  coordinates are in the 0.0 - 1.0 range
   std::vector<Vertex> mouse_area;
 
-  float max_y, total_x, invert_y;
+  float max_y, total_x, invert_y,
+    zoom,
+    // zoom_translate is between -zoom * 1.0 and 0.0
+    zoom_translate;
+
   BarGraphSubscriber *subscriber;
 };
 

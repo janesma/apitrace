@@ -46,7 +46,7 @@ ApplicationWindow {
         selection: selection
         visible: true
         anchors.fill: parent
-        randomBarCount: 100
+        randomBarCount: 1000
         MouseArea {
             property var startx : -1.0;
             property var starty : -1.0;
@@ -62,6 +62,11 @@ ApplicationWindow {
                     var endy = (barGraph.height - mouse.y) / barGraph.height;
                     barGraph.mouseDrag(startx, starty, endx, endy)
                 }
+            }
+            onWheel : {
+                var wheelx = 1.0;
+                wheelx = wheel.x / barGraph.width;
+                barGraph.mouseWheel(wheel.angleDelta.y / 5, wheelx);
             }
             onReleased : {
                 barGraph.mouseRelease();
