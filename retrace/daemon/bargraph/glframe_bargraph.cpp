@@ -76,12 +76,16 @@ BarGraphRenderer::vshader =
     "uniform mediump float max_x; \n"
     "uniform mediump float max_y; \n"
     "uniform mediump float invert_y; \n"
+    "uniform mediump float zoom_translate_x; \n"
+    "uniform mediump float zoom_x; \n"
     "void main(void) { \n"
+    "  /* translate zoom_center to 0,0, then zoom */ \n"
+    "  vec2 zoom_coord = vec2(zoom_x * coord.x, coord.y); \n"
     "  /* normalize y */ \n"
     "  /* normalize x */ \n"
     "  mat2 normalize = mat2(2.0 / max_x , 0.0, 0.0, 2.0 / max_y); \n"
-    "  vec2 translate = vec2(-1.0, -1.0); \n"
-    "  vec2 pos = translate + normalize * coord; \n"
+    "  vec2 translate = vec2(-1.0 + 2.0 * zoom_translate_x, -1.0); \n"
+    "  vec2 pos = translate + normalize * zoom_coord; \n"
     "  gl_Position = vec4(pos.x, invert_y * pos.y, 0.0, 1.0); \n"
     "}";
 
@@ -97,6 +101,8 @@ BarGraphRenderer::BarGraphRenderer(bool invert)
     : mouse_vertices(4),
       mouse_area(2),
       invert_y(invert ? -1 : 1),
+      zoom(1.0),
+      zoom_translate(0.0),
       subscriber(NULL) {
   initializeOpenGLFunctions();
   // generate vbo
@@ -141,6 +147,10 @@ BarGraphRenderer::BarGraphRenderer(bool invert)
   uni_invert_y = glGetUniformLocation(prog,  "invert_y");
   GL_CHECK();
   uni_bar_color = glGetUniformLocation(prog, "bar_color");
+  GL_CHECK();
+  uni_zoom_translate_x = glGetUniformLocation(prog,  "zoom_translate_x");
+  GL_CHECK();
+  uni_zoom_x = glGetUniformLocation(prog,  "zoom_x");
   GL_CHECK();
 }
 
@@ -190,6 +200,11 @@ BarGraphRenderer::setBars(const std::vector<BarMetrics> &bars) {
   total_x = current_x;
 }
 
+float
+BarGraphRenderer::unzoomX(float x) {
+  return (x - zoom_translate) / zoom * total_x;
+}
+
 void
 BarGraphRenderer::setMouseArea(float x1, float y1, float x2, float y2) {
   mouse_area[0].x = x1;
@@ -207,7 +222,8 @@ BarGraphRenderer::setMouseArea(float x1, float y1, float x2, float y2) {
   mouse_vertices[3].x = x2;
   mouse_vertices[3].y = y2;
   for (auto &vertex : mouse_vertices) {
-    vertex.x *= total_x;
+    // unzoom the x coordinate
+    vertex.x = unzoomX(vertex.x);
     vertex.y *= max_y;
   }
 }
@@ -223,8 +239,9 @@ BarGraphRenderer::selectMouseArea() {
     return;
 
   std::vector<int> selected_renders;
-  const float min_x = total_x * std::min(mouse_area[0].x, mouse_area[1].x);
-  const float max_x = total_x * std::max(mouse_area[0].x, mouse_area[1].x);
+  // TODO(majanes) unzoom the x
+  const float min_x = unzoomX(std::min(mouse_area[0].x, mouse_area[1].x));
+  const float max_x = unzoomX(std::max(mouse_area[0].x, mouse_area[1].x));
   const float min_y = max_y * std::min(mouse_area[0].y, mouse_area[1].y);
 
   // iterate over the vertices, to see if the mouse area crosses each bar
@@ -243,6 +260,10 @@ BarGraphRenderer::selectMouseArea() {
     selected[current_render] = true;
   }
   subscriber->onBarSelect(selected_renders);
+  mouse_area[0].x = -1;
+  mouse_area[0].y = -1;
+  mouse_area[1].x = -1;
+  mouse_area[1].y = -1;
 }
 
 // solely for debugging: allows gdb to print vertices[n]
@@ -269,6 +290,10 @@ BarGraphRenderer::render() {
   glUniform1f(uni_max_x, total_x);
   GL_CHECK();
   glUniform1f(uni_invert_y, invert_y);
+  GL_CHECK();
+  glUniform1f(uni_zoom_translate_x, zoom_translate);
+  GL_CHECK();
+  glUniform1f(uni_zoom_x, zoom);
   GL_CHECK();
 
   // bind vbo
@@ -377,4 +402,12 @@ void
 BarGraphRenderer::setSelection(const std::set<int> &selection) {
   for (int i = 0; i < selected.size(); ++i)
     selected[i] = selection.find(i) != selection.end();
+}
+
+void
+BarGraphRenderer::setZoom(float z, float t) {
+  // c is [0..1]
+  // translate is [-total_x..0]
+  zoom = z;
+  zoom_translate = t;
 }

@@ -82,6 +82,7 @@ class BarGraphView : public QQuickFramebufferObject,
   QQuickFramebufferObject::Renderer *createRenderer() const;
   Q_INVOKABLE void mouseRelease();
   Q_INVOKABLE void mouseDrag(float x1, float y1, float x2, float y2);
+  Q_INVOKABLE void mouseWheel(int degrees, float zoom_point_x);
 
   bool subscribeRandom(QBarGraphRenderer *graph);
 
@@ -94,6 +95,8 @@ class BarGraphView : public QQuickFramebufferObject,
   int randomBarCount() const {return m_randomBars;}
   void setRandomBarCount(int count);
 
+  void zoom(float *zoom, float *translate) const;
+
   std::vector<float> mouse_area;
   bool clicked;
  signals:
@@ -105,6 +108,9 @@ class BarGraphView : public QQuickFramebufferObject,
   QSelection *selection;
   FrameRetraceModel *model;
   int m_randomBars;
+  float m_zoom;  // range [1.0..]
+  float m_translate;  // after zoom, translate to keep zoom point in
+                      // place [0..1.0] coordinate system
 };
 
 }  // namespace glretrace
