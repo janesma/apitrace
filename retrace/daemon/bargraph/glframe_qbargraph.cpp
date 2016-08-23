@@ -83,9 +83,17 @@ QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
                        v->mouse_area[1],
                        v->mouse_area[2],
                        v->mouse_area[3]);
+  float zoom, zoom_translate;
+  v->zoom(&zoom, &zoom_translate);
+  m_graph.setZoom(zoom, zoom_translate);
+
   if (v->clicked) {
     m_graph.selectMouseArea();
     m_graph.setMouseArea(0, 0, 0, 0);
+    v->mouse_area[0] = -1.0;
+    v->mouse_area[1] = -1.0;
+    v->mouse_area[2] = -1.0;
+    v->mouse_area[3] = -1.0;
     v->clicked = false;
   }
 }
@@ -131,7 +139,9 @@ BarGraphView::createRenderer() const {
 
 BarGraphView::BarGraphView() : mouse_area(4), clicked(false),
                                selection(NULL), model(NULL),
-                               m_randomBars(0) {
+                               m_randomBars(0),
+                               m_zoom(1.0),
+                               m_translate(0.0) {
 }
 
 void
@@ -195,4 +205,31 @@ BarGraphView::subscribeRandom(QBarGraphRenderer *graph) {
   }
   graph->onMetrics(metrics);
   return true;
+}
+
+void
+BarGraphView::mouseWheel(int degrees, float zoom_point_x) {
+  float new_zoom = m_zoom + degrees / 360.0;
+  if (new_zoom < 1.0) {
+    new_zoom = 1.0;
+  }
+
+  float unzoomed_point = (zoom_point_x - m_translate) / m_zoom;
+  float new_translate = zoom_point_x - unzoomed_point * new_zoom;
+  // float new_translate = zoom_point_x * (1 - new_zoom);
+
+  if (new_translate < 1 - new_zoom)
+    new_translate = 1 - new_zoom;
+  else if (new_translate > 0)
+    new_translate = 0;
+
+  m_translate = new_translate;
+  m_zoom = new_zoom;
+  update();
+}
+
+void
+BarGraphView::zoom(float *zoom, float *translate) const {
+  *zoom = m_zoom;
+  *translate = m_translate;
 }
