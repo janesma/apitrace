@@ -46,6 +46,7 @@ ApplicationWindow {
         selection: selection
         visible: true
         anchors.fill: parent
+        randomBarCount: 100
         MouseArea {
             property var startx : -1.0;
             property var starty : -1.0;
