@@ -61,7 +61,7 @@ class QBarGraphRenderer : public QObject,
   BarGraphRenderer m_graph;
   std::vector<int> current_selection;
   QSelection *selection;
-  FrameRetraceModel *model;
+  bool subscribed;
 };
 
 // exposes qml properties and signals to integrate the bar graph into
@@ -73,11 +73,17 @@ class BarGraphView : public QQuickFramebufferObject,
              READ getSelection WRITE setSelection)
   Q_PROPERTY(glretrace::FrameRetraceModel* model
              READ getModel WRITE setModel NOTIFY onModel)
+  Q_PROPERTY(int randomBarCount
+             READ randomBarCount
+             WRITE setRandomBarCount
+             NOTIFY onRandomBarCount)
  public:
   BarGraphView();
   QQuickFramebufferObject::Renderer *createRenderer() const;
   Q_INVOKABLE void mouseRelease();
   Q_INVOKABLE void mouseDrag(float x1, float y1, float x2, float y2);
+
+  bool subscribeRandom(QBarGraphRenderer *graph);
 
   QSelection *getSelection();
   void setSelection(QSelection *s);
@@ -85,15 +91,20 @@ class BarGraphView : public QQuickFramebufferObject,
   FrameRetraceModel *getModel();
   void setModel(FrameRetraceModel *m);
 
+  int randomBarCount() const {return m_randomBars;}
+  void setRandomBarCount(int count);
+
   std::vector<float> mouse_area;
   bool clicked;
  signals:
   void onModel();
+  void onRandomBarCount();
 
  private:
   mutable std::mutex m_protect;
   QSelection *selection;
   FrameRetraceModel *model;
+  int m_randomBars;
 };
 
 }  // namespace glretrace
