@@ -45,18 +45,8 @@ using glretrace::QSelection;
 
 QBarGraphRenderer::QBarGraphRenderer() : m_graph(true),
                                          selection(NULL),
-                                         model(NULL) {
+                                         subscribed(false) {
   m_graph.subscribe(this);
-  std::vector<BarMetrics> metrics(4);
-  metrics[0].metric1 = 1;
-  metrics[0].metric2 = 1;
-  metrics[1].metric1 = 2;
-  metrics[1].metric2 = 2;
-  metrics[2].metric1 = 1;
-  metrics[2].metric2 = 1;
-  metrics[3].metric1 = 2;
-  metrics[3].metric2 = 2;
-  m_graph.setBars(metrics);
 }
 
 void
@@ -78,11 +68,14 @@ QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
     }
   }
 
-  if (!model) {
+  if (!subscribed) {
     FrameRetraceModel *m = v->getModel();
     if (m) {
-      model = m;
       m->subscribe(this);
+      subscribed = true;
+    } else {
+      // for test
+      subscribed = v->subscribeRandom(this);
     }
   }
 
@@ -137,7 +130,8 @@ BarGraphView::createRenderer() const {
 }
 
 BarGraphView::BarGraphView() : mouse_area(4), clicked(false),
-                               selection(NULL), model(NULL) {
+                               selection(NULL), model(NULL),
+                               m_randomBars(0) {
 }
 
 void
@@ -180,4 +174,25 @@ BarGraphView::setModel(FrameRetraceModel *m) {
   model = m;
   update();
   emit onModel();
+}
+
+void
+BarGraphView::setRandomBarCount(int count) {
+  m_randomBars = count;
+  update();
+  emit onRandomBarCount();
+}
+
+bool
+BarGraphView::subscribeRandom(QBarGraphRenderer *graph) {
+  if (m_randomBars == 0)
+    return false;
+  QList<BarMetrics> metrics;
+  for (int i = 0; i < m_randomBars; ++i) {
+    metrics.append(BarMetrics());
+    metrics.back().metric1 = qrand() % 100;
+    metrics.back().metric2 = qrand() % 100;
+  }
+  graph->onMetrics(metrics);
+  return true;
 }
