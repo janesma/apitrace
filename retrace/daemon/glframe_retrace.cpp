@@ -101,6 +101,7 @@ FrameRetrace::openFile(const std::string &filename,
                        uint32_t framenumber,
                        OnFrameRetrace *callback) {
   assemblyOutput.init();
+  retrace::debug = 0;
   retracer.addCallbacks(glretrace::gl_callbacks);
   retracer.addCallbacks(glretrace::glx_callbacks);
   retracer.addCallbacks(glretrace::wgl_callbacks);
@@ -117,7 +118,7 @@ FrameRetrace::openFile(const std::string &filename,
     std::stringstream call_stream;
     trace::dump(*call, call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
-    GRLOGF(glretrace::INFO, "CALL: %s", call_stream.str().c_str());
+    GRLOGF(glretrace::DEBUG, "CALL: %s", call_stream.str().c_str());
     retracer.retrace(*call);
     m_tracker.track(*call);
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
