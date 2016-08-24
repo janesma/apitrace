@@ -99,7 +99,7 @@ StateTrack::track(const Call &call) {
     trace::dump(const_cast<Call&>(call), call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
     tracked_calls.push_back(call_stream.str());
-    GRLOG(glretrace::WARN, call_stream.str().c_str());
+    GRLOG(glretrace::DEBUG, call_stream.str().c_str());
   }
 
   if (changesContext(call))
