@@ -49,6 +49,9 @@
 #include "trace_dump.hpp"
 
 using glretrace::ExperimentId;
+using glretrace::SelectionId;
+using glretrace::MetricSeries;
+using glretrace::ShaderAssembly;
 using glretrace::FrameRetrace;
 using glretrace::FrameState;
 using glretrace::GlFunctions;
@@ -279,7 +282,10 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
       metricData.metric = nullMetric;
       for (int i = 0; i < render_count; ++i)
         metricData.data.push_back(1.0);
-      callback->onMetrics(metricData, experimentCount);
+      callback->onMetrics(metricData, experimentCount,
+                          // this use case is not based on render
+                          // selection
+                          SelectionId(0));
       continue;
     }
 
@@ -289,11 +295,46 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
       m_renders[i]->retrace(m_tracker);
       m_metrics->end();
     }
-    m_metrics->publish(experimentCount, callback);
+    m_metrics->publish(experimentCount,
+                       SelectionId(0),  // this use case is not based
+                                        // on render selection
+                       callback);
   }
 }
 
-
+void
+FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
+                                ExperimentId experimentCount,
+                                OnFrameRetrace *callback) const {
+  for (int i = 0; i < m_metrics->groupCount(); ++i) {
+    if (i == 13)
+      // BUG in skl metrics
+      continue;
+    bool query_active = false;
+    m_metrics->selectGroup(i);
+    parser->setBookmark(frame_start.start);
+    // iterate through the RenderSelection, and insert begin/end
+    // around each RenderSeries
+    auto currentRenderSequence = selection.series.begin();
+    for (int i = 0; i < m_renders.size(); ++i) {
+      if (currentRenderSequence != selection.series.end()) {
+        if (RenderId(i) == currentRenderSequence->end) {
+          m_metrics->end();
+          query_active = false;
+          ++currentRenderSequence;
+        }
+        if (RenderId(i) == currentRenderSequence->begin) {
+          m_metrics->begin(RenderId(i));
+          query_active = true;
+        }
+      }
+      m_renders[i]->retrace(m_tracker);
+    }
+    if (query_active)
+      m_metrics->end();
+    m_metrics->publish(experimentCount, selection.id, callback);
+  }
+}
 
 RenderId
 FrameRetrace::lastRenderForRTRegion(RenderId render) const {

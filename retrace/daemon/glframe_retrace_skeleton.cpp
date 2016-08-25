@@ -60,10 +60,31 @@ FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock,
                                            IFrameRetrace *frameretrace)
     : Thread("retrace_skeleton"), m_socket(sock),
       m_frame(frameretrace),
-      m_remaining_metrics_requests(0),
       m_multi_metrics_response(new RetraceResponse) {
   if (!m_frame)
     m_frame = new FrameRetrace();
+}
+
+void
+writeResponse(Socket *s,
+              const RetraceResponse &response,
+              std::vector<unsigned char> *buf) {
+  const uint32_t write_size = response.ByteSize();
+  // std::cout << "response: writing size: " << write_size << "\n";
+  if (!s->Write(write_size)) {
+    std::cout << "no write: len\n";
+    return;
+  }
+
+  buf->clear();
+  buf->resize(write_size);
+  ArrayOutputStream array_out(buf->data(), write_size);
+  CodedOutputStream coded_out(&array_out);
+  response.SerializeToCodedStream(&coded_out);
+  if (!s->WriteVec(*buf)) {
+    std::cout << "no write: buf\n";
+    return;
+  }
 }
 
 void
@@ -159,12 +180,37 @@ FrameRetraceSkeleton::Run() {
           assert(request.has_metrics());
           auto met = request.metrics();
           std::vector<MetricId> ids;
-          m_remaining_metrics_requests = met.metric_ids().size();
           for (int i : met.metric_ids())
             ids.push_back(MetricId(i));
+          m_multi_metrics_response->Clear();
           m_frame->retraceMetrics(ids,
                                   ExperimentId(met.experiment_count()),
                                   this);
+          // callbacks have accumulated in m_multi_metrics_response
+          writeResponse(m_socket, *m_multi_metrics_response, &m_buf);
+          m_multi_metrics_response->Clear();
+          break;
+        }
+      case ApiTrace::ALL_METRICS_REQUEST:
+        {
+          assert(request.has_allmetrics());
+          auto met = request.allmetrics();
+          auto sel = met.selection();
+          RenderSelection selection;
+          selection.id = SelectionId(sel.selection_count());
+          selection.series.resize(sel.render_series_size());
+          for (int i = 0; i < sel.render_series_size(); ++i) {
+            auto sequence = sel.render_series(i);
+            selection.series[i].begin = RenderId(sequence.begin());
+            selection.series[i].end = RenderId(sequence.end());
+          }
+          m_multi_metrics_response->Clear();
+          m_frame->retraceAllMetrics(selection,
+                                     ExperimentId(met.experiment_count()),
+                                     this);
+          // callbacks have accumulated in m_multi_metrics_response
+          writeResponse(m_socket, *m_multi_metrics_response, &m_buf);
+          m_multi_metrics_response->Clear();
           break;
         }
       case ApiTrace::SHADER_ASSEMBLY_REQUEST:
@@ -198,28 +244,6 @@ FrameRetraceSkeleton::Run() {
           break;
         }
     }
-  }
-}
-
-void
-writeResponse(Socket *s,
-              const RetraceResponse &response,
-              std::vector<unsigned char> *buf) {
-  const uint32_t write_size = response.ByteSize();
-  // std::cout << "response: writing size: " << write_size << "\n";
-  if (!s->Write(write_size)) {
-    std::cout << "no write: len\n";
-    return;
-  }
-
-  buf->clear();
-  buf->resize(write_size);
-  ArrayOutputStream array_out(buf->data(), write_size);
-  CodedOutputStream coded_out(&array_out);
-  response.SerializeToCodedStream(&coded_out);
-  if (!s->WriteVec(*buf)) {
-    std::cout << "no write: buf\n";
-    return;
   }
 }
 
@@ -327,23 +351,16 @@ FrameRetraceSkeleton::onMetricList(const std::vector<MetricId> &ids,
 
 void
 FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
-                                ExperimentId experimentCount) {
+                                ExperimentId experimentCount,
+                                SelectionId selectionCount) {
   auto metrics_response = m_multi_metrics_response->mutable_metricsdata();
   metrics_response->set_experiment_count(experimentCount());
+  metrics_response->set_selection_count(selectionCount());
   ApiTrace::MetricSeries *s = metrics_response->add_metric_data();
   s->set_metric_id(metricData.metric());
   for (auto d : metricData.data) {
     s->add_data(d);
   }
-
-  --m_remaining_metrics_requests;
-  if (m_remaining_metrics_requests > 0)
-    return;
-
-  // else
-  writeResponse(m_socket, *m_multi_metrics_response, &m_buf);
-  m_remaining_metrics_requests = 0;
-  m_multi_metrics_response->Clear();
 }
 
 void

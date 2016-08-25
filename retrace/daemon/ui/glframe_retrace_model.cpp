@@ -269,7 +269,8 @@ FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
 
 void
 FrameRetraceModel::onMetrics(const MetricSeries &metricData,
-                             ExperimentId experimentCount) {
+                             ExperimentId experimentCount,
+                             SelectionId selectionCount) {
   ScopedLock s(m_protect);
   bool vertical_metric = false;
   if (metricData.metric == m_active_metrics[0])

@@ -60,6 +60,9 @@ class FrameRetraceStub : public IFrameRetrace {
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const;
+  virtual void retraceAllMetrics(const RenderSelection &selection,
+                                 ExperimentId experimentCount,
+                                 OnFrameRetrace *callback) const;
   virtual void replaceShaders(RenderId renderId,
                               ExperimentId experimentCount,
                               const std::string &vs,

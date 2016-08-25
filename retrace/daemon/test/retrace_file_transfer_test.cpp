@@ -43,14 +43,16 @@ using glretrace::FrameRetraceSkeleton;
 using glretrace::FrameRetraceStub;
 using glretrace::IFrameRetrace;
 using glretrace::MetricId;
+using glretrace::MetricSeries;
 using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
 using glretrace::RenderOptions;
+using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
+using glretrace::SelectionId;
 using glretrace::ServerSocket;
-using glretrace::Socket;
 using glretrace::ShaderAssembly;
-using glretrace::MetricSeries;
+using glretrace::Socket;
 
 class FileTransfer : public IFrameRetrace {
   void openFile(const std::string &filename,
@@ -70,6 +72,9 @@ class FileTransfer : public IFrameRetrace {
   void retraceMetrics(const std::vector<MetricId> &ids,
                       ExperimentId experimentCount,
                       OnFrameRetrace *callback) const {}
+  virtual void retraceAllMetrics(const RenderSelection &selection,
+                                 ExperimentId experimentCount,
+                                 OnFrameRetrace *callback) const {}
   void replaceShaders(RenderId renderId,
                       ExperimentId experimentCount,
                       const std::string &vs,
@@ -101,7 +106,8 @@ class FileTransferCB : public OnFrameRetrace {
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names) {}
   void onMetrics(const MetricSeries &metricData,
-                 ExperimentId experimentCount) {}
+                 ExperimentId experimentCount,
+                 SelectionId selectionCount) {}
   void onShaderCompile(RenderId renderId,
                        ExperimentId experimentCount,
                        bool status,

@@ -70,7 +70,8 @@ class FrameRetraceSkeleton : public Thread,
   virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names);
   virtual void onMetrics(const MetricSeries &metricData,
-                         ExperimentId experimentCount);
+                         ExperimentId experimentCount,
+                         SelectionId selectionCount);
   virtual void onApi(RenderId renderid,
                      const std::vector<std::string> &api_calls);
 
@@ -83,7 +84,12 @@ class FrameRetraceSkeleton : public Thread,
   IFrameRetrace *m_frame;
   int m_remaining_metrics_requests;
 
-  // for aggregating metrics callbacks on a series of requests
+  // For aggregating metrics callbacks on a series of requests.
+  // retraceMetrics is called several times, calling the onMetrics
+  // callback synchronously in the same thread.  Aggregated metrics
+  // are returned through the socket in a single response.  The
+  // calling stub will call onMetrics several times on the host
+  // system.
   ApiTrace::RetraceResponse *m_multi_metrics_response;
 };
 

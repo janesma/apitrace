@@ -75,6 +75,9 @@ class FrameRetrace : public IFrameRetrace {
   void retraceMetrics(const std::vector<MetricId> &ids,
                       ExperimentId experimentCount,
                       OnFrameRetrace *callback) const;
+  void retraceAllMetrics(const RenderSelection &selection,
+                         ExperimentId experimentCount,
+                         OnFrameRetrace *callback) const;
   void replaceShaders(RenderId renderId,
                       ExperimentId experimentCount,
                       const std::string &vs,
