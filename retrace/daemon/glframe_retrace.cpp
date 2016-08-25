@@ -307,9 +307,6 @@ FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
                                 ExperimentId experimentCount,
                                 OnFrameRetrace *callback) const {
   for (int i = 0; i < m_metrics->groupCount(); ++i) {
-    if (i == 13)
-      // BUG in skl metrics
-      continue;
     bool query_active = false;
     m_metrics->selectGroup(i);
     parser->setBookmark(frame_start.start);
