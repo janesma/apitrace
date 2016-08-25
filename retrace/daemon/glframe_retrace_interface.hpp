@@ -81,6 +81,7 @@ class RenderId {
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
   bool operator<(const RenderId &o) const { return value < o.value; }
   bool operator>(const RenderId &o) const { return value > o.value; }
+  bool operator==(const RenderId &o) const { return value == o.value; }
  private:
   uint32_t value;
 };
@@ -120,9 +121,10 @@ class SelectionId {
            ((selectionNumber & ID_PREFIX_MASK) == SELECTION_ID_PREFIX));
     value = SELECTION_ID_PREFIX | selectionNumber;
   }
+  SelectionId() : value(0) {}
 
   uint32_t operator()() const { return value; }
-  uint32_t index() const { return value & (~ID_PREFIX_MASK); }
+  uint32_t count() const { return value & (~ID_PREFIX_MASK); }
  private:
   uint32_t value;
 };
@@ -148,6 +150,18 @@ class ExperimentId {
 struct MetricSeries {
   MetricId metric;
   std::vector<float> data;
+};
+
+struct RenderSequence {
+  RenderId begin;
+  RenderId end;
+};
+
+typedef std::vector<RenderSequence> RenderSeries;
+
+struct RenderSelection {
+  SelectionId id;
+  RenderSeries series;
 };
 
 struct ShaderAssembly {
@@ -176,7 +190,8 @@ class OnFrameRetrace {
   virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names) = 0;
   virtual void onMetrics(const MetricSeries &metricData,
-                         ExperimentId experimentCount) = 0;
+                         ExperimentId experimentCount,
+                         SelectionId selectionCount) = 0;
   virtual void onShaderCompile(RenderId renderId,
                                ExperimentId experimentCount,
                                bool status,
@@ -208,6 +223,9 @@ class IFrameRetrace {
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) const = 0;
+  virtual void retraceAllMetrics(const RenderSelection &selection,
+                                 ExperimentId experimentCount,
+                                 OnFrameRetrace *callback) const = 0;
   virtual void replaceShaders(RenderId renderId,
                               ExperimentId experimentCount,
                               const std::string &vs,

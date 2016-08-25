@@ -42,10 +42,13 @@ class PerfMetrics : public NoCopy, NoAssign {
  public:
   explicit PerfMetrics(OnFrameRetrace *cb);
   ~PerfMetrics();
+  int groupCount() const;
   void selectMetric(MetricId metric);
+  void selectGroup(int index);
   void begin(RenderId render);
   void end();
   void publish(ExperimentId experimentCount,
+               SelectionId selectionCount,
                OnFrameRetrace *callback);
  private:
   std::vector<PerfMetricGroup *> groups;

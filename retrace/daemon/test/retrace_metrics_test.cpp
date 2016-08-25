@@ -58,16 +58,19 @@ class MetricsCallback : public OnFrameRetrace {
     names = n;
   }
   void onMetrics(const MetricSeries &metricData,
-                 ExperimentId experimentCount) {
-    data = metricData;
+                 ExperimentId experimentCount,
+                 SelectionId selectionCount) {
+    data.push_back(metricData);
     experiment_count = experimentCount;
+    selection_count = selectionCount;
   }
   void onApi(RenderId renderId,
              const std::vector<std::string> &api_calls) {}
   std::vector<MetricId> ids;
   std::vector<std::string> names;
-  MetricSeries data;
+  std::vector<MetricSeries> data;
   ExperimentId experiment_count;
+  SelectionId selection_count;
 };
 
 TEST_F(RetraceTest, ReadMetrics) {
@@ -110,10 +113,10 @@ TEST_F(RetraceTest, SingleMetricData) {
   rt.retraceRenderTarget(RenderId(1), 0, glretrace::NORMAL_RENDER,
                          glretrace::STOP_AT_RENDER, &cb);
   p.end();
-  p.publish(ExperimentId(1), &cb);
+  p.publish(ExperimentId(1), SelectionId(0), &cb);
   EXPECT_EQ(cb.experiment_count.count(), 1);
-  for (float d : cb.data.data) {
-    std::cout << "data: " << d << std::endl;
+  EXPECT_EQ(cb.data.size(), 1);
+  for (float d : cb.data[0].data) {
     EXPECT_GT(d, 0.0);
   }
   retrace::cleanUp();
@@ -141,9 +144,41 @@ TEST_F(RetraceTest, FrameMetricData) {
   const ExperimentId experiment(1);
   rt.retraceMetrics(mets, experiment, &cb);
   EXPECT_EQ(cb.experiment_count.count(), 1);
-  for (float d : cb.data.data) {
-    std::cout << "data: " << d << std::endl;
+  EXPECT_EQ(cb.data.size(), 1);
+  for (float d : cb.data[0].data) {
     EXPECT_GT(d, 0.0);
+  }
+  retrace::cleanUp();
+}
+
+TEST_F(RetraceTest, AllMetricData) {
+  GlFunctions::Init();
+  MetricsCallback cb;
+
+  FrameRetrace rt;
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  if (!cb.ids.size()) {
+    retrace::cleanUp();
+    return;
+  }
+
+  // get all metrics for render 0 and 1
+  RenderSelection sel;
+  sel.id = SelectionId(777);
+  sel.series.resize(2);
+  sel.series[0].begin = RenderId(0);
+  sel.series[0].end = RenderId(1);
+  sel.series[1].begin = RenderId(1);
+  sel.series[1].end = RenderId(2);
+  const ExperimentId experiment(1);
+  rt.retraceAllMetrics(sel, experiment, &cb);
+  EXPECT_EQ(cb.experiment_count.count(), 1);
+  EXPECT_EQ(cb.selection_count.count(), 777);
+  EXPECT_GT(cb.data.size(), 1);  // one callback for each metric
+  for (const MetricSeries s : cb.data) {
+    for (float d : s.data) {
+      EXPECT_GT(d, -0.1);
+    }
   }
   retrace::cleanUp();
 }
