@@ -21,6 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
+ * Authors:
+ *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
 #ifndef _GLFRAME_RETRACE_SKELETON_HPP_

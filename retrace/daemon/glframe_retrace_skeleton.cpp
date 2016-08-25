@@ -21,6 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
+ * Authors:
+ *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
 #include "glframe_retrace_skeleton.hpp"
