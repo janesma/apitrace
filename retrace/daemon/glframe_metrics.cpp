@@ -75,6 +75,7 @@ class PerfMetricGroup : public NoCopy, NoAssign {
  public:
   explicit PerfMetricGroup(int query_id);
   ~PerfMetricGroup();
+  const std::string &name() const { return m_query_name; }
   void metrics(std::vector<MetricDescription> *m) const;
   void begin(RenderId render);
   void end(RenderId render);
@@ -84,7 +85,7 @@ class PerfMetricGroup : public NoCopy, NoAssign {
                OnFrameRetrace *callback);
 
  private:
-  const std::string m_query_name;
+  std::string m_query_name;
   const int m_query_id;
   unsigned int m_data_size;
   unsigned int m_number_counters;
@@ -135,6 +136,12 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
   int group_index = 0;
   for (auto i : query_ids) {
     PerfMetricGroup *g = new PerfMetricGroup(i);
+    if (g->name() == "Compute Metrics Extended Gen9") {
+      // SKL metrics bug.  Queries on this group crash.
+      delete g;
+      continue;
+    }
+
     groups.push_back(g);
     metrics.clear();
     g->metrics(&metrics);
@@ -174,6 +181,7 @@ PerfMetricGroup::PerfMetricGroup(int query_id) : m_query_id(query_id) {
                                      &m_data_size, &number_counters,
                                      &number_instances, &capabilities_mask);
   m_data_buf.resize(m_data_size);
+  m_query_name = query_name.data();
   for (unsigned int counter_num = 1; counter_num <= number_counters;
        ++counter_num) {
     PerfMetric *p = new PerfMetric(m_query_id, counter_num);
