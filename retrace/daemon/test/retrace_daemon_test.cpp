@@ -36,14 +36,15 @@
 #include "glframe_logger.hpp"
 
 using glretrace::ExperimentId;
-using glretrace::GlFunctions;
 using glretrace::FrameRetrace;
+using glretrace::GlFunctions;
+using glretrace::Logger;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
 using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
-using glretrace::Logger;
 using glretrace::RenderTargetType;
+using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
 
 TEST(Build, Cmake) {
@@ -74,7 +75,8 @@ class NullCallback : public OnFrameRetrace {
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names) {}
   void onMetrics(const MetricSeries &metricData,
-                 ExperimentId experimentCount) {}
+                 ExperimentId experimentCount,
+                 SelectionId selectionCount) {}
   void onApi(RenderId renderId,
              const std::vector<std::string> &api_calls) {
     calls = api_calls;

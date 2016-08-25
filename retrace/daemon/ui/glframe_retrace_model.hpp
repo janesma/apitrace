@@ -155,7 +155,8 @@ class FrameRetraceModel : public QObject,
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names);
   void onMetrics(const MetricSeries &metricData,
-                 ExperimentId experimentCount);
+                 ExperimentId experimentCount,
+                 SelectionId selectionCount);
   void onApi(RenderId renderId, const std::vector<std::string> &api_calls);
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }

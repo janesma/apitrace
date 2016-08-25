@@ -78,7 +78,9 @@ class PerfMetricGroup : public NoCopy, NoAssign {
   void metrics(std::vector<MetricDescription> *m) const;
   void begin(RenderId render);
   void end(RenderId render);
-  void publish(MetricId metric, ExperimentId experimentCount,
+  void publish(MetricId metric,
+               ExperimentId experimentCount,
+               SelectionId selectionCount,
                OnFrameRetrace *callback);
 
  private:
@@ -213,10 +215,22 @@ PerfMetricGroup::begin(RenderId render) {
 void
 PerfMetricGroup::publish(MetricId metric,
                          ExperimentId experimentCount,
+                         SelectionId selectionCount,
                          OnFrameRetrace *callback) {
-  MetricSeries out_data;
-  out_data.metric = metric;
-  out_data.data.reserve(m_extant_query_handles.size());
+  const bool publish_all = ((metric() | ID_PREFIX_MASK) == -1);
+  const int publish_count = m_extant_query_handles.size();
+  std::map<MetricId, MetricSeries> out_data;
+  if (publish_all) {
+    for (auto i : m_metrics) {
+      out_data[i.first].data.reserve(publish_count);
+      out_data[i.first].metric = i.first;
+    }
+  } else {
+    assert(m_metrics.find(metric) != m_metrics.end());
+    out_data[metric].data.reserve(publish_count);
+    out_data[metric].metric = metric;
+  }
+
   for (auto extant_query : m_extant_query_handles) {
     memset(m_data_buf.data(), 0, m_data_buf.size());
     GLuint bytes_written;
@@ -225,18 +239,23 @@ PerfMetricGroup::publish(MetricId metric,
                                        m_data_size, m_data_buf.data(),
                                        &bytes_written);
     assert(bytes_written == m_data_size);
-    assert(m_metrics.find(metric) != m_metrics.end());
 
     // TODO(majanes) verify order of m_extant_query_handles is by
     // RenderId
-    out_data.data.push_back(m_metrics[metric]->getMetric(m_data_buf));
-
+    for (auto desired_metric : out_data) {
+      MetricId m = desired_metric.first;
+      out_data[m].data.push_back(m_metrics[m]->getMetric(m_data_buf));
+    }
     m_free_query_handles.push_back(extant_query.second);
   }
   m_extant_query_handles.clear();
-  if (callback)
-    callback->onMetrics(out_data, experimentCount);
-
+  if (callback) {
+    for (auto desired_metric : out_data) {
+      callback->onMetrics(desired_metric.second,
+                          experimentCount,
+                          selectionCount);
+    }
+  }
   for (auto free_query : m_free_query_handles) {
     GlFunctions::DeletePerfQueryINTEL(free_query);
   }
@@ -329,8 +348,10 @@ PerfMetrics::selectMetric(MetricId metric) {
 
 void
 PerfMetrics::publish(ExperimentId experimentCount,
+                     SelectionId selectionCount,
                      OnFrameRetrace *callback) {
-  current_group->publish(current_metric, experimentCount, callback);
+  current_group->publish(current_metric, experimentCount,
+                         selectionCount, callback);
 }
 
 void
@@ -343,3 +364,16 @@ void
 PerfMetrics::end() {
   current_group->end(current_render);
 }
+
+int
+PerfMetrics::groupCount() const {
+  return groups.size();
+}
+
+void
+PerfMetrics::selectGroup(int index) {
+  current_group = groups[index];
+  // choose an invalid metric to represent "all metrics"
+  current_metric = MetricId(~ID_PREFIX_MASK);
+}
+

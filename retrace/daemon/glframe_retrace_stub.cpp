@@ -40,7 +40,9 @@
 
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
+using glretrace::RenderSelection;
 using glretrace::ExperimentId;
+using glretrace::SelectionId;
 using glretrace::FrameRetraceStub;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
@@ -293,7 +295,49 @@ class RetraceMetricsRequest : public IRetraceRequest {
       for (auto d : data_float_vec)
         met.data.push_back(d);
 
-      m_callback->onMetrics(met, eid);
+      m_callback->onMetrics(met, eid, SelectionId(0));
+    }
+  }
+
+ private:
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
+class RetraceAllMetricsRequest : public IRetraceRequest {
+ public:
+  RetraceAllMetricsRequest(const RenderSelection &selection,
+                           ExperimentId experimentCount,
+                           OnFrameRetrace *cb)
+      : m_callback(cb) {
+    auto metricsRequest = m_proto_msg.mutable_allmetrics();
+    metricsRequest->set_experiment_count(experimentCount());
+    auto selectionRequest = metricsRequest->mutable_selection();
+    selectionRequest->set_selection_count(selection.id());
+    for (auto sequence : selection.series) {
+      auto series = selectionRequest->add_render_series();
+      series->set_begin(sequence.begin());
+      series->set_end(sequence.end());
+    }
+    m_proto_msg.set_requesttype(ApiTrace::ALL_METRICS_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    RetraceResponse response;
+    s->retrace(m_proto_msg, &response);
+    assert(response.has_metricsdata());
+    auto metrics_response = response.metricsdata();
+
+    const ExperimentId eid(metrics_response.experiment_count());
+    const SelectionId sid(metrics_response.selection_count());
+    for (auto &metric_data : metrics_response.metric_data()) {
+      MetricSeries met;
+      met.metric = MetricId(metric_data.metric_id());
+      auto &data_float_vec = metric_data.data();
+      met.data.reserve(data_float_vec.size());
+      for (auto d : data_float_vec)
+        met.data.push_back(d);
+
+      m_callback->onMetrics(met, eid, sid);
     }
   }
 
@@ -488,6 +532,15 @@ FrameRetraceStub::retraceMetrics(const std::vector<MetricId> &ids,
                                  ExperimentId experimentCount,
                                  OnFrameRetrace *callback) const {
   m_thread->push(new RetraceMetricsRequest(ids, experimentCount, callback));
+}
+
+void
+FrameRetraceStub::retraceAllMetrics(const RenderSelection &selection,
+                                    ExperimentId experimentCount,
+                                    OnFrameRetrace *callback) const {
+  m_thread->push(new RetraceAllMetricsRequest(selection,
+                                              experimentCount,
+                                              callback));
 }
 
 void
