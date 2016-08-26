@@ -103,6 +103,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                        const std::string &errorString) { assert(false); }
   void onApi(RenderId renderId,
              const std::vector<std::string> &api_calls) { assert(false); }
+  void onError(const std::string &message) { assert(false); }
 
   QQmlListProperty<QMetricValue> metrics();
 

@@ -46,6 +46,7 @@
 using glretrace::FrameRetraceModel;
 using glretrace::FrameState;
 using glretrace::DEBUG;
+using glretrace::ERR;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QBarGraphRenderer;
@@ -60,6 +61,7 @@ using glretrace::ShaderAssembly;
 
 FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_selection(NULL),
+                                         m_selection_count(0),
                                          m_open_percent(0),
                                          m_max_metric(0) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
@@ -203,7 +205,8 @@ FrameRetraceModel::retrace_rendertarget() {
   RenderTargetType rt_type = glretrace::NORMAL_RENDER;
   if (m_highlight_render)
     rt_type = HIGHLIGHT_RENDER;
-  m_retrace.retraceRenderTarget(RenderId(m_cached_selection.back()),
+  m_retrace.retraceRenderTarget(m_selection_count,
+                                RenderId(m_cached_selection.back()),
                                 0, rt_type,
                                 opt, this);
 }
@@ -362,6 +365,7 @@ void
 FrameRetraceModel::onSelect(QList<int> selection) {
   ScopedLock s(m_protect);
   m_cached_selection = selection;
+  ++m_selection_count;
   retrace_rendertarget();
   retrace_shader_assemblies();
   retrace_api();
@@ -445,4 +449,10 @@ FrameRetraceModel::onApi(RenderId renderId,
   }
   emit onApiCalls();
 }
+
+void
+FrameRetraceModel::onError(const std::string &message) {
+  GRLOG(ERR, message.c_str());
+}
+
 

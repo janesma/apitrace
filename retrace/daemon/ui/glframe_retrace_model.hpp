@@ -162,6 +162,7 @@ class FrameRetraceModel : public QObject,
                  ExperimentId experimentCount,
                  SelectionId selectionCount);
   void onApi(RenderId renderId, const std::vector<std::string> &api_calls);
+  void onError(const std::string &message);
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
@@ -211,6 +212,7 @@ class FrameRetraceModel : public QObject,
   QMetricsModel m_metrics_table;
   FrameState *m_state;
   QSelection *m_selection;
+  SelectionId m_selection_count;
   QList<int> m_cached_selection;
   QList<QRenderBookmark *> m_renders_model;
   QList<QMetric *> m_metrics_model;
