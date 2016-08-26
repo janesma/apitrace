@@ -126,7 +126,10 @@ class SelectionId {
   SelectionId() : value(0) {}
 
   uint32_t operator()() const { return value; }
+  SelectionId &operator++() { ++value; return *this; }
   uint32_t count() const { return value & (~ID_PREFIX_MASK); }
+  bool operator==(const SelectionId &o) const { return value == o.value; }
+  bool operator!=(const SelectionId &o) const { return value != o.value; }
  private:
   uint32_t value;
 };
@@ -155,6 +158,8 @@ struct MetricSeries {
 };
 
 struct RenderSequence {
+  RenderSequence(RenderId b, RenderId e) : begin(b), end(e) {}
+  RenderSequence() {}
   RenderId begin;
   RenderId end;
 };

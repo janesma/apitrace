@@ -20,6 +20,8 @@ qt5_add_resources(RESOURCE_ADDED resources.qrc)
 
 set (UI_SRC
   main.cpp
+  glframe_metrics_model.hpp
+  glframe_metrics_model.cpp
   glframe_retrace_images.hpp
   glframe_retrace_images.cpp
   glframe_retrace_model.hpp
