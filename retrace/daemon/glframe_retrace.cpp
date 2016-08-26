@@ -169,7 +169,8 @@ FrameRetrace::getRenderCount() const {
 }
 
 void
-FrameRetrace::retraceRenderTarget(RenderId renderId,
+FrameRetrace::retraceRenderTarget(SelectionId selectionCount,
+                                  RenderId renderId,
                                   int render_target_number,
                                   RenderTargetType type,
                                   RenderOptions options,
@@ -192,32 +193,39 @@ FrameRetrace::retraceRenderTarget(RenderId renderId,
 
   // play up to the end of the render
   m_renders[renderId.index()]->retraceRenderTarget(m_tracker, type);
+  RenderId last_played_render = renderId;
 
   if (!(options & glretrace::STOP_AT_RENDER)) {
     // play to the end of the render target
 
     const RenderId last_render = lastRenderForRTRegion(renderId);
-    for (int i = renderId.index() + 1; i <= last_render.index(); ++i)
+    for (int i = renderId.index() + 1; i <= last_render.index(); ++i) {
       m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
+      last_played_render = RenderId(i);
+    }
   }
 
   Image *i = glstate::getDrawBufferImage(0);
-  std::stringstream png;
-  i->writePNG(png);
+  if (!i) {
+    GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
+           renderId());
+    if (callback)
+      callback->onError("Failed to obtain draw buffer image");
+  } else {
+    std::stringstream png;
+    i->writePNG(png);
 
-  std::vector<unsigned char> d;
-  const int bytes = png.str().size();
-  d.resize(bytes);
-  memcpy(d.data(), png.str().c_str(), bytes);
-
-  if (options & glretrace::STOP_AT_RENDER) {
-    // play to the rest of the frame
-    for (int i = renderId.index() + 1; i < m_renders.size(); ++i)
-      m_renders[i]->retraceRenderTarget(m_tracker, type);
+    std::vector<unsigned char> d;
+    const int bytes = png.str().size();
+    d.resize(bytes);
+    memcpy(d.data(), png.str().c_str(), bytes);
+    if (callback)
+      callback->onRenderTarget(renderId, type, d);
   }
 
-  if (callback)
-    callback->onRenderTarget(renderId, type, d);
+  // play to the rest of the frame
+  for (int i = last_played_render.index() + 1; i < m_renders.size(); ++i)
+      m_renders[i]->retraceRenderTarget(m_tracker, type);
 }
 
 

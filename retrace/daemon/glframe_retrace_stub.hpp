@@ -28,6 +28,7 @@
 #ifndef _GLFRAME_RETRACE_STUB_HPP_
 #define _GLFRAME_RETRACE_STUB_HPP_
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -52,7 +53,8 @@ class FrameRetraceStub : public IFrameRetrace {
                         uint64_t fileSize,
                         uint32_t frameNumber,
                         OnFrameRetrace *callback);
-  virtual void retraceRenderTarget(RenderId renderId,
+  virtual void retraceRenderTarget(SelectionId selectionCount,
+                                   RenderId renderId,
                                    int render_target_number,
                                    RenderTargetType type,
                                    RenderOptions options,
@@ -77,6 +79,8 @@ class FrameRetraceStub : public IFrameRetrace {
                           OnFrameRetrace *callback);
 
  private:
+  mutable std::mutex m_mutex;
+  mutable SelectionId m_current_rt_selection, m_current_met_selection;
   ThreadedRetrace *m_thread = NULL;
 };
 }  // namespace glretrace

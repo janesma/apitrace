@@ -46,6 +46,7 @@ using glretrace::RenderTargetType;
 using glretrace::RenderOptions;
 using glretrace::Socket;
 using glretrace::RenderId;
+using glretrace::SelectionId;
 using glretrace::ExperimentId;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
@@ -170,7 +171,8 @@ FrameRetraceSkeleton::Run() {
           //           << rt.options() << ", "
           //           << "\n";
 
-          m_frame->retraceRenderTarget(glretrace::RenderId(rt.renderid()),
+          m_frame->retraceRenderTarget(SelectionId(rt.selection_count()),
+                                       RenderId(rt.renderid()),
                                        0,
                                        (RenderTargetType)rt.type(),
                                        (RenderOptions)rt.options(),
@@ -374,5 +376,13 @@ FrameRetraceSkeleton::onApi(RenderId renderId,
   for (auto a : api_calls) {
     api->add_apis(a);
   }
+  writeResponse(m_socket, proto_response, &m_buf);
+}
+
+void
+FrameRetraceSkeleton::onError(const std::string &message) {
+  RetraceResponse proto_response;
+  auto error = proto_response.mutable_error();
+  error->set_message(message);
   writeResponse(m_socket, proto_response, &m_buf);
 }

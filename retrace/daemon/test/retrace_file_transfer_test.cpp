@@ -64,7 +64,8 @@ class FileTransfer : public IFrameRetrace {
                 OnFrameRetrace *callback) {
     callback->onFileOpening(false, true, 101);
   }
-  void retraceRenderTarget(RenderId renderId,
+  void retraceRenderTarget(SelectionId selectionCount,
+                           RenderId renderId,
                            int render_target_number,
                            RenderTargetType type,
                            RenderOptions options,
@@ -116,6 +117,7 @@ class FileTransferCB : public OnFrameRetrace {
                        const std::string &errorString) {}
   void onApi(RenderId renderId,
              const std::vector<std::string> &api_calls) {}
+  void onError(const std::string &message) {}
   bool m_needUpload;
 };
 

@@ -205,6 +205,7 @@ class OnFrameRetrace {
                                const std::string &errorString) = 0;
   virtual void onApi(RenderId renderId,
                      const std::vector<std::string> &api_calls) = 0;
+  virtual void onError(const std::string &message) = 0;
 };
 
 class IFrameRetrace {
@@ -220,7 +221,8 @@ class IFrameRetrace {
                         uint64_t fileSize,
                         uint32_t frameNumber,
                         OnFrameRetrace *callback) = 0;
-  virtual void retraceRenderTarget(RenderId renderId,
+  virtual void retraceRenderTarget(SelectionId selectionCount,
+                                   RenderId renderId,
                                    int render_target_number,
                                    RenderTargetType type,
                                    RenderOptions options,
