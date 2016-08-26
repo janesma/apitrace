@@ -90,6 +90,10 @@ int main(int argc, char *argv[]) {
                                       "QMetric");
   qmlRegisterType<glretrace::FrameRetraceModel>("ApiTrace", 1, 0,
                                                 "FrameRetrace");
+  qmlRegisterType<glretrace::QMetricValue>("ApiTrace", 1, 0,
+                                      "QMetricValue");
+  qmlRegisterType<glretrace::QMetricsModel>("ApiTrace", 1, 0,
+                                            "QMetricsModel");
 
   qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");
   qmlRegisterType<glretrace::QSelection>("ApiTrace", 1, 0, "Selection");

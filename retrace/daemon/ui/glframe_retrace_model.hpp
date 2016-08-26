@@ -46,6 +46,7 @@
 #include "glframe_bargraph.hpp"
 #include "glframe_qselection.hpp"
 #include "glframe_shader_model.hpp"
+#include "glframe_metrics_model.hpp"
 
 namespace glretrace {
 
@@ -121,6 +122,7 @@ class FrameRetraceModel : public QObject,
              NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
              NOTIFY onArgvZero)
+  Q_PROPERTY(glretrace::QMetricsModel* metricTab READ metricTab CONSTANT)
 
  public:
   FrameRetraceModel();
@@ -172,6 +174,7 @@ class FrameRetraceModel : public QObject,
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
+  QMetricsModel *metricTab() { return &m_metrics_table; }
 
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
@@ -205,6 +208,7 @@ class FrameRetraceModel : public QObject,
 
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
+  QMetricsModel m_metrics_table;
   FrameState *m_state;
   QSelection *m_selection;
   QList<int> m_cached_selection;

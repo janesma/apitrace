@@ -3,5 +3,6 @@
         <file>qml/mainwin.qml</file>
         <file>qml/BarGraphControl.qml</file>
         <file>qml/ShaderControl.qml</file>
+        <file>qml/MetricTabControl.qml</file>
     </qresource>
 </RCC>

@@ -378,6 +378,15 @@ ApplicationWindow {
                     }
                 }
             }
+            Tab {
+                title: "Metrics"
+                id: metricTab
+                anchors.fill: parent
+                clip: true
+                MetricTabControl {
+                    metricsModel: frameRetrace.metricTab
+                }
+            }
         }
     }
 }
