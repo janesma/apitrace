@@ -129,7 +129,7 @@ QMetricsModel::onSelect(QList<int> selection) {
   for (auto i : selection) {
     if (i != last_render + 1) {
       if (last_render >= 0) {
-        s.series.back().end = RenderId(last_render);
+        s.series.back().end = RenderId(last_render + 1);
       }
       s.series.push_back(RenderSequence(RenderId(i), RenderId(0)));
     }

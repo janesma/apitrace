@@ -34,6 +34,7 @@ message MetricsList {
 }
 
 message RenderTargetRequest {
+  required uint32 selection_count = 4;
   required uint32 renderId = 1;
   required RenderTargetType type = 2;
   // options is a mask of:
@@ -124,6 +125,10 @@ message ApiResponse {
   repeated string apis = 2;
 }
 
+message ErrorResponse {
+  required string message = 1;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
@@ -143,4 +148,5 @@ message RetraceResponse {
   optional MetricsResponse metricsData = 5;
   optional ReplaceShadersResponse shadersData = 6;
   optional ApiResponse api = 7;
+  optional ErrorResponse error = 8;
 }

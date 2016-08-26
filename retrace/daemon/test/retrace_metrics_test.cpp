@@ -68,6 +68,7 @@ class MetricsCallback : public OnFrameRetrace {
   }
   void onApi(RenderId renderId,
              const std::vector<std::string> &api_calls) {}
+  void onError(const std::string &message) {}
   std::vector<MetricId> ids;
   std::vector<std::string> names;
   std::vector<MetricSeries> data;
@@ -112,7 +113,8 @@ TEST_F(RetraceTest, SingleMetricData) {
   FrameRetrace rt;
   rt.openFile(test_file, md5, fileSize, 7, &cb);
   p.begin(RenderId(1));
-  rt.retraceRenderTarget(RenderId(1), 0, glretrace::NORMAL_RENDER,
+  rt.retraceRenderTarget(SelectionId(0), RenderId(1), 0,
+                         glretrace::NORMAL_RENDER,
                          glretrace::STOP_AT_RENDER, &cb);
   p.end();
   p.publish(ExperimentId(1), SelectionId(0), &cb);

@@ -131,14 +131,20 @@ class IRetraceRequest {
 };
 class RetraceRenderTargetRequest : public IRetraceRequest {
  public:
-  RetraceRenderTargetRequest(RenderId renderId,
+  RetraceRenderTargetRequest(SelectionId *current_selection,
+                             std::mutex *protect,
+                             SelectionId selectionCount,
+                             RenderId renderId,
                              int render_target_number,
                              RenderTargetType type,
                              RenderOptions options,
                              OnFrameRetrace *callback)
-      : m_callback(callback) {
+      : m_sel_count(current_selection),
+        m_protect(protect),
+        m_callback(callback) {
     // make the proto msg
     auto rtRequest = m_proto_msg.mutable_rendertarget();
+    rtRequest->set_selection_count(selectionCount());
     rtRequest->set_renderid(renderId());
     rtRequest->set_type((ApiTrace::RenderTargetType)type);
     rtRequest->set_options(options);
@@ -146,8 +152,19 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
   }
 
   virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      if (*m_sel_count !=
+          SelectionId(m_proto_msg.rendertarget().selection_count()))
+        // more recent selection was made while this was enqueued
+        return;
+    }
     RetraceResponse response;
     s->retrace(m_proto_msg, &response);
+    if (response.has_error()) {
+      m_callback->onError(response.error().message());
+      return;
+    }
     assert(response.has_rendertarget());
     auto rt = response.rendertarget();
     assert(rt.has_image());
@@ -160,6 +177,8 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
   }
 
  private:
+  const SelectionId * const m_sel_count;
+  std::mutex *m_protect;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
 };
@@ -308,10 +327,14 @@ class RetraceMetricsRequest : public IRetraceRequest {
 
 class RetraceAllMetricsRequest : public IRetraceRequest {
  public:
-  RetraceAllMetricsRequest(const RenderSelection &selection,
+  RetraceAllMetricsRequest(SelectionId *current_selection,
+                           std::mutex *protect,
+                           const RenderSelection &selection,
                            ExperimentId experimentCount,
                            OnFrameRetrace *cb)
-      : m_callback(cb) {
+      : m_sel_count(current_selection),
+        m_protect(protect),
+        m_callback(cb) {
     auto metricsRequest = m_proto_msg.mutable_allmetrics();
     metricsRequest->set_experiment_count(experimentCount());
     auto selectionRequest = metricsRequest->mutable_selection();
@@ -324,8 +347,20 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
     m_proto_msg.set_requesttype(ApiTrace::ALL_METRICS_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      if (*m_sel_count !=
+          SelectionId(m_proto_msg.allmetrics().selection().selection_count()))
+        // more recent selection was made while this was enqueued
+        return;
+    }
+
     RetraceResponse response;
     s->retrace(m_proto_msg, &response);
+    if (response.has_error()) {
+      m_callback->onError(response.error().message());
+      return;
+    }
     assert(response.has_metricsdata());
     auto metrics_response = response.metricsdata();
 
@@ -344,6 +379,8 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
   }
 
  private:
+  const SelectionId * const m_sel_count;
+  std::mutex *m_protect;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
 };
@@ -514,13 +551,21 @@ FrameRetraceStub::openFile(const std::string &filename,
 }
 
 void
-FrameRetraceStub::retraceRenderTarget(RenderId renderId,
+FrameRetraceStub::retraceRenderTarget(SelectionId selectionCount,
+                                      RenderId renderId,
                                       int render_target_number,
                                       RenderTargetType type,
                                       RenderOptions options,
                                       OnFrameRetrace *callback) const {
-  m_thread->push(new RetraceRenderTargetRequest(renderId, render_target_number,
-                                              type, options, callback));
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_rt_selection = selectionCount;
+  }
+  m_thread->push(new RetraceRenderTargetRequest(&m_current_rt_selection,
+                                                &m_mutex,
+                                                selectionCount, renderId,
+                                                render_target_number,
+                                                type, options, callback));
 }
 
 void
@@ -540,7 +585,13 @@ void
 FrameRetraceStub::retraceAllMetrics(const RenderSelection &selection,
                                     ExperimentId experimentCount,
                                     OnFrameRetrace *callback) const {
-  m_thread->push(new RetraceAllMetricsRequest(selection,
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_met_selection = selection.id;
+  }
+  m_thread->push(new RetraceAllMetricsRequest(&m_current_met_selection,
+                                              &m_mutex,
+                                              selection,
                                               experimentCount,
                                               callback));
 }

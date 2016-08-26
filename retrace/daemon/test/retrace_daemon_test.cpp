@@ -83,6 +83,7 @@ class NullCallback : public OnFrameRetrace {
              const std::vector<std::string> &api_calls) {
     calls = api_calls;
   }
+  void onError(const std::string &message) {}
   std::string compile_error, fs;
   std::vector<std::string> calls;
 };
@@ -121,7 +122,8 @@ TEST_F(RetraceTest, LoadFile) {
   int renderCount = rt.getRenderCount();
   EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
   for (int i = 0; i < renderCount; ++i) {
-    rt.retraceRenderTarget(RenderId(i), 0, glretrace::NORMAL_RENDER,
+    rt.retraceRenderTarget(SelectionId(0), RenderId(i), 0,
+                           glretrace::NORMAL_RENDER,
                            glretrace::STOP_AT_RENDER, &cb);
   }
 }
