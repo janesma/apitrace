@@ -266,6 +266,8 @@ FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
   ScopedLock s(m_protect);
   t_ids = ids;
   t_names = names;
+  m_metrics_table.init(&m_retrace, m_selection, ids, names,
+                       m_state->getRenderCount());
   emit updateMetricList();
 }
 
