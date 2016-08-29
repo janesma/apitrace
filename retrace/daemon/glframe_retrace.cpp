@@ -325,9 +325,9 @@ FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
           m_metrics->end();
           query_active = false;
           ++currentRenderSequence;
-        } 
-		if (currentRenderSequence != selection.series.end() && 
-			(RenderId(i) == currentRenderSequence->begin)) {
+        }
+        if (currentRenderSequence != selection.series.end() &&
+            (RenderId(i) == currentRenderSequence->begin)) {
           m_metrics->begin(RenderId(i));
           query_active = true;
         }

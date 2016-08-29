@@ -62,10 +62,11 @@ using google::protobuf::io::CodedOutputStream;
 
 FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock,
                                            IFrameRetrace *frameretrace)
-    : Thread("retrace_skeleton"), m_socket(sock),
+    : Thread("retrace_skeleton"),
+      m_force_upload(false),
+      m_socket(sock),
       m_frame(frameretrace),
-      m_multi_metrics_response(new RetraceResponse),
-      m_force_upload(false) {
+      m_multi_metrics_response(new RetraceResponse) {
   if (!m_frame)
     m_frame = new FrameRetrace();
 }

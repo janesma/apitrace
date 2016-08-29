@@ -338,12 +338,12 @@ PerfMetric::getMetric(const std::vector<unsigned char> &data) const {
       fval = static_cast<float>(val);
       break;
     }
-	case GL_PERFQUERY_COUNTER_DATA_BOOL32_INTEL: {
-		assert(m_data_size == 4);
-		const bool val = *reinterpret_cast<const bool*>(p_value);
-		fval = val ? 1.0 : 0.0;
-		break;
-	}
+    case GL_PERFQUERY_COUNTER_DATA_BOOL32_INTEL: {
+      assert(m_data_size == 4);
+      const bool val = *reinterpret_cast<const bool*>(p_value);
+      fval = val ? 1.0 : 0.0;
+      break;
+    }
     default:
       assert(false);
   }

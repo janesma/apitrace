@@ -207,7 +207,7 @@ FrameRetraceModel::retrace_rendertarget() {
   if (m_highlight_render)
     rt_type = HIGHLIGHT_RENDER;
   if (m_cached_selection.empty())
-	  return;
+    return;
   m_retrace.retraceRenderTarget(m_selection_count,
                                 RenderId(m_cached_selection.back()),
                                 0, rt_type,
@@ -216,8 +216,8 @@ FrameRetraceModel::retrace_rendertarget() {
 
 void
 FrameRetraceModel::retrace_shader_assemblies() {
-	if (m_cached_selection.empty())
-		return;
+  if (m_cached_selection.empty())
+    return;
   m_retrace.retraceShaderAssembly(RenderId(m_cached_selection.back()),
                                   this);
 }
