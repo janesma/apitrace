@@ -40,28 +40,31 @@
 #include "glframe_socket.hpp"
 #include "playback.pb.h" // NOLINT
 
-using glretrace::FrameRetraceSkeleton;
-using glretrace::FrameRetrace;
-using glretrace::RenderTargetType;
-using glretrace::RenderOptions;
-using glretrace::Socket;
-using glretrace::RenderId;
-using glretrace::SelectionId;
+using ApiTrace::RetraceRequest;
+using ApiTrace::RetraceResponse;
 using glretrace::ExperimentId;
+using glretrace::FrameRetrace;
+using glretrace::FrameRetraceSkeleton;
+using glretrace::IFrameRetrace;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
+using glretrace::RenderId;
+using glretrace::RenderOptions;
+using glretrace::RenderTargetType;
+using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
+using glretrace::Socket;
 using glretrace::application_cache_directory;
-using ApiTrace::RetraceResponse;
-using ApiTrace::RetraceRequest;
 using google::protobuf::io::ArrayInputStream;
+using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
-using google::protobuf::io::ArrayOutputStream;
 
 FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock,
                                            IFrameRetrace *frameretrace)
-    : Thread("retrace_skeleton"), m_socket(sock),
+    : Thread("retrace_skeleton"),
+      m_force_upload(false),
+      m_socket(sock),
       m_frame(frameretrace),
       m_multi_metrics_response(new RetraceResponse) {
   if (!m_frame)

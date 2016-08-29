@@ -36,15 +36,16 @@
 
 #include "glframe_glhelper.hpp"
 
-using glretrace::PerfMetricGroup;
-using glretrace::GlFunctions;
-using glretrace::PerfMetrics;
-using glretrace::MetricId;
-using glretrace::NoCopy;
-using glretrace::NoAssign;
-using glretrace::OnFrameRetrace;
-using glretrace::RenderId;
 using glretrace::ExperimentId;
+using glretrace::GlFunctions;
+using glretrace::MetricId;
+using glretrace::NoAssign;
+using glretrace::NoCopy;
+using glretrace::OnFrameRetrace;
+using glretrace::PerfMetricGroup;
+using glretrace::PerfMetrics;
+using glretrace::RenderId;
+using glretrace::SelectionId;
 
 namespace {
 
@@ -337,10 +338,12 @@ PerfMetric::getMetric(const std::vector<unsigned char> &data) const {
       fval = static_cast<float>(val);
       break;
     }
-    case GL_PERFQUERY_COUNTER_DATA_BOOL32_INTEL:
+    case GL_PERFQUERY_COUNTER_DATA_BOOL32_INTEL: {
       assert(m_data_size == 4);
-      assert(false);
+      const bool val = *reinterpret_cast<const bool*>(p_value);
+      fval = val ? 1.0 : 0.0;
       break;
+    }
     default:
       assert(false);
   }
