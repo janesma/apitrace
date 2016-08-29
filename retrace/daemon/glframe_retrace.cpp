@@ -46,26 +46,27 @@
 #include "trace_dump.hpp"
 
 using glretrace::ExperimentId;
-using glretrace::SelectionId;
-using glretrace::MetricSeries;
-using glretrace::ShaderAssembly;
 using glretrace::FrameRetrace;
 using glretrace::FrameState;
 using glretrace::GlFunctions;
 using glretrace::MetricId;
+using glretrace::MetricSeries;
+using glretrace::NoRedirect;
 using glretrace::OnFrameRetrace;
 using glretrace::OutputPoller;
 using glretrace::RenderId;
+using glretrace::RenderOptions;
+using glretrace::RenderSelection;
+using glretrace::RenderTargetType;
+using glretrace::SelectionId;
+using glretrace::ShaderAssembly;
 using glretrace::StateTrack;
-using glretrace::WARN;
-using glretrace::NoRedirect;
 using glretrace::StdErrRedirect;
+using glretrace::WARN;
 using image::Image;
 using retrace::parser;
 using trace::Call;
 using trace::RenderBookmark;
-using glretrace::RenderTargetType;
-using glretrace::RenderOptions;
 
 extern retrace::Retracer retracer;
 
@@ -324,8 +325,9 @@ FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
           m_metrics->end();
           query_active = false;
           ++currentRenderSequence;
-        }
-        if (RenderId(i) == currentRenderSequence->begin) {
+        } 
+		if (currentRenderSequence != selection.series.end() && 
+			(RenderId(i) == currentRenderSequence->begin)) {
           m_metrics->begin(RenderId(i));
           query_active = true;
         }

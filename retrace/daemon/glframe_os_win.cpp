@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <sstream>
 
+#include "glframe_logger.hpp"
+
 namespace glretrace {
 
 int fork_execv(const char *path, const char *const argv[]) {
@@ -75,9 +77,16 @@ glretrace_delay(unsigned int ms) {
   Sleep(ms);
 }
 
-std::string application_cache_directory() {
-  // TODO(majanes): implement this
-  return "c:/tmp/";
-}
+    std::string application_cache_directory() {
+	const char *app_dir = getenv("APPDATA");
+	const std::string cache_dir = std::string(app_dir) + "\\frameretrace";
+	if (CreateDirectory(cache_dir.c_str(), NULL) ||
+	    ERROR_ALREADY_EXISTS == GetLastError()) {
+
+	} else {
+	    GRLOGF(ERR, "Failed to create directory: %s", cache_dir.c_str());
+	}    
+	return cache_dir + "\\";
+    }
 
 }  // namespace glretrace
