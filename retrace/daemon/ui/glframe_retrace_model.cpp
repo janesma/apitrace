@@ -43,19 +43,20 @@
 #include "glframe_socket.hpp"
 #include "md5.h"  // NOLINT
 
-using glretrace::FrameRetraceModel;
-using glretrace::FrameState;
 using glretrace::DEBUG;
 using glretrace::ERR;
+using glretrace::ExperimentId;
+using glretrace::FrameRetraceModel;
+using glretrace::FrameState;
+using glretrace::MetricId;
+using glretrace::MetricSeries;
+using glretrace::QBarGraphRenderer;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
-using glretrace::QBarGraphRenderer;
 using glretrace::QSelection;
 using glretrace::RenderId;
 using glretrace::RenderTargetType;
-using glretrace::ExperimentId;
-using glretrace::MetricId;
-using glretrace::MetricSeries;
+using glretrace::SelectionId;
 using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
 
@@ -205,6 +206,8 @@ FrameRetraceModel::retrace_rendertarget() {
   RenderTargetType rt_type = glretrace::NORMAL_RENDER;
   if (m_highlight_render)
     rt_type = HIGHLIGHT_RENDER;
+  if (m_cached_selection.empty())
+    return;
   m_retrace.retraceRenderTarget(m_selection_count,
                                 RenderId(m_cached_selection.back()),
                                 0, rt_type,
@@ -213,6 +216,8 @@ FrameRetraceModel::retrace_rendertarget() {
 
 void
 FrameRetraceModel::retrace_shader_assemblies() {
+  if (m_cached_selection.empty())
+    return;
   m_retrace.retraceShaderAssembly(RenderId(m_cached_selection.back()),
                                   this);
 }

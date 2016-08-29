@@ -32,8 +32,14 @@
 
 #include "glframe_qselection.hpp"
 
+using glretrace::ExperimentId;
+using glretrace::IFrameRetrace;
+using glretrace::MetricId;
+using glretrace::MetricSeries;
 using glretrace::QMetricValue;
 using glretrace::QMetricsModel;
+using glretrace::QSelection;
+using glretrace::SelectionId;
 
 QMetricValue::QMetricValue() : m_name(""), m_frame_value(0), m_value(0) {
   assert(false);

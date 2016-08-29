@@ -29,6 +29,7 @@
 #define _GLFRAME_RETRACE_INTERFACE_HPP_
 
 #include <assert.h>
+#include <stdint.h>
 
 #include <map>
 #include <string>
