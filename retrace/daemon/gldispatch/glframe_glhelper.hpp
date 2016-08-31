@@ -113,6 +113,22 @@ class GlFunctions {
   static void GetProgramInfoLog(GLuint program, GLsizei bufSize,
                                 GLsizei *length, GLchar *infoLog);
 
+  static void GetBooleanv(GLenum pname, GLboolean *params);
+  static void GetFloatv(GLenum pname, GLfloat *params);
+  static void BlendColor(GLclampf red, GLclampf green,
+                         GLclampf blue, GLclampf alpha);
+  static void BlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB,
+                                GLenum sfactorAlpha, GLenum dfactorAlpha);
+  static void Disable(GLenum cap);
+  static void BlendEquation(GLenum mode);
+  static void BlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
+
+  static void BindAttribLocation(GLuint program, GLuint index,
+                                 const GLchar *name);
+
+  static void ValidateProgram(GLuint program);
+  static GLboolean IsEnabled(GLenum cap);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
