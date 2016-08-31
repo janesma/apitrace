@@ -81,6 +81,16 @@ static void *pEndPerfQueryINTEL = NULL;
 static void *pGetPerfQueryDataINTEL = NULL;
 static void *pGetProgramiv = NULL;
 static void *pGetProgramInfoLog = NULL;
+static void *pGetBooleanv = NULL;
+static void *pGetFloatv = NULL;
+static void *pBlendColor = NULL;
+static void *pBlendFuncSeparate = NULL;
+static void *pDisable = NULL;
+static void *pBlendEquation = NULL;
+static void *pBlendEquationSeparate = NULL;
+static void *pBindAttribLocation = NULL;
+static void *pValidateProgram = NULL;
+static void *pIsEnabled = NULL;
 
 }  // namespace
 
@@ -213,6 +223,26 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetProgramiv);
   pGetProgramInfoLog = _GetProcAddress("glGetProgramInfoLog");
   assert(pGetProgramInfoLog);
+  pGetBooleanv = _GetProcAddress("glGetBooleanv");
+  assert(pGetBooleanv);
+  pGetFloatv = _GetProcAddress("glGetFloatv");
+  assert(pGetFloatv);
+  pBlendColor = _GetProcAddress("glBlendColor");
+  assert(pBlendColor);
+  pBlendFuncSeparate = _GetProcAddress("glBlendFuncSeparate");
+  assert(pBlendFuncSeparate);
+  pDisable = _GetProcAddress("glDisable");
+  assert(pDisable);
+  pBlendEquation = _GetProcAddress("glBlendEquation");
+  assert(pBlendEquation);
+  pBlendEquationSeparate = _GetProcAddress("glBlendEquationSeparate");
+  assert(pBlendEquationSeparate);
+  pBindAttribLocation = _GetProcAddress("glBindAttribLocation");
+  assert(pBindAttribLocation);
+  pValidateProgram = _GetProcAddress("glValidateProgram");
+  assert(pValidateProgram);
+  pIsEnabled = _GetProcAddress("glIsEnabled");
+  assert(pIsEnabled);
 }
 
 GLuint
@@ -529,4 +559,71 @@ GlFunctions::GetProgramInfoLog(GLuint program, GLsizei bufSize,
                                     GLsizei *length, GLchar *infoLog);
   ((GETPROGRAMINFOLOG) pGetProgramInfoLog)(program, bufSize,
                                            length, infoLog);
+}
+
+void
+GlFunctions::GetBooleanv(GLenum pname, GLboolean *params) {
+  typedef void (*GETBOOLEANV)(GLenum pname, GLboolean *params);
+  ((GETBOOLEANV) pGetBooleanv)(pname, params);
+}
+
+void
+GlFunctions::GetFloatv(GLenum pname, GLfloat *params) {
+  typedef void (*GETFLOATV)(GLenum pname, GLfloat *params);
+  ((GETFLOATV) pGetFloatv)(pname, params);
+}
+
+void
+GlFunctions::BlendColor(GLclampf red, GLclampf green,
+                        GLclampf blue, GLclampf alpha) {
+  typedef void (*BLENDCOLOR)(GLclampf red, GLclampf green,
+                             GLclampf blue, GLclampf alpha);
+  ((BLENDCOLOR) pBlendColor)(red, green, blue, alpha);
+}
+
+void
+GlFunctions::BlendFuncSeparate(GLenum sfactorRGB, GLenum dfactorRGB,
+                               GLenum sfactorAlpha, GLenum dfactorAlpha) {
+  typedef void (*BLENDFUNCSEPARATE)(GLenum sfactorRGB, GLenum dfactorRGB,
+                                    GLenum sfactorAlpha, GLenum dfactorAlpha);
+  ((BLENDFUNCSEPARATE) pBlendFuncSeparate)(sfactorRGB, dfactorRGB,
+                                           sfactorAlpha, dfactorAlpha);
+}
+
+void
+GlFunctions::Disable(GLenum cap) {
+  typedef void (*DISABLE)(GLenum cap);
+  ((DISABLE) pDisable)(cap);
+}
+
+void
+GlFunctions::BlendEquation(GLenum mode) {
+  typedef void (*BLENDEQUATION)(GLenum mode);
+  ((BLENDEQUATION) pBlendEquation)(mode);
+}
+
+void
+GlFunctions::BlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha) {
+  typedef void (*BLENDEQUATIONSEPARATE)(GLenum modeRGB, GLenum modeAlpha);
+  ((BLENDEQUATIONSEPARATE) pBlendEquationSeparate)(modeRGB, modeAlpha);
+}
+
+void
+GlFunctions::BindAttribLocation(GLuint program, GLuint index,
+                                const GLchar *name) {
+  typedef void (*BINDATTRIBLOCATION)(GLuint program, GLuint index,
+                                     const GLchar *name);
+  ((BINDATTRIBLOCATION) pBindAttribLocation)(program, index, name);
+}
+
+void
+GlFunctions::ValidateProgram(GLuint program) {
+  typedef void (*VALIDATEPROGRAM)(GLuint program);
+  ((VALIDATEPROGRAM) pValidateProgram)(program);
+}
+
+GLboolean
+GlFunctions::IsEnabled(GLenum cap) {
+  typedef GLboolean (*ISENABLED)(GLenum cap);
+  return ((ISENABLED) pIsEnabled)(cap);
 }
