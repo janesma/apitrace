@@ -170,6 +170,7 @@ typedef std::vector<RenderSequence> RenderSeries;
 struct RenderSelection {
   SelectionId id;
   RenderSeries series;
+  void clear() { series.clear(); }
 };
 
 struct ShaderAssembly {

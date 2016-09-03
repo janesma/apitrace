@@ -68,7 +68,7 @@ QMetricValue::setFrameValue(float v) {
 }
 
 QMetricsModel::QMetricsModel()
-    : m_retrace(NULL), m_current_selection(SelectionId(0)) {
+    : m_retrace(NULL), m_current_selection_count(SelectionId(0)) {
 }
 
 void
@@ -78,6 +78,7 @@ QMetricsModel::init(IFrameRetrace *r,
                     const std::vector<std::string> &names,
                     int render_count) {
   m_retrace = r;
+  m_render_count = render_count;
   for (int i = 0; i < ids.size(); ++i) {
     QMetricValue *q = new QMetricValue(this);
     q->setName(names[i]);
@@ -103,7 +104,8 @@ void
 QMetricsModel::onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount,
                          SelectionId selectionCount) {
-  if (selectionCount != m_current_selection)
+  if ((selectionCount != m_current_selection_count) &&
+      (selectionCount != SelectionId(0)))
     // a subsequent selection was made when the asynchronous metrics
     // request was retracing
     return;
@@ -124,27 +126,42 @@ QMetricsModel::onMetrics(const MetricSeries &metricData,
 
 void
 QMetricsModel::onSelect(QList<int> selection) {
+  m_render_selection.clear();
   if (selection.empty()) {
     for (auto m : m_metric_list)
       m->setValue(0.0);
     return;
   }
-  RenderSelection s;
-  s.id = ++m_current_selection;
+  m_render_selection.id = ++m_current_selection_count;
   int last_render = -5;
   for (auto i : selection) {
     if (i != last_render + 1) {
       if (last_render >= 0) {
-        s.series.back().end = RenderId(last_render + 1);
+        m_render_selection.series.back().end = RenderId(last_render + 1);
       }
-      s.series.push_back(RenderSequence(RenderId(i), RenderId(0)));
+      m_render_selection.series.push_back(RenderSequence(RenderId(i),
+                                                         RenderId(0)));
     }
     last_render = i;
   }
-  s.series.back().end = RenderId(last_render + 1);
+  m_render_selection.series.back().end = RenderId(last_render + 1);
   // TODO(majanes) track ExperimentId, request new metrics on
   // experiments
+  m_retrace->retraceAllMetrics(m_render_selection, ExperimentId(0), this);
+}
+
+void
+QMetricsModel::refresh() {
+  // retrace the metrics for the full frame
+  RenderSelection s;
+  s.id = SelectionId(0);
+  s.series.push_back(RenderSequence(RenderId(0), RenderId(m_render_count)));
   m_retrace->retraceAllMetrics(s, ExperimentId(0), this);
+
+  // retrace the metrics for the current selection
+  if (!m_render_selection.series.empty())
+    m_retrace->retraceAllMetrics(m_render_selection,
+                                 ExperimentId(0), this);
 }
 
 QMetricsModel::~QMetricsModel() {

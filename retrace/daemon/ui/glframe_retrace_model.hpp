@@ -137,6 +137,7 @@ class FrameRetraceModel : public QObject,
                                    const QString &tess_control,
                                    const QString &tess_eval,
                                    const QString &geom);
+  Q_INVOKABLE void refreshMetrics();
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
   QSelection *selection();

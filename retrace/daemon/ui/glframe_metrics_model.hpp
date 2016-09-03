@@ -106,6 +106,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   void onError(const std::string &message) { assert(false); }
 
   QQmlListProperty<QMetricValue> metrics();
+  void refresh();
 
  public slots:
   void onSelect(QList<int> selection);
@@ -115,7 +116,9 @@ class QMetricsModel : public QObject, OnFrameRetrace,
 
  private:
   IFrameRetrace *m_retrace;
-  SelectionId m_current_selection;
+  int m_render_count;
+  SelectionId m_current_selection_count;
+  RenderSelection m_render_selection;
   std::map<MetricId, QMetricValue*> m_metrics;
   QList<QMetricValue *> m_metric_list;
 };
