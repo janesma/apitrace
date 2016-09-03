@@ -226,7 +226,7 @@ FrameRetrace::retraceRenderTarget(SelectionId selectionCount,
 
   // play to the rest of the frame
   for (int i = last_played_render.index() + 1; i < m_renders.size(); ++i)
-      m_renders[i]->retraceRenderTarget(m_tracker, type);
+      m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
 }
 
 

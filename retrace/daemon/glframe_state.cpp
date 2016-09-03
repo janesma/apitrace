@@ -67,6 +67,8 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glShaderSource"] = &StateTrack::trackShaderSource;
   lookup["glUseProgram"] = &StateTrack::trackUseProgram;
   lookup["glDeleteProgram"] = &StateTrack::trackDeleteProgram;
+  lookup["glBindAttribLocation"] = &StateTrack::trackBindAttribLocation;
+  lookup["glGetUniformLocation"] = &StateTrack::trackGetUniformLocation;
 }
 
 bool
@@ -131,7 +133,8 @@ StateTrack::trackAttachShader(const Call &call) {
   auto tess_control = program_to_tess_control.find(program);
   auto tess_eval = program_to_tess_eval.find(program);
   auto geom = program_to_geom.find(program);
-  const ProgramKey k(vs == program_to_vertex.end()
+  const ProgramKey k(program,
+                     vs == program_to_vertex.end()
                      ? "" : vs->second.shader,
                      fs == program_to_fragment.end()
                      ? "" : fs->second.shader,
@@ -174,7 +177,11 @@ StateTrack::trackUseProgram(const trace::Call &call) {
   // program id generated during retrace, which is mapped within
   // glretrace_gl.cpp.  To track the actual program, we must retrieve
   // it from apitrace.
-  current_program = getRetracedProgram(call.args[0].value->toDouble());
+  int call_program = call.args[0].value->toDouble();
+  if (!call_program)
+    current_program = 0;
+  else
+    current_program = getRetracedProgram(call_program);
 }
 
 void
@@ -442,16 +449,21 @@ StateTrack::currentGeomShader() const {
 void
 StateTrack::flush() { m_poller->poll(); }
 
-StateTrack::ProgramKey::ProgramKey(const std::string &v,
+StateTrack::ProgramKey::ProgramKey(int orig_program,
+                                   const std::string &v,
                                    const std::string &f,
                                    const std::string &t_c,
                                    const std::string &t_e,
                                    const std::string &g)
-    : vs(v), fs(f), tess_control(t_c),
+    : orig(orig_program), vs(v), fs(f), tess_control(t_c),
       tess_eval(t_e), geom(g) {}
 
 bool
 StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
+  if (orig < o.orig)
+    return true;
+  if (orig > o.orig)
+    return false;
   if (vs < o.vs)
     return true;
   if (vs > o.vs)
@@ -474,14 +486,18 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
 }
 
 int
-StateTrack::useProgram(int orig_program,
+StateTrack::useProgram(int orig_retraced_program,
                        const std::string &vs,
                        const std::string &fs,
                        const std::string &tessControl,
                        const std::string &tessEval,
                        const std::string &geom,
                        std::string *message) {
-  const ProgramKey k(vs, fs, tessControl, tessEval, geom);
+  if (vs.empty())
+    return -1;
+
+  const ProgramKey k(orig_retraced_program,
+                     vs, fs, tessControl, tessEval, geom);
   auto i = m_sources_to_program.find(k);
   if (i != m_sources_to_program.end())
     return i->second;
@@ -644,10 +660,21 @@ StateTrack::useProgram(int orig_program,
     program_to_geom[pid].shader = geom;
   }
 
+  for (auto &binding : m_program_to_bound_attrib[orig_retraced_program]) {
+    GlFunctions::BindAttribLocation(pid, binding.first, binding.second.c_str());
+  }
+
   GlFunctions::LinkProgram(pid);
   if (message) {
     GetLinkError(pid, message);
     if (message->size()) {
+      return -1;
+    }
+  } else {
+    std::string _message;
+    GetLinkError(pid, &_message);
+    if (_message.size() > 0) {
+      GRLOGF(WARN, "link error for custom program: %s", _message.c_str());
       return -1;
     }
   }
@@ -656,13 +683,13 @@ StateTrack::useProgram(int orig_program,
   // TODO(majanes) check error
   parse();
   m_sources_to_program[k] = pid;
-  program_to_replacements[orig_program].push_back(pid);
+  program_to_replacements[orig_retraced_program].push_back(pid);
   return pid;
 }
 
 void
 StateTrack::useProgram(int program) {
-  current_program = getRetracedProgram(program);
+  current_program = program;
   parse();
 }
 
@@ -674,7 +701,6 @@ StateTrack::onApi(OnFrameRetrace *callback) {
 void
 StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
                                       retrace::Retracer *retracer) const {
-  // glProgramUniform
   if (strncmp("glProgramUniform", c->sig->name,
               strlen("glProgramUniform")) == 0) {
     const int program = c->arg(0).toUInt();
@@ -682,27 +708,77 @@ StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
     auto replacements = program_to_replacements.find(retraced_program);
     if (replacements != program_to_replacements.end()) {
       trace::Value * call_program = c->args[0].value;
+      trace::Value * call_loc = c->args[1].value;
+      const int call_loc_val = call_loc->toSInt();
       for (auto replacement : replacements->second) {
         trace::UInt replace_program(replacement);
         c->args[0].value = &replace_program;
+        auto name_map = m_program_to_uniform_name.find(retraced_program);
+        assert(name_map != m_program_to_uniform_name.end());
+        auto name_it = name_map->second.find(call_loc->toSInt());
+        trace::SInt replace_loc(call_loc_val);
+        if (name_it != name_map->second.end()) {
+          const std::string &name = name_it->second;
+          GLint loc = GlFunctions::GetUniformLocation(replacement,
+                                                      name.c_str());
+          replace_loc.value = loc;
+          c->args[1].value = &replace_loc;
+        }
         retracer->retrace(*c);
       }
       c->args[0].value = call_program;
+      c->args[1].value = call_loc;
     }
     return;
   }
   if (strncmp("glUniform", c->sig->name, strlen("glUniform")) == 0) {
     glretrace::Context *currentContext = glretrace::getCurrentContext();
-    auto replacements = program_to_replacements.find(orig_program);
+    const int retraced_program = orig_program;
+    assert(retraced_program == orig_program);
+    auto replacements = program_to_replacements.find(retraced_program);
     if (replacements != program_to_replacements.end()) {
+      trace::Value * call_loc = c->args[0].value;
+      const int call_loc_val = call_loc->toSInt();
       for (auto replacement : replacements->second) {
         GlFunctions::UseProgram(replacement);
         currentContext->currentProgram = replacement;
+        auto name_map = m_program_to_uniform_name.find(retraced_program);
+        assert(name_map != m_program_to_uniform_name.end());
+        auto name_it = name_map->second.find(call_loc_val);
+        trace::SInt replace_loc(call_loc_val);
+        if (name_it != name_map->second.end()) {
+          const std::string &name = name_it->second;
+          GLint loc = GlFunctions::GetUniformLocation(replacement,
+                                                      name.c_str());
+          replace_loc.value = loc;
+          c->args[0].value = &replace_loc;
+        }
         retracer->retrace(*c);
       }
+      c->args[0].value = call_loc;
       GlFunctions::UseProgram(orig_program);
       currentContext->currentProgram = orig_program;
     }
     return;
   }
+}
+
+void
+StateTrack::trackBindAttribLocation(const Call &call) {
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
+  const int location = call.args[1].value->toDouble();
+  const std::string name(call.args[2].value->toString());
+  m_program_to_bound_attrib[program][location] = name;
+}
+
+void
+StateTrack::trackGetUniformLocation(const Call &call) {
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
+  const std::string name(call.args[1].value->toString());
+  const int location = call.ret->toDouble();
+  m_program_to_uniform_name[program][location] = name;
+  if (program == 955)
+    GRLOGF(ERR, "%s at %d", name.c_str(), location);
 }
