@@ -87,11 +87,13 @@ class StateTrack {
   static TrackMap lookup;
   class ProgramKey {
    public:
-    ProgramKey(const std::string &v, const std::string &f,
+    ProgramKey(int orig_progam,
+               const std::string &v, const std::string &f,
                const std::string &t_c, const std::string &t_e,
                const std::string &geom);
     bool operator<(const ProgramKey &o) const;
    private:
+    int orig;
     std::string vs, fs, tess_control, tess_eval, geom;
   };
 
@@ -102,6 +104,8 @@ class StateTrack {
   void trackLinkProgram(const trace::Call &);
   void trackUseProgram(const trace::Call &);
   void trackDeleteProgram(const trace::Call &);
+  void trackBindAttribLocation(const trace::Call &);
+  void trackGetUniformLocation(const trace::Call &);
 
   OutputPoller *m_poller;
   int current_program;
@@ -110,6 +114,8 @@ class StateTrack {
   std::map<int, int> shader_to_type;
   std::map<std::string, int> source_to_shader;
   std::map<ProgramKey, int> m_sources_to_program;
+  std::map<int, std::map<int, std::string>> m_program_to_bound_attrib;
+  std::map<int, std::map<int, std::string>> m_program_to_uniform_name;
 
   // for these maps, key is program
   std::map<int, ShaderAssembly> program_to_vertex;
