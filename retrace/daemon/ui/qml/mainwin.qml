@@ -205,6 +205,15 @@ ApplicationWindow {
         anchors.fill: parent
         visible: false
 
+        RefreshControl {
+            Layout.minimumHeight: 20
+            Layout.maximumHeight: 20
+            metricsModel: frameRetrace
+            Layout.alignment: Qt.AlignTop
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+        
         BarGraphControl {
             selection: selection
             metric_model: frameRetrace

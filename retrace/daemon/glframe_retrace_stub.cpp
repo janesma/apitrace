@@ -348,9 +348,12 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
   }
   virtual void retrace(RetraceSocket *s) {
     {
+      const int query_sel_count =
+          m_proto_msg.allmetrics().selection().selection_count();
+      const SelectionId query_id(query_sel_count);
       std::lock_guard<std::mutex> l(*m_protect);
-      if (*m_sel_count !=
-          SelectionId(m_proto_msg.allmetrics().selection().selection_count()))
+      if ((*m_sel_count != query_id) &&
+          (query_id != SelectionId(0)))
         // more recent selection was made while this was enqueued
         return;
     }
