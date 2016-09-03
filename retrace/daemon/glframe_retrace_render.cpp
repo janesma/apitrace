@@ -29,6 +29,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
@@ -59,8 +60,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
                              retrace::Retracer *retracer,
                              StateTrack *tracker) : m_parser(parser),
                                                     m_retracer(retracer),
-                                                    m_rt_program(0),
-                                                    m_retrace_program(0),
+                                                    m_rt_program(-1),
+                                                    m_retrace_program(-1),
                                                     m_end_of_frame(false),
                                                     m_highlight_rt(false) {
   m_parser->getBookmark(m_bookmark.start);
@@ -123,18 +124,34 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
     delete(call);
   }
 
-  if (type == HIGHLIGHT_RENDER)
+  bool blend_enabled = false;
+  if ((type == HIGHLIGHT_RENDER) && (m_rt_program > -1)) {
+    blend_enabled = GlFunctions::IsEnabled(GL_BLEND);
+    GlFunctions::Disable(GL_BLEND);
     GlFunctions::UseProgram(m_rt_program);
-  else if (m_retrace_program)
+    GlFunctions::ValidateProgram(m_rt_program);
+    GLint result;
+    GlFunctions::GetProgramiv(m_rt_program, GL_VALIDATE_STATUS, &result);
+    if (result == GL_FALSE) {
+      std::vector<char> buf(1024);
+      GLsizei s;
+      GlFunctions::GetProgramInfoLog(m_rt_program, 1024, &s, buf.data());
+      GRLOGF(ERR, "Highlight program not validated: %s", buf.data());
+    }
+  } else if (m_retrace_program > -1) {
     GlFunctions::UseProgram(m_retrace_program);
+  }
 
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
   m_retracer->retrace(*call);
   delete(call);
-  if (type == HIGHLIGHT_RENDER || m_retrace_program)
+  if (type == HIGHLIGHT_RENDER || m_retrace_program > -1) {
+    if (blend_enabled)
+      GlFunctions::Enable(GL_BLEND);
     GlFunctions::UseProgram(m_original_program);
+  }
 }
 
 
@@ -160,7 +177,7 @@ RetraceRender::retrace(StateTrack *tracker) const {
   }
 
   // select the shader override if necessary
-  if (m_retrace_program) {
+  if (m_retrace_program > -1) {
     GlFunctions::UseProgram(m_retrace_program);
     if (tracker) {
       tracker->useProgram(m_retrace_program);
@@ -198,7 +215,7 @@ RetraceRender::retrace(const StateTrack &tracker) const {
   }
 
   // select the shader override if necessary
-  if (m_retrace_program) {
+  if (m_retrace_program > -1) {
     GlFunctions::UseProgram(m_retrace_program);
   }
 
