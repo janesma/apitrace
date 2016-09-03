@@ -439,6 +439,13 @@ FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs,
                            this);
 }
 
+void
+FrameRetraceModel::refreshMetrics() {
+  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+                           this);
+  m_metrics_table.refresh();
+}
+
 QStringList
 FrameRetraceModel::apiCalls() {
   ScopedLock s(m_protect);

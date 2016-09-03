@@ -4,5 +4,6 @@
         <file>qml/BarGraphControl.qml</file>
         <file>qml/ShaderControl.qml</file>
         <file>qml/MetricTabControl.qml</file>
+        <file>qml/RefreshControl.qml</file>
     </qresource>
 </RCC>
