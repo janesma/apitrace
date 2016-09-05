@@ -282,6 +282,13 @@ void
 FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
                              ExperimentId experimentCount,
                              OnFrameRetrace *callback) const {
+  // retrace the frame once to warm up the gpu, ensuring that the gpu
+  // is not throttled
+  parser.setBookmark(frame_start.start);
+  for (int i = 0; i < m_renders.size(); ++i) {
+    m_renders[i]->retrace(m_tracker);
+  }
+
   const int render_count = getRenderCount();
   for (const auto &id : ids) {
     // reset to beginning of frame
@@ -317,6 +324,13 @@ void
 FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
                                 ExperimentId experimentCount,
                                 OnFrameRetrace *callback) const {
+  // retrace the frame once to warm up the gpu, ensuring that the gpu
+  // is not throttled
+  parser.setBookmark(frame_start.start);
+  for (int i = 0; i < m_renders.size(); ++i) {
+    m_renders[i]->retrace(m_tracker);
+  }
+
   for (int i = 0; i < m_metrics->groupCount(); ++i) {
     bool query_active = false;
     m_metrics->selectGroup(i);
