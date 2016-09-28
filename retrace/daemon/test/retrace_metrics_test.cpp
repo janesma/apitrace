@@ -48,7 +48,8 @@ class MetricsCallback : public OnFrameRetrace {
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
                         const ShaderAssembly &tess_eval,
-                        const ShaderAssembly &geom) {}
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp) {}
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, ExperimentId experimentCount,

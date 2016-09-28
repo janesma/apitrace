@@ -235,13 +235,15 @@ ApplicationWindow {
                 property var tessControlText
                 property var tessEvalText
                 property var geomText
+                property var compText
                 onClicked: {
                     visible = false
                     compileRow.visible = false;
                     frameRetrace.overrideShaders(vsText, fsText,
                                                  tessControlText,
                                                  tessEvalText,
-                                                 geomText);
+                                                 geomText,
+                                                 compText);
                 }
                 Component.onCompleted: { visible = false; }
             }
@@ -329,6 +331,17 @@ ApplicationWindow {
                         ShaderControl {
                             shader_type: "geom"
                             model: frameRetrace.geomShader
+                            compile_button: compileButton
+                            compile_row: compileRow
+                        }
+                    }
+                    Tab {
+                        title: "Compute"
+                        active: true
+                        anchors.fill: parent
+                        ShaderControl {
+                            shader_type: "comp"
+                            model: frameRetrace.compShader
                             compile_button: compileButton
                             compile_row: compileRow
                         }

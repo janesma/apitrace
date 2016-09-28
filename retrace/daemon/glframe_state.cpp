@@ -127,12 +127,15 @@ StateTrack::trackAttachShader(const Call &call) {
     program_to_tess_eval[program].shader = shader_to_source[shader];
   else if (shader_to_type[shader] == GL_GEOMETRY_SHADER)
     program_to_geom[program].shader = shader_to_source[shader];
+  else if (shader_to_type[shader] == GL_COMPUTE_SHADER)
+    program_to_comp[program].shader = shader_to_source[shader];
 
   auto vs = program_to_vertex.find(program);
   auto fs = program_to_fragment.find(program);
   auto tess_control = program_to_tess_control.find(program);
   auto tess_eval = program_to_tess_eval.find(program);
   auto geom = program_to_geom.find(program);
+  auto comp = program_to_comp.find(program);
   const ProgramKey k(program,
                      vs == program_to_vertex.end()
                      ? "" : vs->second.shader,
@@ -143,7 +146,9 @@ StateTrack::trackAttachShader(const Call &call) {
                      tess_eval == program_to_tess_eval.end()
                      ? "" : tess_eval->second.shader,
                      geom == program_to_geom.end()
-                     ? "" : geom->second.shader);
+                     ? "" : geom->second.shader,
+                     comp == program_to_comp.end()
+                     ? "" : comp->second.shader);
   m_sources_to_program[k] = program;
 }
 
@@ -203,6 +208,15 @@ StateTrack::trackDeleteProgram(const trace::Call &call) {
   i = program_to_geom.find(deleted_program);
   if (i != program_to_geom.end())
       program_to_geom.erase(i);
+  i = program_to_comp.find(deleted_program);
+  if (i != program_to_comp.end())
+      program_to_comp.erase(i);
+  auto j = m_program_to_bound_attrib.find(deleted_program);
+  if (j != m_program_to_bound_attrib.end())
+    m_program_to_bound_attrib.erase(j);
+  j = m_program_to_uniform_name.find(deleted_program);
+  if (j != m_program_to_uniform_name.end())
+    m_program_to_uniform_name.erase(j);
 }
 
 void
@@ -212,6 +226,7 @@ StateTrack::parse() {
       tess_eval_ir, tess_eval_ssa, tess_eval_final, tess_eval_simd8,
       tess_control_ir, tess_control_ssa, tess_control_final, tess_control_simd8,
       geom_ir, geom_ssa, geom_final, geom_simd8,
+      comp_ir, comp_ssa, comp_final, comp_simd8,
       *current_target = NULL;
   int line_shader = -1;
   while (true) {
@@ -356,6 +371,31 @@ StateTrack::parse() {
           current_target = &geom_simd8;
       }
 
+      // TODO(majanes) look at compute shader IR
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "GLSL IR for native compute shader %d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &comp_ir;
+      }
+      if (0 == strcmp(line.c_str(),
+                      "NIR (SSA form) for compute shader:"))
+        current_target = &comp_ssa;
+
+      if (0 == strcmp(line.c_str(),
+                      "NIR (final form) for compute shader:"))
+        current_target = &comp_final;
+
+      if (matches <= 0) {
+        matches = sscanf(line.c_str(),
+                         "Native code for unnamed compute "
+                         "shader GLSL%d:",
+                         &line_shader);
+        if (matches > 0)
+          current_target = &comp_simd8;
+      }
+
       if (current_target) {
         *current_target += line + "\n";
       }
@@ -413,6 +453,15 @@ StateTrack::parse() {
     program_to_geom[current_program].nir = geom_final;
   if (geom_simd8.length() > 0)
     program_to_geom[current_program].simd8 = geom_simd8;
+
+  if (comp_ir.length() > 0)
+    program_to_comp[current_program].ir = comp_ir;
+  if (comp_ssa.length() > 0)
+    program_to_comp[current_program].ssa = comp_ssa;
+  if (comp_final.length() > 0)
+    program_to_comp[current_program].nir = comp_final;
+  if (comp_simd8.length() > 0)
+    program_to_comp[current_program].simd8 = comp_simd8;
 }
 
 const ShaderAssembly &
@@ -446,6 +495,12 @@ StateTrack::currentGeomShader() const {
   return (sh == program_to_geom.end() ? empty_shader : sh->second);
 }
 
+const ShaderAssembly &
+StateTrack::currentCompShader() const {
+  auto sh = program_to_comp.find(current_program);
+  return (sh == program_to_comp.end() ? empty_shader : sh->second);
+}
+
 void
 StateTrack::flush() { m_poller->poll(); }
 
@@ -454,9 +509,10 @@ StateTrack::ProgramKey::ProgramKey(int orig_program,
                                    const std::string &f,
                                    const std::string &t_c,
                                    const std::string &t_e,
-                                   const std::string &g)
+                                   const std::string &g,
+                                   const std::string &c)
     : orig(orig_program), vs(v), fs(f), tess_control(t_c),
-      tess_eval(t_e), geom(g) {}
+      tess_eval(t_e), geom(g), comp(c) {}
 
 bool
 StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
@@ -482,6 +538,10 @@ StateTrack::ProgramKey::operator<(const ProgramKey &o) const {
     return false;
   if (geom < o.geom)
     return true;
+  if (geom > o.geom)
+    return false;
+  if (comp < o.comp)
+    return true;
   return false;
 }
 
@@ -492,12 +552,14 @@ StateTrack::useProgram(int orig_retraced_program,
                        const std::string &tessControl,
                        const std::string &tessEval,
                        const std::string &geom,
+                       const std::string &comp,
                        std::string *message) {
-  if (vs.empty())
+  if (vs.empty() && comp.empty())
     return -1;
 
   const ProgramKey k(orig_retraced_program,
-                     vs, fs, tessControl, tessEval, geom);
+                     vs, fs, tessControl, tessEval,
+                     geom, comp);
   auto i = m_sources_to_program.find(k);
   if (i != m_sources_to_program.end())
     return i->second;
@@ -509,33 +571,35 @@ StateTrack::useProgram(int orig_retraced_program,
          == program_to_fragment.end());
   current_program = pid;
   flush();
-  auto vshader = source_to_shader.find(vs);
-  if (vshader == source_to_shader.end()) {
-    // have to compile the vs
-    const GLint len = vs.size();
-    const GLchar *vsstr = vs.c_str();
-    const GLuint vsid = GlFunctions::CreateShader(GL_VERTEX_SHADER);
-    GlFunctions::ShaderSource(vsid, 1, &vsstr, &len);
-    GL_CHECK();
-    GlFunctions::CompileShader(vsid);
-    if (message) {
-      GetCompileError(vsid, message);
-      if (message->size()) {
-        GRLOGF(WARN, "compile error: %s", message->c_str());
+  if (vs.size()) {
+    auto vshader = source_to_shader.find(vs);
+    if (vshader == source_to_shader.end()) {
+      // have to compile the vs
+      const GLint len = vs.size();
+      const GLchar *vsstr = vs.c_str();
+      const GLuint vsid = GlFunctions::CreateShader(GL_VERTEX_SHADER);
+      GlFunctions::ShaderSource(vsid, 1, &vsstr, &len);
+      GL_CHECK();
+      GlFunctions::CompileShader(vsid);
+      if (message) {
+        GetCompileError(vsid, message);
+        if (message->size()) {
+          GRLOGF(WARN, "compile error: %s", message->c_str());
+          return -1;
+        }
+      }
+      if (GL_NO_ERROR != GlFunctions::GetError()) {
         return -1;
       }
+      GL_CHECK();
+      // TODO(majanes) check error and poll
+      source_to_shader[vs] = vsid;
+      vshader = source_to_shader.find(vs);
     }
-    if (GL_NO_ERROR != GlFunctions::GetError()) {
-      return -1;
-    }
+    program_to_vertex[pid].shader = vs;
+    GlFunctions::AttachShader(pid, vshader->second);
     GL_CHECK();
-    // TODO(majanes) check error and poll
-    source_to_shader[vs] = vsid;
-    vshader = source_to_shader.find(vs);
   }
-  program_to_vertex[pid].shader = vs;
-  GlFunctions::AttachShader(pid, vshader->second);
-  GL_CHECK();
 
   // compile/attach fragment shader if not empty
   if (fs.size()) {
@@ -658,6 +722,37 @@ StateTrack::useProgram(int orig_retraced_program,
     GlFunctions::AttachShader(pid, shader->second);
     GL_CHECK();
     program_to_geom[pid].shader = geom;
+  }
+
+  // compile/attach compute shader if not empty
+  if (comp.size()) {
+    auto shader = source_to_shader.find(comp);
+    if (shader == source_to_shader.end()) {
+      // have to compile the fs
+      const GLint len = comp.size();
+      const GLchar *cstr = comp.c_str();
+      const GLuint id = GlFunctions::CreateShader(GL_COMPUTE_SHADER);
+      GlFunctions::ShaderSource(id, 1, &cstr, &len);
+      GL_CHECK();
+      GlFunctions::CompileShader(id);
+      if (message) {
+        GetCompileError(id, message);
+        if (message->size()) {
+          GRLOGF(WARN, "compile error: %s", message->c_str());
+          return -1;
+        }
+      }
+      if (GL_NO_ERROR != GlFunctions::GetError()) {
+        return -1;
+      }
+      GL_CHECK();
+      // TODO(majanes) check error and poll
+      source_to_shader[comp] = id;
+    }
+    shader = source_to_shader.find(comp);
+    GlFunctions::AttachShader(pid, shader->second);
+    GL_CHECK();
+    program_to_comp[pid].shader = comp;
   }
 
   for (auto &binding : m_program_to_bound_attrib[orig_retraced_program]) {

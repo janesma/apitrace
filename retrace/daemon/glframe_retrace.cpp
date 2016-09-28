@@ -242,7 +242,8 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
                              tmp_tracker.currentFragmentShader(),
                              tmp_tracker.currentTessControlShader(),
                              tmp_tracker.currentTessEvalShader(),
-                             tmp_tracker.currentGeomShader());
+                             tmp_tracker.currentGeomShader(),
+                             tmp_tracker.currentCompShader());
 
   // play to the rest of the frame
   for (int i = renderId.index() + 1; i < m_renders.size(); ++i)
@@ -370,6 +371,7 @@ FrameRetrace::replaceShaders(RenderId renderId,
                              const std::string &tessControl,
                              const std::string &tessEval,
                              const std::string &geom,
+                             const std::string &comp,
                              OnFrameRetrace *callback) {
   GRLOGF(DEBUG, "%s\n%s", vs.c_str(), fs.c_str());
   std::string message;
@@ -378,6 +380,7 @@ FrameRetrace::replaceShaders(RenderId renderId,
                                                                   tessControl,
                                                                   tessEval,
                                                                   geom,
+                                                                  comp,
                                                                   &message);
   if (!result)
     GRLOGF(WARN, "compile failed: %s", message.c_str());

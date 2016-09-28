@@ -31,6 +31,8 @@ Item {
                             compile_button.tessControlText = text;
                         } else if (shader_type == "geom") {
                             compile_button.geomText = text;
+                        } else if (shader_type == "comp") {
+                            compile_button.compText = text;
                         } 
                         compile_button.visible=true;
                         compile_row.visible=true
@@ -136,7 +138,10 @@ Item {
                     compile_button.tessControlText = model.source;
                 } else if (shader_type == "geom") {
                     compile_button.geomText = model.source;
+                } else if (shader_type == "comp") {
+                    compile_button.compText = model.source;
                 } 
+
                 compile_button.visible=false;
                 compile_row.visible=false
                 

@@ -118,6 +118,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onShaders)
   Q_PROPERTY(glretrace::QShader* geomShader READ geomShader
              NOTIFY onShaders)
+  Q_PROPERTY(glretrace::QShader* compShader READ compShader
+             NOTIFY onShaders)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
@@ -136,7 +138,7 @@ class FrameRetraceModel : public QObject,
   Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs,
                                    const QString &tess_control,
                                    const QString &tess_eval,
-                                   const QString &geom);
+                                   const QString &geom, const QString &comp);
   Q_INVOKABLE void refreshMetrics();
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
@@ -150,7 +152,8 @@ class FrameRetraceModel : public QObject,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
                         const ShaderAssembly &tess_eval,
-                        const ShaderAssembly &geom);
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp);
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const std::vector<unsigned char> &data);
   void onShaderCompile(RenderId renderId,
@@ -173,6 +176,7 @@ class FrameRetraceModel : public QObject,
   QShader *tessControlShader() { return &m_tess_control; }
   QShader *tessEvalShader() { return &m_tess_eval; }
   QShader *geomShader() { return &m_geom; }
+  QShader *compShader() { return &m_comp; }
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
@@ -219,7 +223,7 @@ class FrameRetraceModel : public QObject,
   QList<QMetric *> m_metrics_model;
   QList<BarMetrics> m_metrics;
 
-  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom;
+  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom, m_comp;
   QString m_shader_compile_error;
   QString main_exe;  // for path to frame_retrace_server
 

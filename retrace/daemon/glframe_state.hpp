@@ -64,11 +64,12 @@ class StateTrack {
   const ShaderAssembly &currentTessControlShader() const;
   const ShaderAssembly &currentTessEvalShader() const;
   const ShaderAssembly &currentGeomShader() const;
+  const ShaderAssembly &currentCompShader() const;
   uint64_t currentContext() const { return current_context; }
   int useProgram(int orig_program,
                  const std::string &vs, const std::string &fs,
                  const std::string &tessControl, const std::string &tessEval,
-                 const std::string &geom,
+                 const std::string &geom, const std::string &comp,
                  std::string *message = NULL);
   void useProgram(int program);
   void onApi(OnFrameRetrace *callback);
@@ -90,14 +91,15 @@ class StateTrack {
     ProgramKey(int orig_progam,
                const std::string &v, const std::string &f,
                const std::string &t_c, const std::string &t_e,
-               const std::string &geom);
+               const std::string &geom, const std::string &comp);
     bool operator<(const ProgramKey &o) const;
    private:
     int orig;
-    std::string vs, fs, tess_control, tess_eval, geom;
+    std::string vs, fs, tess_control, tess_eval, geom, comp;
   };
 
   void parse();
+  void trackCreateProgram(const trace::Call &);
   void trackAttachShader(const trace::Call &);
   void trackCreateShader(const trace::Call &);
   void trackShaderSource(const trace::Call &);
@@ -123,6 +125,7 @@ class StateTrack {
   std::map<int, ShaderAssembly> program_to_tess_control;
   std::map<int, ShaderAssembly> program_to_tess_eval;
   std::map<int, ShaderAssembly> program_to_geom;
+  std::map<int, ShaderAssembly> program_to_comp;
   const ShaderAssembly empty_shader;
 
   std::vector<std::string> tracked_calls;
