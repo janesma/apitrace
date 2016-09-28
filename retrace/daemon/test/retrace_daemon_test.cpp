@@ -64,7 +64,8 @@ class NullCallback : public OnFrameRetrace {
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
                         const ShaderAssembly &tess_eval,
-                        const ShaderAssembly &geom) {
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp) {
     fs = fragment.shader;
   }
   void onRenderTarget(RenderId renderId, RenderTargetType type,
@@ -134,7 +135,7 @@ TEST_F(RetraceTest, ReplaceShaders) {
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
   rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "",
-                    "", "", &cb);
+                    "", "", "", &cb);
   EXPECT_GT(cb.compile_error.size(), 0);
 
   rt.retraceShaderAssembly(RenderId(1), &cb);
@@ -145,7 +146,8 @@ TEST_F(RetraceTest, ReplaceShaders) {
                  "  gl_Position = vec4(coord2d.x, -1.0 * coord2d.y, 0, 1);\n"
                  "  v_TexCoordinate = vec2(coord2d.x, coord2d.y);\n"
                  "}\n");
-  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs, "", "", "", &cb);
+  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs,
+                    "", "", "", "", &cb);
   EXPECT_EQ(cb.compile_error.size(), 0);
 }
 

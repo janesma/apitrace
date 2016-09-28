@@ -86,6 +86,7 @@ message ShaderAssemblyResponse {
   required ShaderAssembly tess_control = 3;
   required ShaderAssembly tess_eval = 4;
   required ShaderAssembly geom = 5;
+  required ShaderAssembly comp = 6;
   }
 
 message MetricSeries {
@@ -107,6 +108,7 @@ message ReplaceShadersRequest {
   required string tess_control = 5;
   required string tess_eval = 6;
   required string geom = 7;
+  required string comp = 8;
 }
 
 message ReplaceShadersResponse {

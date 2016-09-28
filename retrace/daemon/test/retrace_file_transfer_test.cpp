@@ -85,6 +85,7 @@ class FileTransfer : public IFrameRetrace {
                       const std::string &tessControl,
                       const std::string &tessEval,
                       const std::string &geom,
+                      const std::string &comp,
                       OnFrameRetrace *callback) {}
   void retraceApi(RenderId renderId,
                   OnFrameRetrace *callback) {}
@@ -103,7 +104,8 @@ class FileTransferCB : public OnFrameRetrace {
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
                         const ShaderAssembly &tess_eval,
-                        const ShaderAssembly &geon) {}
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp) {}
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
   void onMetricList(const std::vector<MetricId> &ids,

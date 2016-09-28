@@ -89,7 +89,8 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
                         const ShaderAssembly &tess_eval,
-                        const ShaderAssembly &geon) { assert(false); }
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp) { assert(false); }
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) { assert(false); }
   void onMetricList(const std::vector<MetricId> &ids,
