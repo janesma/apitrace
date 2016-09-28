@@ -88,6 +88,7 @@ class FrameRetrace : public IFrameRetrace {
                       const std::string &tessControl,
                       const std::string &tessEval,
                       const std::string &geom,
+                      const std::string &comp,
                       OnFrameRetrace *callback);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,

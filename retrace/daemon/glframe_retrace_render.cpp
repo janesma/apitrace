@@ -67,6 +67,7 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   std::stringstream call_stream;
+  bool compute = false;
   while ((call = parser->parse_call())) {
     trace::dump(*call, call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
@@ -77,7 +78,11 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     m_retracer->retrace(*call);
     tracker->track(*call);
     m_end_of_frame = call->flags & trace::CALL_FLAG_END_FRAME;
-    bool render = call->flags & trace::CALL_FLAG_RENDER;
+    const bool render = (call->flags & trace::CALL_FLAG_RENDER) ||
+                        (strcmp("glDispatchCompute", call->name()) == 0) ||
+                        (strcmp("glDispatchComputeIndirect",
+                                call->name()) == 0);
+    compute = render && (!(call->flags & trace::CALL_FLAG_RENDER));
     assert(!changesContext(call));
     delete call;
 
@@ -96,15 +101,20 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
   m_modified_tess_eval = m_original_tess_eval;
   m_original_geom = tracker->currentGeomShader().shader;
   m_modified_geom = m_original_geom;
+  m_original_comp = tracker->currentCompShader().shader;
+  m_modified_comp = m_original_comp;
 
-  // generate the highlight rt program, for later use
-  m_rt_program = tracker->useProgram(m_original_program,
-                                     m_modified_vs,
-                                     simple_fs,
-                                     m_modified_tess_eval,
-                                     m_modified_tess_control,
-                                     m_original_geom);
-  tracker->useProgram(m_original_program);
+  if (!compute) {
+    // generate the highlight rt program, for later use
+    m_rt_program = tracker->useProgram(m_original_program,
+                                       m_modified_vs,
+                                       simple_fs,
+                                       m_modified_tess_eval,
+                                       m_modified_tess_control,
+                                       m_original_geom,
+                                       m_original_comp);
+    tracker->useProgram(m_original_program);
+  }
 }
 
 void
@@ -236,13 +246,14 @@ RetraceRender::replaceShaders(StateTrack *tracker,
                               const std::string &tessControl,
                               const std::string &tessEval,
                               const std::string &geom,
+                              const std::string &comp,
                               std::string *message) {
   GRLOGF(DEBUG, "RetraceRender: %s \n %s \n %s \n %s", vs.c_str(), fs.c_str(),
          tessControl.c_str(), tessEval.c_str());
   const int result = tracker->useProgram(m_original_program,
                                          vs, fs,
                                          tessControl, tessEval,
-                                         geom, message);
+                                         geom, comp, message);
   if (result == -1)
     return false;
 
@@ -252,12 +263,13 @@ RetraceRender::replaceShaders(StateTrack *tracker,
   m_modified_tess_control = tessControl;
   m_modified_tess_eval = tessEval;
   m_modified_geom = geom;
+  m_modified_comp = comp;
   m_retrace_program = result;
   *message = "";
   m_rt_program = tracker->useProgram(m_original_program,
                                      vs, simple_fs,
                                      tessControl, tessEval,
-                                     geom, message);
+                                     geom, comp, message);
   tracker->useProgram(result);
   return true;
 }

@@ -239,6 +239,7 @@ FrameRetraceSkeleton::Run() {
                                   shader.tess_control(),
                                   shader.tess_eval(),
                                   shader.geom(),
+                                  shader.comp(),
                                   this);
           break;
         }
@@ -283,7 +284,8 @@ FrameRetraceSkeleton::onShaderAssembly(
     const ShaderAssembly &fragment,
     const ShaderAssembly &tess_control,
     const ShaderAssembly &tess_eval,
-    const ShaderAssembly &geom)  {
+    const ShaderAssembly &geom,
+    const ShaderAssembly &comp)  {
   RetraceResponse proto_response;
   auto shader = proto_response.mutable_shaderassembly();
   auto vertex_response = shader->mutable_vertex();
@@ -296,6 +298,8 @@ FrameRetraceSkeleton::onShaderAssembly(
   set_shader_assembly(tess_eval, tess_eval_response);
   auto geom_response = shader->mutable_geom();
   set_shader_assembly(geom, geom_response);
+  auto comp_response = shader->mutable_comp();
+  set_shader_assembly(comp, comp_response);
   writeResponse(m_socket, proto_response, &m_buf);
 }
 

@@ -206,16 +206,17 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
     s->retrace(m_proto_msg, &response);
     assert(response.has_shaderassembly());
     auto shader = response.shaderassembly();
-    std::vector<ShaderAssembly> assemblies(5);
+    std::vector<ShaderAssembly> assemblies(6);
     set_shader_assembly(shader.vertex(), &(assemblies[0]));
     set_shader_assembly(shader.fragment(), &(assemblies[1]));
     set_shader_assembly(shader.tess_control(), &(assemblies[2]));
     set_shader_assembly(shader.tess_eval(), &(assemblies[3]));
     set_shader_assembly(shader.geom(), &(assemblies[4]));
+    set_shader_assembly(shader.comp(), &(assemblies[5]));
     m_callback->onShaderAssembly(
         RenderId(m_proto_msg.rendertarget().renderid()),
         assemblies[0], assemblies[1], assemblies[2], assemblies[3],
-        assemblies[4]);
+        assemblies[4], assemblies[5]);
   }
 
  private:
@@ -397,6 +398,7 @@ class ReplaceShadersRequest : public IRetraceRequest {
                         const std::string &tessControl,
                         const std::string &tessEval,
                         const std::string &geom,
+                        const std::string &comp,
                         OnFrameRetrace *cb)
       : m_callback(cb) {
     auto shaderRequest = m_proto_msg.mutable_shaders();
@@ -407,6 +409,7 @@ class ReplaceShadersRequest : public IRetraceRequest {
     shaderRequest->set_tess_control(tessControl);
     shaderRequest->set_tess_eval(tessEval);
     shaderRequest->set_geom(geom);
+    shaderRequest->set_comp(comp);
     m_proto_msg.set_requesttype(ApiTrace::REPLACE_SHADERS_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
@@ -607,10 +610,11 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
                                  const std::string &tessControl,
                                  const std::string &tessEval,
                                  const std::string &geom,
+                                 const std::string &comp,
                                  OnFrameRetrace *callback) {
   m_thread->push(new ReplaceShadersRequest(renderId, experimentCount,
-                                         vs, fs, tessControl, tessEval,
-                                         geom, callback));
+                                           vs, fs, tessControl, tessEval,
+                                           geom, comp, callback));
 }
 
 void

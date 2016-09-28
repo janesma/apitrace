@@ -163,13 +163,15 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const ShaderAssembly &fragment,
                                     const ShaderAssembly &tess_control,
                                     const ShaderAssembly &tess_eval,
-                                    const ShaderAssembly &geom) {
+                                    const ShaderAssembly &geom,
+                                    const ShaderAssembly &comp) {
   ScopedLock s(m_protect);
   m_vs.onShaderAssembly(vertex);
   m_fs.onShaderAssembly(fragment);
   m_tess_control.onShaderAssembly(tess_control);
   m_tess_eval.onShaderAssembly(tess_eval);
   m_geom.onShaderAssembly(geom);
+  m_comp.onShaderAssembly(comp);
   // do not emit onShaders().  The QShader model (reference) is
   // unchanged, even if it's contents have.  The ShaderControl binds
   // to the contenst of the QShader model.
@@ -419,20 +421,24 @@ void
 FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs,
                                    const QString &tess_control,
                                    const QString &tess_eval,
-                                   const QString &geom) {
+                                   const QString &geom,
+                                   const QString &comp) {
   ScopedLock s(m_protect);
   const std::string &vss = vs.toStdString(),
                     &fss = fs.toStdString(),
          &tess_control_s = tess_control.toStdString(),
             &tess_eval_s = tess_eval.toStdString(),
-                 &geom_s = geom.toStdString();
+                 &geom_s = geom.toStdString(),
+                 &comp_s = comp.toStdString();
 
-  GRLOGF(DEBUG, "vs: %s\nfs: %s\ntess_control: %s\ntess_eval: %s\ngeom: %s",
+  GRLOGF(DEBUG, "vs: %s\nfs: %s\ntess_control: %s\n"
+         "tess_eval: %s\ngeom: %s\ncomp: %s",
          vss.c_str(), fss.c_str(),
-         tess_control_s.c_str(), tess_eval_s.c_str(), geom_s.c_str());
+         tess_control_s.c_str(), tess_eval_s.c_str(), geom_s.c_str(),
+         comp_s.c_str());
   m_retrace.replaceShaders(RenderId(m_cached_selection.back()),
                            ExperimentId(0), vss, fss,
-                           tess_control_s, tess_eval_s, geom_s, this);
+                           tess_control_s, tess_eval_s, geom_s, comp_s, this);
   retrace_rendertarget();
   retrace_shader_assemblies();
   m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
