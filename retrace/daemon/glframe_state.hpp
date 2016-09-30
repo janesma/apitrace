@@ -126,6 +126,14 @@ class StateTrack {
   std::map<int, ShaderAssembly> program_to_tess_eval;
   std::map<int, ShaderAssembly> program_to_geom;
   std::map<int, ShaderAssembly> program_to_comp;
+
+  std::map<int, int> vertex_to_program;
+  std::map<int, int> fragment_to_program;
+  std::map<int, int> tess_control_to_program;
+  std::map<int, int> tess_eval_to_program;
+  std::map<int, int> geom_to_program;
+  std::map<int, int> comp_to_program;
+
   const ShaderAssembly empty_shader;
 
   std::vector<std::string> tracked_calls;

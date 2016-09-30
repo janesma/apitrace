@@ -117,18 +117,25 @@ StateTrack::trackAttachShader(const Call &call) {
   const int call_program = call.args[0].value->toDouble();
   const int program = glretrace::getRetracedProgram(call_program);
   const int shader = call.args[1].value->toDouble();
-  if (shader_to_type[shader] == GL_FRAGMENT_SHADER)
+  if (shader_to_type[shader] == GL_FRAGMENT_SHADER) {
     program_to_fragment[program].shader = shader_to_source[shader];
-  else if (shader_to_type[shader] == GL_VERTEX_SHADER)
+    fragment_to_program[shader] = program;
+  } else if (shader_to_type[shader] == GL_VERTEX_SHADER) {
     program_to_vertex[program].shader = shader_to_source[shader];
-  else if (shader_to_type[shader] == GL_TESS_CONTROL_SHADER)
+    vertex_to_program[shader] = program;
+  } else if (shader_to_type[shader] == GL_TESS_CONTROL_SHADER) {
     program_to_tess_control[program].shader = shader_to_source[shader];
-  else if (shader_to_type[shader] == GL_TESS_EVALUATION_SHADER)
+    tess_control_to_program[shader] = program;
+  } else if (shader_to_type[shader] == GL_TESS_EVALUATION_SHADER) {
     program_to_tess_eval[program].shader = shader_to_source[shader];
-  else if (shader_to_type[shader] == GL_GEOMETRY_SHADER)
+    tess_eval_to_program[shader] = program;
+  } else if (shader_to_type[shader] == GL_GEOMETRY_SHADER) {
     program_to_geom[program].shader = shader_to_source[shader];
-  else if (shader_to_type[shader] == GL_COMPUTE_SHADER)
+    geom_to_program[shader] = program;
+  } else if (shader_to_type[shader] == GL_COMPUTE_SHADER) {
     program_to_comp[program].shader = shader_to_source[shader];
+    comp_to_program[shader] = program;
+  }
 
   auto vs = program_to_vertex.find(program);
   auto fs = program_to_fragment.find(program);
@@ -169,6 +176,25 @@ StateTrack::trackShaderSource(const Call &call) {
   }
   shader_to_source[shader] = text;
   source_to_shader[text] = shader;
+  if (shader_to_type[shader] == GL_VERTEX_SHADER) {
+    if (vertex_to_program.find(shader) != vertex_to_program.end())
+      program_to_vertex[vertex_to_program[shader]].shader = text;
+  } else if (shader_to_type[shader] == GL_FRAGMENT_SHADER) {
+    if (fragment_to_program.find(shader) != fragment_to_program.end())
+      program_to_fragment[fragment_to_program[shader]].shader = text;
+  } else if (shader_to_type[shader] == GL_COMPUTE_SHADER) {
+    if (comp_to_program.find(shader) != comp_to_program.end())
+      program_to_comp[comp_to_program[shader]].shader = text;
+  } else if (shader_to_type[shader] == GL_TESS_CONTROL_SHADER) {
+    if (tess_control_to_program.find(shader) != tess_control_to_program.end())
+      program_to_tess_control[tess_control_to_program[shader]].shader = text;
+  } else if (shader_to_type[shader] == GL_TESS_EVALUATION_SHADER) {
+    if (tess_eval_to_program.find(shader) != tess_eval_to_program.end())
+      program_to_tess_eval[tess_eval_to_program[shader]].shader = text;
+  } else if (shader_to_type[shader] == GL_GEOMETRY_SHADER) {
+    if (geom_to_program.find(shader) != geom_to_program.end())
+      program_to_geom[geom_to_program[shader]].shader = text;
+  }
 }
 
 void
