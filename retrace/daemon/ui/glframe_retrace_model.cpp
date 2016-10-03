@@ -91,12 +91,26 @@ void
 exec_retracer(const char *main_exe, int port) {
   // frame_retrace_server should be at the same path as frame_retrace
   std::string server_exe(main_exe);
-  size_t last_sep = server_exe.rfind('/');
+
+  char sep;
+  std::string server_exe_name;
+
+#ifdef WIN32
+  sep = '\\';
+  server_exe_name = "frame_retrace_server.exe";
+#else
+  sep = '/';
+  server_exe_name = "frame_retrace_server";
+#endif
+
+  size_t last_sep = server_exe.rfind(sep);
+
   if (last_sep != std::string::npos)
     server_exe.resize(last_sep + 1);
   else
     server_exe = std::string("");
-  server_exe += "frame_retrace_server";
+
+  server_exe += server_exe_name;
 
   std::stringstream port_s;
   port_s << port;
