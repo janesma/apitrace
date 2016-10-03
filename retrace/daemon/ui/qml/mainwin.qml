@@ -94,7 +94,7 @@ ApplicationWindow {
             nameFilters: [ "trace files (*.trace)", "All files (*)" ]
             onAccepted: {
                 var path = fileDialog.fileUrl.toString();
-                path = path.replace(/^(file:\/{2})/,"");
+                path = path.replace(/^(file:\/{3})/,"");
                 textInput.text = path
                 fileDialog.visible = false
             }
