@@ -152,6 +152,8 @@ TEST(FrameRetrace, MD5) {
 }
 
 TEST(FrameRetrace, FileTransfer) {
+  Socket::Init();
+
   FrameRetraceStub stub;
   FileTransfer frameretrace;
   ServerSocket server(0);
@@ -193,5 +195,7 @@ TEST(FrameRetrace, FileTransfer) {
   stub.Shutdown();
   skel.Join();
   remove(target);
+
+  Socket::Cleanup();
 }
 
