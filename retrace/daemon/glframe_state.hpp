@@ -107,6 +107,7 @@ class StateTrack {
   void trackUseProgram(const trace::Call &);
   void trackDeleteProgram(const trace::Call &);
   void trackBindAttribLocation(const trace::Call &);
+  void trackGetAttribLocation(const trace::Call &);
   void trackGetUniformLocation(const trace::Call &);
 
   OutputPoller *m_poller;
