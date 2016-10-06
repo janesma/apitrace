@@ -92,7 +92,10 @@ class RetraceSocket {
   void response(RetraceResponse *resp) {
     // read response
     uint32_t read_size;
-    m_sock.Read(&read_size);
+    if (!m_sock.Read(&read_size)) {
+      std::cout << "no read: len\n";
+      return;
+    }
     // std::cout << "RetraceSocket: read size: " << read_size << "\n";
     m_buf.clear();
     m_buf.resize(read_size);
