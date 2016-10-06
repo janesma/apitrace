@@ -68,6 +68,7 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glUseProgram"] = &StateTrack::trackUseProgram;
   lookup["glDeleteProgram"] = &StateTrack::trackDeleteProgram;
   lookup["glBindAttribLocation"] = &StateTrack::trackBindAttribLocation;
+  lookup["glGetAttribLocation"] = &StateTrack::trackGetAttribLocation;
   lookup["glGetUniformLocation"] = &StateTrack::trackGetUniformLocation;
 }
 
@@ -786,6 +787,7 @@ StateTrack::useProgram(int orig_retraced_program,
   }
 
   GlFunctions::LinkProgram(pid);
+  GL_CHECK();
   if (message) {
     GetLinkError(pid, message);
     if (message->size()) {
@@ -799,7 +801,6 @@ StateTrack::useProgram(int orig_retraced_program,
       return -1;
     }
   }
-  GL_CHECK();
 
   // TODO(majanes) check error
   parse();
@@ -894,12 +895,19 @@ StateTrack::trackBindAttribLocation(const Call &call) {
 }
 
 void
+StateTrack::trackGetAttribLocation(const trace::Call &call) {
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
+  const std::string name(call.args[1].value->toString());
+  const int location = call.ret->toDouble();
+  m_program_to_bound_attrib[program][location] = name;
+}
+
+void
 StateTrack::trackGetUniformLocation(const Call &call) {
   const int call_program = call.args[0].value->toDouble();
   const int program = glretrace::getRetracedProgram(call_program);
   const std::string name(call.args[1].value->toString());
   const int location = call.ret->toDouble();
   m_program_to_uniform_name[program][location] = name;
-  if (program == 955)
-    GRLOGF(ERR, "%s at %d", name.c_str(), location);
 }
