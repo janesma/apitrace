@@ -783,6 +783,8 @@ StateTrack::useProgram(int orig_retraced_program,
   }
 
   for (auto &binding : m_program_to_bound_attrib[orig_retraced_program]) {
+    if (binding.first == -1)
+      continue;
     GlFunctions::BindAttribLocation(pid, binding.first, binding.second.c_str());
   }
 
