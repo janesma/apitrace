@@ -213,6 +213,9 @@ setPbufferAttrib(glws::Drawable *pBuffer, const int *attribList);
 GLint
 getRetracedProgram(GLint traced_program);
 
+GLint
+getRetracedShader(GLint traced_shader);
+
 } /* namespace glretrace */
 
 
