@@ -125,8 +125,14 @@ FrameRetrace::openFile(const std::string &filename,
     trace::dump(*call, call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
     GRLOGF(glretrace::DEBUG, "CALL: %s", call_stream.str().c_str());
-    retracer.retrace(*call);
-    m_tracker.track(*call);
+
+    // we re-use shaders for shader editing features, even if the
+    // source program has deleted them.  To support this, we never
+    // delete shaders.
+    if (strcmp(call->sig->name, "glDeleteShader") != 0) {
+      retracer.retrace(*call);
+      m_tracker.track(*call);
+    }
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
     delete call;
     if (frame_boundary) {

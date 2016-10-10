@@ -669,7 +669,16 @@ _validateActiveProgram(trace::Call &call)
 
 GLint 
 glretrace::getRetracedProgram(GLint traced_program) {
+    if (glretrace::supportsARBShaderObjects)
+        return _handleARB_map[traced_program];
     return _program_map[traced_program];
+}
+
+GLint 
+glretrace::getRetracedShader(GLint traced_shader) {
+    if (glretrace::supportsARBShaderObjects)
+        return _handleARB_map[traced_shader];
+    return _shader_map[traced_shader];
 }
 
 '''
