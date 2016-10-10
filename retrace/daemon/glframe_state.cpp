@@ -117,7 +117,8 @@ void
 StateTrack::trackAttachShader(const Call &call) {
   const int call_program = call.args[0].value->toDouble();
   const int program = glretrace::getRetracedProgram(call_program);
-  const int shader = call.args[1].value->toDouble();
+  const int traced_shader = call.args[1].value->toDouble();
+  const int shader = glretrace::getRetracedShader(traced_shader);
   if (shader_to_type[shader] == GL_FRAGMENT_SHADER) {
     program_to_fragment[program].shader = shader_to_source[shader];
     fragment_to_program[shader] = program;
@@ -163,13 +164,14 @@ StateTrack::trackAttachShader(const Call &call) {
 void
 StateTrack::trackCreateShader(const Call &call) {
   const int shader_type = call.args[0].value->toDouble();
-  const int shader = call.ret->toDouble();
+  const int shader = glretrace::getRetracedShader(call.ret->toDouble());
   shader_to_type[shader] = shader_type;
 }
 
 void
 StateTrack::trackShaderSource(const Call &call) {
-  const int shader = call.args[0].value->toDouble();
+  const int traced_shader = call.args[0].value->toDouble();
+  const int shader = glretrace::getRetracedShader(traced_shader);
   const Array * source = call.args[2].value->toArray();
   std::string text;
   for (auto line : source->values) {

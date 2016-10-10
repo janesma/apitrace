@@ -121,6 +121,9 @@ clientWaitSync(trace::Call &call, GLsync sync, GLbitfield flags, GLuint64 timeou
 GLint
 getRetracedProgram(GLint traced_program);
 
+GLint
+getRetracedShader(GLint traced_shader);
+
 } /* namespace glretrace */
 
 
