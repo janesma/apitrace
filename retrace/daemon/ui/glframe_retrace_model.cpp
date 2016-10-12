@@ -287,11 +287,12 @@ FrameRetraceModel::onFileOpening(bool needUpload,
 
 void
 FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
-                                const std::vector<std::string> &names) {
+                                const std::vector<std::string> &names,
+                                const std::vector<std::string> &desc) {
   ScopedLock s(m_protect);
   t_ids = ids;
   t_names = names;
-  m_metrics_table.init(&m_retrace, m_selection, ids, names,
+  m_metrics_table.init(&m_retrace, m_selection, ids, names, desc,
                        m_state->getRenderCount());
   emit updateMetricList();
 }

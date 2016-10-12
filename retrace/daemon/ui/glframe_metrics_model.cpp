@@ -56,6 +56,12 @@ QMetricValue::setName(const std::string &n) {
 }
 
 void
+QMetricValue::setDescription(const std::string &n) {
+  m_description = n.c_str();
+  emit onDescription();
+}
+
+void
 QMetricValue::setValue(float v) {
   m_value = v;
   emit onValue();
@@ -76,12 +82,14 @@ QMetricsModel::init(IFrameRetrace *r,
                     QSelection *qs,
                     const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names,
+                    const std::vector<std::string> &desc,
                     int render_count) {
   m_retrace = r;
   m_render_count = render_count;
   for (int i = 0; i < ids.size(); ++i) {
     QMetricValue *q = new QMetricValue(this);
     q->setName(names[i]);
+    q->setDescription(desc[i]);
     m_metric_list.append(q);
     m_metrics[ids[i]] = q;
   }

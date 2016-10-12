@@ -109,7 +109,8 @@ class FileTransferCB : public OnFrameRetrace {
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) {}
   void onMetricList(const std::vector<MetricId> &ids,
-                    const std::vector<std::string> &names) {}
+                    const std::vector<std::string> &names,
+                    const std::vector<std::string> &desc) {}
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount,
                  SelectionId selectionCount) {}

@@ -56,7 +56,8 @@ class MetricsCallback : public OnFrameRetrace {
                        bool status,
                        const std::string &errorString) {}
   void onMetricList(const std::vector<MetricId> &i,
-                    const std::vector<std::string> &n) {
+                    const std::vector<std::string> &n,
+                    const std::vector<std::string> &desc) {
     ids = i;
     names = n;
   }
