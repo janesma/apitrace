@@ -105,6 +105,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   void onApi(RenderId renderId,
              const std::vector<std::string> &api_calls) { assert(false); }
   void onError(const std::string &message) { assert(false); }
+  void filter(const QString& f);
 
   QQmlListProperty<QMetricValue> metrics();
   void refresh();
@@ -121,7 +122,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   SelectionId m_current_selection_count;
   RenderSelection m_render_selection;
   std::map<MetricId, QMetricValue*> m_metrics;
-  QList<QMetricValue *> m_metric_list;
+  QList<QMetricValue *> m_metric_list, m_filtered_metric_list;
 };
 
 }  // namespace glretrace

@@ -7,15 +7,41 @@ import ApiTrace 1.0
 Item {
     property var selection
     property var metric_model
+    // hold the currently selected metric names for the graph
+    property var vert_metric
+    property var horiz_metric
+
+    // hold the currently filtered list of selectable metrics
+    property var vert_metrics
+    property var horiz_metrics
     id: control
 
-    function metricNames() {
+    function vertMetricNames() {
         var output = new Array()
+        // always put the currently selected metric first in the list.
+        // A new model will automatically selected index 0, and we
+        // don't want the bargraph to reselect crazily as the user
+        // types a filter string.
+        output.push(vert_metric);
         for (var i = 0; i < metric_model.metricList.length; ++i) {
             output.push(metric_model.metricList[i].name);
         }
-        return output;
+        vert_metrics = output;
     }
+
+    function horizMetricNames() {
+        var output = new Array()
+        // always put the currently selected metric first in the list.
+        // A new model will automatically selected index 0, and we
+        // don't want the bargraph to reselect crazily as the user
+        // types a filter string.
+        output.push(horiz_metric);
+        for (var i = 0; i < metric_model.metricList.length; ++i) {
+            output.push(metric_model.metricList[i].name);
+        }
+        horiz_metrics = output;
+    }
+
     function metricId(name) {
         for (var i = 0; i < metric_model.metricList.length; ++i) {
             if (metric_model.metricList[i].name == name)
@@ -28,6 +54,15 @@ Item {
             return num.toPrecision(2);
         }
         return num.toFixed(0);
+    }
+
+    Component.onCompleted: {
+        vert_metrics = ["No metric"];
+        vert_metric = "No metric";
+        horiz_metrics = ["No metric"];
+        horiz_metric = "No metric";
+        metric_model.onQMetricList.connect(vertMetricNames)
+        metric_model.onQMetricList.connect(horizMetricNames)
     }
     
     ColumnLayout {
@@ -51,23 +86,12 @@ Item {
                 anchors.left: vertLabel.right
                 width: (parent.width / 2) - vertLabel.width
                 id: vertMetric
-                model: metricNames()
+                model: vert_metrics
                 onCurrentIndexChanged : {
-                    var currentId = metricId(model[currentIndex]);
+                    vert_metric = model[currentIndex]
+                    var currentId = metricId(vert_metric);
                     if (currentId)
                         metric_model.setMetric(0, currentId);
-                }
-                Component.onCompleted : {
-                    metric_model.onQMetricList.connect(selectGpuDuration)
-                }
-                function selectGpuDuration() {
-                    for (var i = 0; i < metric_model.metricList.length; ++i) {
-                        if (metric_model.metricList[i].name == "GPU Time Elapsed") {
-                            metric_model.setMetric(0, metric_model.metricList[i].id);
-                            currentIndex = i;
-                            return;
-                        }
-                    }
                 }
             }
             Text {
@@ -82,9 +106,10 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.left: horizLabel.right
                 width: (parent.width / 2) - horizLabel.width
-                model: metricNames()
+                model: horiz_metrics
                 onCurrentIndexChanged : {
-                    var currentId = metricId(model[currentIndex]);
+                    horiz_metric = model[currentIndex]
+                    var currentId = metricId(horiz_metric);
                     if (currentId)
                         metric_model.setMetric(1, currentId);
                 }
