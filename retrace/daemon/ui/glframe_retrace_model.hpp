@@ -162,7 +162,8 @@ class FrameRetraceModel : public QObject,
                        bool status,
                        const std::string &errorString);
   void onMetricList(const std::vector<MetricId> &ids,
-                    const std::vector<std::string> &names);
+                    const std::vector<std::string> &names,
+                    const std::vector<std::string> &desc);
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount,
                  SelectionId selectionCount);

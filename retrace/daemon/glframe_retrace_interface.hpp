@@ -198,7 +198,8 @@ class OnFrameRetrace {
   virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
                               const uvec & pngImageData) = 0;
   virtual void onMetricList(const std::vector<MetricId> &ids,
-                            const std::vector<std::string> &names) = 0;
+                            const std::vector<std::string> &names,
+                            const std::vector<std::string> &descriptions) = 0;
   virtual void onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount,
                          SelectionId selectionCount) = 0;

@@ -276,6 +276,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
         assert(response.has_metricslist());
         std::vector<MetricId> ids;
         std::vector<std::string> names;
+        std::vector<std::string> descriptions;
         auto metrics_list = response.metricslist();
         ids.reserve(metrics_list.metric_ids_size());
         for (int i = 0; i < metrics_list.metric_ids_size(); ++i )
@@ -283,7 +284,11 @@ class RetraceOpenFileRequest: public IRetraceRequest {
         names.reserve(metrics_list.metric_names_size());
         for (int i = 0; i < metrics_list.metric_names_size(); ++i )
           names.push_back(metrics_list.metric_names(i));
-        m_callback->onMetricList(ids, names);
+        descriptions.reserve(metrics_list.metric_names_size());
+        for (int i = 0; i < metrics_list.metric_descriptions_size(); ++i )
+          descriptions.push_back(metrics_list.metric_descriptions(i));
+
+        m_callback->onMetricList(ids, names, descriptions);
       }
     }
   }

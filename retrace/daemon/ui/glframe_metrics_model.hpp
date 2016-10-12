@@ -47,6 +47,7 @@ class QMetricValue : public QObject,
                 NoCopy, NoAssign, NoMove {
   Q_OBJECT
   Q_PROPERTY(QString name READ name NOTIFY onName)
+  Q_PROPERTY(QString description READ description NOTIFY onDescription)
   Q_PROPERTY(float value READ value NOTIFY onValue)
   Q_PROPERTY(float frameValue READ frameValue NOTIFY onFrameValue)
 
@@ -54,17 +55,20 @@ class QMetricValue : public QObject,
   QMetricValue();
   explicit QMetricValue(QObject *p);
   void setName(const std::string &n);
+  void setDescription(const std::string &d);
   void setValue(float v);
   void setFrameValue(float v);
   QString name() const { return m_name; }
+  QString description() const { return m_description; }
   float value() const { return m_value; }
   float frameValue() const { return m_frame_value; }
  signals:
   void onValue();
   void onFrameValue();
   void onName();
+  void onDescription();
  private:
-  QString m_name;
+  QString m_name, m_description;
   float m_frame_value, m_value;
 };
 
@@ -80,6 +84,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
             QSelection *s,
             const std::vector<MetricId> &ids,
             const std::vector<std::string> &names,
+            const std::vector<std::string> &descriptions,
             int render_count);
   void onFileOpening(bool needUpload,
                      bool finished,
@@ -94,7 +99,8 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   void onRenderTarget(RenderId renderId, RenderTargetType type,
                       const uvec & pngImageData) { assert(false); }
   void onMetricList(const std::vector<MetricId> &ids,
-                    const std::vector<std::string> &names) { assert(false); }
+                    const std::vector<std::string> &names,
+                    const std::vector<std::string> &desc) { assert(false); }
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount,
                  SelectionId selectionCount);

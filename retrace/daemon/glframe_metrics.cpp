@@ -52,9 +52,12 @@ namespace {
 struct MetricDescription {
   MetricId id;
   std::string name;
+  std::string description;
   MetricDescription() {}
-  MetricDescription(MetricId i, const std::string &n)
-      : id(i), name(n) {}
+  MetricDescription(MetricId i,
+                    const std::string &n,
+                    const std::string &d)
+      : id(i), name(n), description(d) {}
 };
 
 class PerfMetric : public NoCopy, NoAssign {
@@ -62,6 +65,7 @@ class PerfMetric : public NoCopy, NoAssign {
   PerfMetric(int query_id, int counter_num);
   MetricId id() const;
   const std::string &name() const;
+  const std::string &description() const;
   float getMetric(const std::vector<unsigned char> &data) const;
  private:
   const int m_query_id, m_counter_num;
@@ -131,7 +135,7 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
     query_ids.push_back(query_id);
   }
 
-  std::map<std::string, MetricId> known_metrics;
+  std::map<std::string, MetricDescription> known_metrics;
 
   std::vector<MetricDescription> metrics;
   int group_index = 0;
@@ -148,7 +152,7 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
     g->metrics(&metrics);
     for (auto &d : metrics) {
       if (known_metrics.find(d.name) == known_metrics.end()) {
-        known_metrics[d.name] = d.id;
+        known_metrics[d.name] = d;
         metric_map[d.id] = group_index;
       }
     }
@@ -156,11 +160,13 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
   }
   std::vector<MetricId> ids;
   std::vector<std::string> names;
+  std::vector<std::string> descriptions;
   for (auto &i : known_metrics) {
-    names.push_back(i.first);
-    ids.push_back(i.second);
+    names.push_back(i.second.name);
+    ids.push_back(i.second.id);
+    descriptions.push_back(i.second.description);
   }
-  cb->onMetricList(ids, names);
+  cb->onMetricList(ids, names, descriptions);
 }
 
 PerfMetrics::~PerfMetrics() {
@@ -204,7 +210,9 @@ PerfMetricGroup::~PerfMetricGroup() {
 void
 PerfMetricGroup::metrics(std::vector<MetricDescription> *m) const {
   for (auto &i : m_metrics) {
-    m->push_back(MetricDescription(i.first, i.second->name()));
+    m->push_back(MetricDescription(i.first,
+                                   i.second->name(),
+                                   i.second->description()));
   }
 }
 
@@ -308,6 +316,11 @@ PerfMetric::id() const {
 const std::string &
 PerfMetric::name() const {
   return m_name;
+}
+
+const std::string &
+PerfMetric::description() const {
+  return m_description;
 }
 
 float
