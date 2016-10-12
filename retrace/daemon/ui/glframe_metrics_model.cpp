@@ -85,6 +85,7 @@ QMetricsModel::init(IFrameRetrace *r,
     m_metric_list.append(q);
     m_metrics[ids[i]] = q;
   }
+  m_filtered_metric_list = m_metric_list;
   RenderSelection s;
   // request frame and initial metrics
   s.id = SelectionId(0);
@@ -97,7 +98,7 @@ QMetricsModel::init(IFrameRetrace *r,
 
 QQmlListProperty<QMetricValue>
 QMetricsModel::metrics() {
-  return QQmlListProperty<QMetricValue>(this, m_metric_list);
+  return QQmlListProperty<QMetricValue>(this, m_filtered_metric_list);
 }
 
 void
@@ -170,3 +171,19 @@ QMetricsModel::~QMetricsModel() {
   m_metric_list.clear();
   m_metrics.clear();
 }
+
+void
+QMetricsModel::filter(const QString& f) {
+  if (f.size() == 0) {
+    m_filtered_metric_list = m_metric_list;
+    emit onMetricsChanged();
+    return;
+  }
+  m_filtered_metric_list.clear();
+  for (auto m : m_metric_list) {
+    if (m->name().contains(f, Qt::CaseInsensitive))
+      m_filtered_metric_list.append(m);
+  }
+  emit onMetricsChanged();
+}
+

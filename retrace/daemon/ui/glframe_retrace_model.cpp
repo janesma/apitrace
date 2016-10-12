@@ -66,6 +66,7 @@ FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_open_percent(0),
                                          m_max_metric(0) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
+  filterMetrics("");
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
           this, &glretrace::FrameRetraceModel::onUpdateMetricList);
 }
@@ -167,7 +168,7 @@ FrameRetraceModel::renders() {
 
 QQmlListProperty<QMetric>
 FrameRetraceModel::metricList() {
-  return QQmlListProperty<QMetric>(this, m_metrics_model);
+  return QQmlListProperty<QMetric>(this, m_filtered_metric_list);
 }
 
 
@@ -329,6 +330,7 @@ FrameRetraceModel::onUpdateMetricList() {
   assert(t_ids.size() == t_names.size());
   for (int i = 0; i < t_ids.size(); ++i)
     m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
+  filterMetrics("");
   emit onQMetricList();
 }
 
@@ -461,7 +463,14 @@ FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs,
 
 void
 FrameRetraceModel::refreshMetrics() {
-  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+  // sending a second null metric to be retraced will result in two
+  // data axis being returned.  Instead, we want a single metric, and
+  // the bar graph to show separated bars.
+  std::vector<MetricId> drop_second_null_metric = m_active_metrics;
+  if (drop_second_null_metric.back() == MetricId(0))
+    drop_second_null_metric.pop_back();
+
+  m_retrace.retraceMetrics(drop_second_null_metric, ExperimentId(0),
                            this);
   m_metrics_table.refresh();
 }
@@ -487,4 +496,19 @@ FrameRetraceModel::onError(const std::string &message) {
   GRLOG(ERR, message.c_str());
 }
 
+void
+FrameRetraceModel::filterMetrics(const QString &f) {
+  if (f.size() == 0) {
+    m_filtered_metric_list = m_metrics_model;
+    emit onQMetricList();
+    return;
+  }
+  m_filtered_metric_list.clear();
+  for (auto m : m_metrics_model) {
+    if (m->name().contains(f, Qt::CaseInsensitive))
+      m_filtered_metric_list.append(m);
+  }
 
+  m_metrics_table.filter(f);
+  emit onQMetricList();
+}
