@@ -71,7 +71,8 @@ class FrameRetraceSkeleton : public Thread,
                                bool status,
                                const std::string &errorString);
   virtual void onMetricList(const std::vector<MetricId> &ids,
-                            const std::vector<std::string> &names);
+                            const std::vector<std::string> &names,
+                            const std::vector<std::string> &desc);
   virtual void onMetrics(const MetricSeries &metricData,
                          ExperimentId experimentCount,
                          SelectionId selectionCount);

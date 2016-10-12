@@ -27,6 +27,11 @@ Item {
                 title: "Frame"
                 width: 100
             }
+            TableViewColumn {
+                role: "description"
+                title: "Description"
+                width: 600
+            }
         }
     }
 }

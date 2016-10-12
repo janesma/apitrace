@@ -31,6 +31,7 @@ message OpenFileStatus {
 message MetricsList {
   repeated uint64 metric_ids = 1;
   repeated string metric_names = 2;
+  repeated string metric_descriptions = 3;
 }
 
 message RenderTargetRequest {
