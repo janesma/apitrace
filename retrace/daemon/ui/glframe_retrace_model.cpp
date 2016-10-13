@@ -499,6 +499,8 @@ FrameRetraceModel::onError(const std::string &message) {
 
 void
 FrameRetraceModel::filterMetrics(const QString &f) {
+  m_metrics_table.filter(f);
+
   if (f.size() == 0) {
     m_filtered_metric_list = m_metrics_model;
     emit onQMetricList();
@@ -510,6 +512,5 @@ FrameRetraceModel::filterMetrics(const QString &f) {
       m_filtered_metric_list.append(m);
   }
 
-  m_metrics_table.filter(f);
   emit onQMetricList();
 }
