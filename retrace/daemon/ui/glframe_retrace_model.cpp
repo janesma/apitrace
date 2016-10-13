@@ -113,11 +113,14 @@ exec_retracer(const char *main_exe, int port) {
 
   server_exe += server_exe_name;
 
-  std::stringstream port_s;
-  port_s << port;
+  std::stringstream port_ss;
+  port_ss << port;
+
+  std::string port_str(port_ss.str());
+
   const char *const args[] = {server_exe.c_str(),
                               "-p",
-                              port_s.str().c_str(),
+                              port_str.c_str(),
                               NULL};
   glretrace::fork_execv(server_exe.c_str(), args);
 }
