@@ -66,6 +66,7 @@ FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_open_percent(0),
                                          m_max_metric(0) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
+  filterMetrics("");
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
           this, &glretrace::FrameRetraceModel::onUpdateMetricList);
 }
@@ -112,11 +113,14 @@ exec_retracer(const char *main_exe, int port) {
 
   server_exe += server_exe_name;
 
-  std::stringstream port_s;
-  port_s << port;
+  std::stringstream port_ss;
+  port_ss << port;
+
+  std::string port_str(port_ss.str());
+
   const char *const args[] = {server_exe.c_str(),
                               "-p",
-                              port_s.str().c_str(),
+                              port_str.c_str(),
                               NULL};
   glretrace::fork_execv(server_exe.c_str(), args);
 }
@@ -167,7 +171,7 @@ FrameRetraceModel::renders() {
 
 QQmlListProperty<QMetric>
 FrameRetraceModel::metricList() {
-  return QQmlListProperty<QMetric>(this, m_metrics_model);
+  return QQmlListProperty<QMetric>(this, m_filtered_metric_list);
 }
 
 
@@ -286,11 +290,12 @@ FrameRetraceModel::onFileOpening(bool needUpload,
 
 void
 FrameRetraceModel::onMetricList(const std::vector<MetricId> &ids,
-                                const std::vector<std::string> &names) {
+                                const std::vector<std::string> &names,
+                                const std::vector<std::string> &desc) {
   ScopedLock s(m_protect);
   t_ids = ids;
   t_names = names;
-  m_metrics_table.init(&m_retrace, m_selection, ids, names,
+  m_metrics_table.init(&m_retrace, m_selection, ids, names, desc,
                        m_state->getRenderCount());
   emit updateMetricList();
 }
@@ -329,6 +334,7 @@ FrameRetraceModel::onUpdateMetricList() {
   assert(t_ids.size() == t_names.size());
   for (int i = 0; i < t_ids.size(); ++i)
     m_metrics_model.append(new QMetric(t_ids[i], t_names[i]));
+  filterMetrics("");
   emit onQMetricList();
 }
 
@@ -461,7 +467,14 @@ FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs,
 
 void
 FrameRetraceModel::refreshMetrics() {
-  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+  // sending a second null metric to be retraced will result in two
+  // data axis being returned.  Instead, we want a single metric, and
+  // the bar graph to show separated bars.
+  std::vector<MetricId> drop_second_null_metric = m_active_metrics;
+  if (drop_second_null_metric.back() == MetricId(0))
+    drop_second_null_metric.pop_back();
+
+  m_retrace.retraceMetrics(drop_second_null_metric, ExperimentId(0),
                            this);
   m_metrics_table.refresh();
 }
@@ -487,4 +500,19 @@ FrameRetraceModel::onError(const std::string &message) {
   GRLOG(ERR, message.c_str());
 }
 
+void
+FrameRetraceModel::filterMetrics(const QString &f) {
+  if (f.size() == 0) {
+    m_filtered_metric_list = m_metrics_model;
+    emit onQMetricList();
+    return;
+  }
+  m_filtered_metric_list.clear();
+  for (auto m : m_metrics_model) {
+    if (m->name().contains(f, Qt::CaseInsensitive))
+      m_filtered_metric_list.append(m);
+  }
 
+  m_metrics_table.filter(f);
+  emit onQMetricList();
+}

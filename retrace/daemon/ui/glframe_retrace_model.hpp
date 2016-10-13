@@ -140,6 +140,7 @@ class FrameRetraceModel : public QObject,
                                    const QString &tess_eval,
                                    const QString &geom, const QString &comp);
   Q_INVOKABLE void refreshMetrics();
+  Q_INVOKABLE void filterMetrics(const QString &f);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
   QSelection *selection();
@@ -161,7 +162,8 @@ class FrameRetraceModel : public QObject,
                        bool status,
                        const std::string &errorString);
   void onMetricList(const std::vector<MetricId> &ids,
-                    const std::vector<std::string> &names);
+                    const std::vector<std::string> &names,
+                    const std::vector<std::string> &desc);
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount,
                  SelectionId selectionCount);
@@ -220,7 +222,7 @@ class FrameRetraceModel : public QObject,
   SelectionId m_selection_count;
   QList<int> m_cached_selection;
   QList<QRenderBookmark *> m_renders_model;
-  QList<QMetric *> m_metrics_model;
+  QList<QMetric *> m_metrics_model, m_filtered_metric_list;
   QList<BarMetrics> m_metrics;
 
   QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom, m_comp;

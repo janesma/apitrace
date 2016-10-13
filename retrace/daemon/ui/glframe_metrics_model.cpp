@@ -56,6 +56,12 @@ QMetricValue::setName(const std::string &n) {
 }
 
 void
+QMetricValue::setDescription(const std::string &n) {
+  m_description = n.c_str();
+  emit onDescription();
+}
+
+void
 QMetricValue::setValue(float v) {
   m_value = v;
   emit onValue();
@@ -76,15 +82,18 @@ QMetricsModel::init(IFrameRetrace *r,
                     QSelection *qs,
                     const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names,
+                    const std::vector<std::string> &desc,
                     int render_count) {
   m_retrace = r;
   m_render_count = render_count;
   for (int i = 0; i < ids.size(); ++i) {
     QMetricValue *q = new QMetricValue(this);
     q->setName(names[i]);
+    q->setDescription(desc[i]);
     m_metric_list.append(q);
     m_metrics[ids[i]] = q;
   }
+  m_filtered_metric_list = m_metric_list;
   RenderSelection s;
   // request frame and initial metrics
   s.id = SelectionId(0);
@@ -97,7 +106,7 @@ QMetricsModel::init(IFrameRetrace *r,
 
 QQmlListProperty<QMetricValue>
 QMetricsModel::metrics() {
-  return QQmlListProperty<QMetricValue>(this, m_metric_list);
+  return QQmlListProperty<QMetricValue>(this, m_filtered_metric_list);
 }
 
 void
@@ -170,3 +179,19 @@ QMetricsModel::~QMetricsModel() {
   m_metric_list.clear();
   m_metrics.clear();
 }
+
+void
+QMetricsModel::filter(const QString& f) {
+  if (f.size() == 0) {
+    m_filtered_metric_list = m_metric_list;
+    emit onMetricsChanged();
+    return;
+  }
+  m_filtered_metric_list.clear();
+  for (auto m : m_metric_list) {
+    if (m->name().contains(f, Qt::CaseInsensitive))
+      m_filtered_metric_list.append(m);
+  }
+  emit onMetricsChanged();
+}
+
