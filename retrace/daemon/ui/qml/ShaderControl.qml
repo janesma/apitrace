@@ -20,6 +20,9 @@ Item {
                 TextEdit {
                     id: source
                     text: model.source
+                    cursorVisible: true
+                    persistentSelection: true
+                    selectByMouse: true
                     onTextChanged: {
                         if (shader_type == "vs") {
                             compile_button.vsText = text;
