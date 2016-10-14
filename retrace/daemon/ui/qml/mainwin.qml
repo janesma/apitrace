@@ -65,6 +65,8 @@ ApplicationWindow {
                 Settings {
                     property alias file_name: textInput.text
                 }
+                KeyNavigation.tab: file_rect
+                KeyNavigation.backtab: cancelButton
             }
         }
         Rectangle {
@@ -72,6 +74,7 @@ ApplicationWindow {
             border.width: 1
             width: textBox.height
             height: textBox.height
+            color: activeFocus ? "lightgrey" : "white"
             anchors.left: textBox.right
             anchors.bottom: textBox.bottom
             Text {
@@ -81,8 +84,13 @@ ApplicationWindow {
             MouseArea {
                 anchors.fill: parent
                 onPressed : {
-                    fileDialog.visible =  true
+                    fileDialog.visible = true;
                 }
+            }
+            KeyNavigation.tab: frameInput
+            KeyNavigation.backtab: textInput
+            Keys.onReturnPressed: {
+                fileDialog.visible = true;
             }
         }
         FileDialog {
@@ -125,6 +133,8 @@ ApplicationWindow {
                 Settings {
                     property alias frame_number: frameInput.text
                 }
+                KeyNavigation.tab: hostInput
+                KeyNavigation.backtab: file_rect
             }
         }
         Text {
@@ -153,6 +163,8 @@ ApplicationWindow {
                 Settings {
                     property alias host_name: hostInput.text
                 }
+                KeyNavigation.tab: okButton
+                KeyNavigation.backtab: frameInput
             }
         }
         Button {
@@ -165,13 +177,24 @@ ApplicationWindow {
                 progressBar.visible = true
                 frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text);
             }
+            KeyNavigation.tab: cancelButton
+            KeyNavigation.backtab: hostInput
+            Keys.onReturnPressed: {
+                okButton.clicked();
+            }
         }
         Button {
             text: "Cancel"
+            id: cancelButton
             anchors.left: okButton.right
             anchors.top: hostBox.bottom
             onClicked: {
                 Qt.quit();
+            }
+            KeyNavigation.tab: textInput
+            KeyNavigation.backtab: okButton
+            Keys.onReturnPressed: {
+                cancelButton.clicked();
             }
         }
     }
