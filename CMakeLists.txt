@@ -179,7 +179,7 @@ include (CheckIncludeFileCXX)
 macro (add_compiler_flags)
     string (REPLACE ";" " " _FLAGS "${ARGV}")
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_FLAGS} -DGOOGLE_PROTOBUF_NO_RTTI")
 endmacro ()
 
 macro (add_linker_flags)
@@ -522,6 +522,11 @@ macro (add_gtest)
     add_test (NAME ${ARGV0} COMMAND $<TARGET_FILE:${ARGV0}>)
 endmacro ()
 
+set(protobuf_BUILD_TESTS OFF)
+set(protobuf_BUILD_EXAMPLES OFF)
+add_subdirectory (thirdparty/protobuf/cmake)
+
+enable_testing ()
 
 ##############################################################################
 # Common libraries / utilities
