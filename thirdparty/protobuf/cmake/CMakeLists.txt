@@ -122,13 +122,6 @@ else (protobuf_BUILD_SHARED_LIBS)
   # This is achieved by replacing msvc option /MD with /MT and /MDd with /MTd
   # http://www.cmake.org/Wiki/CMake_FAQ#How_can_I_build_my_MSVC_application_with_a_static_runtime.3F
   if (MSVC AND protobuf_MSVC_STATIC_RUNTIME)
-    foreach(flag_var
-        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-      if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-      endif(${flag_var} MATCHES "/MD")
-    endforeach(flag_var)
   endif (MSVC AND protobuf_MSVC_STATIC_RUNTIME)
 endif (protobuf_BUILD_SHARED_LIBS)
 
