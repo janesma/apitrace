@@ -34,6 +34,7 @@ target_link_libraries(retrace_bargraph_test
   retrace_ui_test_utilities
   retrace_bargraph
   retrace_gldispatch
+  libprotobuf
   gtest
   waffle-1
   GL

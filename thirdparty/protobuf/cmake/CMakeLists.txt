@@ -12,7 +12,7 @@ cmake_policy(SET CMP0022 NEW)
 project(protobuf C CXX)
 
 # Options
-option(protobuf_BUILD_TESTS "Build tests" ON)
+option(protobuf_BUILD_TESTS "Build tests" OFF)
 option(protobuf_BUILD_EXAMPLES "Build examples" OFF)
 if (BUILD_SHARED_LIBS)
   set(protobuf_BUILD_SHARED_LIBS_DEFAULT ON)

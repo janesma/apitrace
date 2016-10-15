@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-include(FindProtobuf)
-find_package(Protobuf REQUIRED)
-
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
   )
@@ -26,13 +23,12 @@ else()
   set (THREAD_LIB pthread dl)
 endif()
 
-MESSAGE (STATUS "PROTOBUF_LIBRARY: " ${PROTOBUF_LIBRARY})
 target_link_libraries(frame_retrace_server
   retrace_daemon
   glretrace_common
   glhelpers
   glproc_gl
-  ${PROTOBUF_LIBRARY}
+  libprotobuf
   ${GL_LIB}
   ${X11_X11_LIB}
   ${THREAD_LIB}

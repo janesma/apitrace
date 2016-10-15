@@ -50,7 +50,7 @@ target_link_libraries(retrace_daemon_test
   retrace_gldispatch
   glhelpers
   glproc_gl
-  ${PROTOBUF_LIBRARY}
+  libprotobuf
   gtest
   ${DAEMON_TEST_OS_LIBS}
   )
