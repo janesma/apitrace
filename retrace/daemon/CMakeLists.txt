@@ -1,12 +1,12 @@
 include(Lint.cmake)
 
-find_package(Protobuf REQUIRED)
+include(FindProtobuf)
+set (Protobuf_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/protoc)
+set (PROTOBUF_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/protoc)
 
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders
   playback.proto
   )
-
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGOOGLE_PROTOBUF_NO_RTTI")
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace
@@ -17,7 +17,6 @@ include_directories (
   ${CMAKE_SOURCE_DIR}/helpers
   ${CMAKE_BINARY_DIR}/retrace/daemon
   ${CMAKE_SOURCE_DIR}/retrace/daemon/gldispatch
-  ${PROTOBUF_INCLUDE_DIR}
   )
 
 set (RETRACE_LINUX_SOURCE
@@ -72,7 +71,10 @@ add_library(retrace_daemon STATIC
 target_link_libraries(retrace_daemon
   glretrace_common
   retrace_gldispatch
+  libprotobuf
   )
+
+add_dependencies(retrace_daemon protoc)
 
 if (NOT WIN32)
   Lint( RETRACE_SOURCES )
