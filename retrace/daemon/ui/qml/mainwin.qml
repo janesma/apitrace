@@ -101,9 +101,8 @@ ApplicationWindow {
             selectMultiple: false
             nameFilters: [ "trace files (*.trace)", "All files (*)" ]
             onAccepted: {
-                var path = fileDialog.fileUrl.toString();
-                path = path.replace(/^(file:\/{3})/,"");
-                textInput.text = path
+                var path = fileDialog.fileUrl
+                textInput.text = frameRetrace.urlToFilePath(path)
                 fileDialog.visible = false
             }
         }
