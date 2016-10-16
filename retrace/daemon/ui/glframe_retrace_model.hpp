@@ -141,6 +141,7 @@ class FrameRetraceModel : public QObject,
                                    const QString &geom, const QString &comp);
   Q_INVOKABLE void refreshMetrics();
   Q_INVOKABLE void filterMetrics(const QString &f);
+  Q_INVOKABLE QString urlToFilePath(const QUrl &url);
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
   QSelection *selection();

@@ -517,3 +517,8 @@ FrameRetraceModel::filterMetrics(const QString &f) {
 
   emit onQMetricList();
 }
+
+Q_INVOKABLE QString
+FrameRetraceModel::urlToFilePath(const QUrl &url) {
+  return url.toLocalFile();
+}
