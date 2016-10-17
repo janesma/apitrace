@@ -106,6 +106,13 @@ ApplicationWindow {
                 fileDialog.visible = false
             }
         }
+        MessageDialog {
+            id: errorDialog
+            icon: StandardIcon.Warning
+            visible: false
+            Component.onCompleted: visible = false
+
+        }
         Text {
             id: frameText
             anchors.top: file_rect.bottom
@@ -172,9 +179,14 @@ ApplicationWindow {
             anchors.top: hostBox.bottom
             text: "OK"
             onClicked: {
-                openfile.visible = false
-                progressBar.visible = true
-                frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text);
+                if (frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text)) {
+                    openfile.visible = false
+                    progressBar.visible = true
+                } else {
+                    errorDialog.title = "Error processing trace"
+                    errorDialog.text = "Invalid trace or frame number"
+                    errorDialog.visible = true
+                }
             }
             KeyNavigation.tab: cancelButton
             KeyNavigation.backtab: hostInput

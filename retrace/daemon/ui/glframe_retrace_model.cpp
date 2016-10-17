@@ -83,7 +83,15 @@ FrameRetraceModel::~FrameRetraceModel() {
 
 FrameState *frame_state_off_thread(std::string filename,
                                    int framenumber) {
-  return new FrameState(filename, framenumber);
+  FrameState *state = new FrameState(filename, framenumber);
+  if (state) {
+    if (!state->init()) {
+      delete state;
+      state = NULL;
+    }
+  }
+
+  return state;
 }
 
 static QFuture<FrameState *> future;
@@ -125,13 +133,17 @@ exec_retracer(const char *main_exe, int port) {
   glretrace::fork_execv(server_exe.c_str(), args);
 }
 
-void
+bool
 FrameRetraceModel::setFrame(const QString &filename, int framenumber,
                             const QString &host) {
   // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
   future = QtConcurrent::run(frame_state_off_thread,
                              filename.toStdString(), framenumber);
   m_state = future.result();
+
+  if (!m_state)
+    return false;
+
   int port = 24642;
   if (host == "localhost") {
     {
@@ -162,6 +174,8 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
   m_retrace.openFile(filename.toStdString(), md5, total_bytes,
                      framenumber, this);
   m_retrace.retraceApi(RenderId(-1), this);
+
+  return true;
 }
 
 QQmlListProperty<QRenderBookmark>

@@ -257,9 +257,18 @@ FrameRetrace::retraceShaderAssembly(RenderId renderId,
 }
 
 FrameState::FrameState(const std::string &filename,
-                       int framenumber) : render_count(0) {
-  parser.open(filename.c_str());
-  trace::Call *call;
+                       int framenumber)
+    : filename(filename),
+      framenumber(framenumber),
+      render_count(0) {
+}
+
+bool
+FrameState::init() {
+  if (!parser.open(filename.c_str()))
+    return false;
+
+    trace::Call *call;
   int current_frame = 0;
   while ((call = parser.scan_call()) && current_frame < framenumber) {
     if (call->flags & trace::CALL_FLAG_END_FRAME) {
@@ -278,6 +287,10 @@ FrameState::FrameState(const std::string &filename,
       break;
     }
   }
+
+  parser.close();
+
+  return current_frame == framenumber;
 }
 
 void
