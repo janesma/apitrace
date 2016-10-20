@@ -133,6 +133,20 @@ exec_retracer(const char *main_exe, int port) {
   glretrace::fork_execv(server_exe.c_str(), args);
 }
 
+int
+FrameRetraceModel::getFrameCount(const QString &filename) {
+  FrameState *state = new FrameState(filename.toStdString(), 0);
+
+  int frame_count = 0;
+  if (state) {
+    if (state->init())
+      frame_count = state->getFrameCount();
+    delete state;
+  }
+
+  return frame_count;
+}
+
 bool
 FrameRetraceModel::setFrame(const QString &filename, int framenumber,
                             const QString &host) {

@@ -101,8 +101,14 @@ ApplicationWindow {
             selectMultiple: false
             nameFilters: [ "trace files (*.trace)", "All files (*)" ]
             onAccepted: {
-                var path = fileDialog.fileUrl
-                textInput.text = frameRetrace.urlToFilePath(path)
+                var path = frameRetrace.urlToFilePath(fileDialog.fileUrl)
+                textInput.text = path
+
+                var frame_count = frameRetrace.getFrameCount(path)
+                if (frame_count > 0) {
+                    frameText.text = "frame number: (1-%1)".arg(frame_count)
+                }
+
                 fileDialog.visible = false
             }
         }
