@@ -47,6 +47,8 @@ using glretrace::WARN;
 using glretrace::OutputPoller;
 using glretrace::OnFrameRetrace;
 using glretrace::ShaderAssembly;
+using glretrace::ShaderType;
+using glretrace::AssemblyType;
 using trace::Call;
 using trace::Array;
 
@@ -259,6 +261,7 @@ StateTrack::parse() {
       *current_target = NULL;
   int line_shader = -1;
   while (true) {
+    m_poller->poll(this);
     const std::string output = m_poller->poll();
     if (output.size() == 0)
       break;
@@ -808,6 +811,7 @@ StateTrack::useProgram(int orig_retraced_program,
 
   // TODO(majanes) check error
   parse();
+
   m_sources_to_program[k] = pid;
   program_to_replacements[orig_retraced_program].push_back(pid);
   return pid;
@@ -914,4 +918,69 @@ StateTrack::trackGetUniformLocation(const Call &call) {
   const std::string name(call.args[1].value->toString());
   const int location = call.ret->toDouble();
   m_program_to_uniform_name[program][location] = name;
+}
+
+void
+StateTrack::onAssembly(ShaderType st, AssemblyType at,
+                       const std::string &assembly) {
+  if (!current_program)
+    return;
+  ShaderAssembly *sa;
+  switch (st) {
+    case kVertex:
+      sa = &program_to_vertex[current_program];
+      break;
+    case kFragment:
+      sa = &program_to_fragment[current_program];
+      break;
+    default:
+      return;
+  }
+
+  switch (at) {
+    case kSimd8:
+      sa->simd8 = assembly;
+      break;
+    case kSimd16:
+      sa->simd16 = assembly;
+      break;
+    case kSimd32:
+      sa->simd32 = assembly;
+      break;
+    case kOriginal:
+      sa->ir = assembly;
+      break;
+    case kBeforeUnification:
+      sa->beforeUnification = assembly;
+      break;
+    case kAfterUnification:
+      sa->afterUnification = assembly;
+      break;
+    case kBeforeOptimization:
+      sa->beforeOptimization = assembly;
+      break;
+    case kConstCoalescing:
+      sa->constCoalescing = assembly;
+      break;
+    case kGenIrLowering:
+      sa->genIrLowering = assembly;
+      break;
+    case kLayout:
+      sa->layout = assembly;
+      break;
+    case kOptimized:
+      sa->optimized = assembly;
+      break;
+    case kPushAnalysis:
+      sa->pushAnalysis = assembly;
+      break;
+    case kCodeHoisting:
+      sa->codeHoisting = assembly;
+      break;
+    case kCodeSinking:
+      sa->codeSinking = assembly;
+      break;
+    case kAssemblyTypeUnknown:
+      break;
+  }
 }

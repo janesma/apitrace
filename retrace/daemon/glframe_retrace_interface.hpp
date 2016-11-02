@@ -180,6 +180,17 @@ struct ShaderAssembly {
   std::string nir;
   std::string simd8;
   std::string simd16;
+  std::string simd32;
+  std::string beforeUnification;
+  std::string afterUnification;
+  std::string beforeOptimization;
+  std::string constCoalescing;
+  std::string genIrLowering;
+  std::string layout;
+  std::string optimized;
+  std::string pushAnalysis;
+  std::string codeHoisting;
+  std::string codeSinking;
 };
 
 class OnFrameRetrace {

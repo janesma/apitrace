@@ -120,6 +120,171 @@ Item {
         }
     }
 
+    Component {
+        id: simd32Tab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: simd32.width; contentHeight: simd32.height
+                clip: true
+                Text {
+                    id: simd32
+                    text: model.simd32
+                }
+            }
+        }
+    }
+
+    Component {
+        id: beforeUnificationTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: beforeUnification.width; contentHeight: beforeUnification.height
+                clip: true
+                Text {
+                    id: beforeUnification
+                    text: model.beforeUnification
+                }
+            }
+        }
+    }
+
+    Component {
+        id: afterUnificationTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: afterUnification.width; contentHeight: afterUnification.height
+                clip: true
+                Text {
+                    id: afterUnification
+                    text: model.afterUnification
+                }
+            }
+        }
+    }
+
+    Component {
+        id: beforeOptimizationTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: beforeOptimization.width; contentHeight: beforeOptimization.height
+                clip: true
+                Text {
+                    id: beforeOptimization
+                    text: model.beforeOptimization
+                }
+            }
+        }
+    }
+
+    Component {
+        id: constCoalescingTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: constCoalescing.width; contentHeight: constCoalescing.height
+                clip: true
+                Text {
+                    id: constCoalescing
+                    text: model.constCoalescing
+                }
+            }
+        }
+    }
+
+    Component {
+        id: genIrLoweringTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: genIrLowering.width; contentHeight: genIrLowering.height
+                clip: true
+                Text {
+                    id: genIrLowering
+                    text: model.genIrLowering
+                }
+            }
+        }
+    }
+
+    Component {
+        id: layoutTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: layout.width; contentHeight: layout.height
+                clip: true
+                Text {
+                    id: layout
+                    text: model.layout
+                }
+            }
+        }
+    }
+
+    Component {
+        id: optimizedTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: optimized.width; contentHeight: optimized.height
+                clip: true
+                Text {
+                    id: optimized
+                    text: model.optimized
+                }
+            }
+        }
+    }
+
+    Component {
+        id: pushAnalysisTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: pushAnalysis.width; contentHeight: pushAnalysis.height
+                clip: true
+                Text {
+                    id: pushAnalysis
+                    text: model.pushAnalysis
+                }
+            }
+        }
+    }
+
+    Component {
+        id: codeHoistingTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: codeHoisting.width; contentHeight: codeHoisting.height
+                clip: true
+                Text {
+                    id: codeHoisting
+                    text: model.codeHoisting
+                }
+            }
+        }
+    }
+
+    Component {
+        id: codeSinkingTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: codeSinking.width; contentHeight: codeSinking.height
+                clip: true
+                Text {
+                    id: codeSinking
+                    text: model.codeSinking
+                }
+            }
+        }
+    }
+
     Connections {
         target: model
         onShadersChanged: {
@@ -163,6 +328,39 @@ Item {
             }
             if (model.simd16 != "") {
                 view.addTab("Simd16", simd16Tab);
+            }
+            if (model.simd32 != "") {
+                view.addTab("Simd32", simd32Tab);
+            }
+            if (model.beforeUnification != "") {
+                view.addTab("beforeUnification", beforeUnificationTab);
+            }
+            if (model.afterUnification != "") {
+                view.addTab("afterUnification", afterUnificationTab);
+            }
+            if (model.beforeOptimization != "") {
+                view.addTab("beforeOptimization", beforeOptimizationTab);
+            }
+            if (model.constCoalescing != "") {
+                view.addTab("constCoalescing", constCoalescingTab);
+            }
+            if (model.genIrLowering != "") {
+                view.addTab("genIrLowering", genIrLoweringTab);
+            }
+            if (model.layout != "") {
+                view.addTab("layout", layoutTab);
+            }
+            if (model.optimized != "") {
+                view.addTab("optimized", optimizedTab);
+            }
+            if (model.pushAnalysis != "") {
+                view.addTab("pushAnalysis", pushAnalysisTab);
+            }
+            if (model.codeHoisting != "") {
+                view.addTab("codeHoisting", codeHoistingTab);
+            }
+            if (model.codeSinking != "") {
+                view.addTab("codeSinking", codeSinkingTab);
             }
         }
     }
