@@ -1,3 +1,4 @@
+syntax = "proto2";
 package ApiTrace;
 
 enum RenderTargetType {
@@ -79,6 +80,17 @@ message ShaderAssembly {
   required string nir_final = 4;
   required string simd8 = 5;
   required string simd16 = 6;
+  required string simd32 = 7;
+  required string before_unification = 8;
+  required string after_unification = 9;
+  required string before_optimization = 10;
+  required string const_coalescing = 11;
+  required string gen_ir_lowering = 12;
+  required string layout = 13;
+  required string optimized = 14;
+  required string push_analysis = 15;
+  required string code_hoisting = 16;
+  required string code_sinking = 17;
 }
 
 message ShaderAssemblyResponse {

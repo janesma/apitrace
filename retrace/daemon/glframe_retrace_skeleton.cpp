@@ -275,6 +275,17 @@ void set_shader_assembly(const ShaderAssembly &assembly,
   response->set_nir_final(assembly.nir);
   response->set_simd8(assembly.simd8);
   response->set_simd16(assembly.simd16);
+  response->set_simd32(assembly.simd32);
+  response->set_before_unification(assembly.beforeUnification);
+  response->set_after_unification(assembly.afterUnification);
+  response->set_before_optimization(assembly.beforeOptimization);
+  response->set_const_coalescing(assembly.constCoalescing);
+  response->set_gen_ir_lowering(assembly.genIrLowering);
+  response->set_layout(assembly.layout);
+  response->set_optimized(assembly.optimized);
+  response->set_push_analysis(assembly.pushAnalysis);
+  response->set_code_hoisting(assembly.codeHoisting);
+  response->set_code_sinking(assembly.codeSinking);
 }
 
 void

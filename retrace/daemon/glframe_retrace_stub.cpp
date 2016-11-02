@@ -194,6 +194,17 @@ void set_shader_assembly(const ApiTrace::ShaderAssembly &response,
   assembly->nir = response.nir_final();
   assembly->simd8 = response.simd8();
   assembly->simd16 = response.simd16();
+  assembly->simd32 = response.simd32();
+  assembly->beforeUnification = response.before_unification();
+  assembly->afterUnification = response.after_unification();
+  assembly->beforeOptimization = response.before_optimization();
+  assembly->constCoalescing = response.const_coalescing();
+  assembly->genIrLowering = response.gen_ir_lowering();
+  assembly->layout = response.layout();
+  assembly->optimized = response.optimized();
+  assembly->pushAnalysis = response.push_analysis();
+  assembly->codeHoisting = response.code_hoisting();
+  assembly->codeSinking = response.code_sinking();
 }
 
 class RetraceShaderAssemblyRequest : public IRetraceRequest {

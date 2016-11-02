@@ -1,8 +1,13 @@
 include(Lint.cmake)
 
 include(FindProtobuf)
+
+if (WIN32)
+set (Protobuf_PROTOC_EXECUTABLE protoc)
+else()
 set (Protobuf_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/protoc)
 set (PROTOBUF_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/protoc)
+endif()
 
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders
   playback.proto
@@ -28,6 +33,7 @@ set (RETRACE_LINUX_SOURCE
 set (RETRACE_WIN_SOURCE
   glframe_os_win.cpp
   glframe_thread_win.cpp
+  glframe_win_shaders.cpp
   )
 
 if (WIN32)
