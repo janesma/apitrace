@@ -42,7 +42,8 @@ class QShader : public QObject,
 
  public:
   QShader() : m_source(""), m_ir(""), m_nir_ssa(""),
-              m_nir_final(""), m_simd8(""), m_simd16("") {}
+              m_nir_final(""), m_simd8(""), m_simd16(""),
+              m_simd32("") {}
   virtual ~QShader() {}
   Q_PROPERTY(QString source READ source NOTIFY shadersChanged)
   Q_PROPERTY(QString ir READ ir NOTIFY shadersChanged)
@@ -50,6 +51,20 @@ class QShader : public QObject,
   Q_PROPERTY(QString nirFinal READ nirFinal NOTIFY shadersChanged)
   Q_PROPERTY(QString simd8 READ simd8 NOTIFY shadersChanged)
   Q_PROPERTY(QString simd16 READ simd16 NOTIFY shadersChanged)
+  Q_PROPERTY(QString simd32 READ simd32 NOTIFY shadersChanged)
+  Q_PROPERTY(QString beforeUnification READ beforeUnification
+             NOTIFY shadersChanged)
+  Q_PROPERTY(QString afterUnification READ afterUnification
+             NOTIFY shadersChanged)
+  Q_PROPERTY(QString beforeOptimization READ beforeOptimization
+             NOTIFY shadersChanged)
+  Q_PROPERTY(QString constCoalescing READ constCoalescing NOTIFY shadersChanged)
+  Q_PROPERTY(QString genIrLowering READ genIrLowering NOTIFY shadersChanged)
+  Q_PROPERTY(QString layout READ layout NOTIFY shadersChanged)
+  Q_PROPERTY(QString optimized READ optimized NOTIFY shadersChanged)
+  Q_PROPERTY(QString pushAnalysis READ pushAnalysis NOTIFY shadersChanged)
+  Q_PROPERTY(QString codeHoisting READ codeHoisting NOTIFY shadersChanged)
+  Q_PROPERTY(QString codeSinking READ codeSinking NOTIFY shadersChanged)
 
   void onShaderAssembly(const ShaderAssembly &a) {
     m_source = a.shader.c_str();
@@ -58,6 +73,17 @@ class QShader : public QObject,
     m_nir_final = a.nir.c_str();
     m_simd8 = a.simd8.c_str();
     m_simd16 = a.simd16.c_str();
+    m_simd32 = a.simd32.c_str();
+    m_beforeUnification = a.beforeUnification.c_str();
+    m_afterUnification = a.afterUnification.c_str();
+    m_beforeOptimization = a.beforeOptimization.c_str();
+    m_constCoalescing = a.constCoalescing.c_str();
+    m_genIrLowering = a.genIrLowering.c_str();
+    m_layout = a.layout.c_str();
+    m_optimized = a.optimized.c_str();
+    m_pushAnalysis = a.pushAnalysis.c_str();
+    m_codeHoisting = a.codeHoisting.c_str();
+    m_codeSinking = a.codeSinking.c_str();
     emit shadersChanged();
   }
 
@@ -67,12 +93,26 @@ class QShader : public QObject,
   QString nirFinal() const { return m_nir_final; }
   QString simd8() const { return m_simd8; }
   QString simd16() const { return m_simd16; }
+  QString simd32() const { return m_simd32; }
+  QString beforeUnification() const { return m_beforeUnification; }
+  QString afterUnification() const { return m_afterUnification; }
+  QString beforeOptimization() const { return m_beforeOptimization; }
+  QString constCoalescing() const { return m_constCoalescing; }
+  QString genIrLowering() const { return m_genIrLowering; }
+  QString layout() const { return m_layout; }
+  QString optimized() const { return m_optimized; }
+  QString pushAnalysis() const { return m_pushAnalysis; }
+  QString codeHoisting() const { return m_codeHoisting; }
+  QString codeSinking() const { return m_codeSinking; }
 
  signals:
   void shadersChanged();
 
  private:
-  QString m_source, m_ir, m_nir_ssa, m_nir_final, m_simd8, m_simd16;
+  QString m_source, m_ir, m_nir_ssa, m_nir_final, m_simd8, m_simd16,
+    m_simd32, m_beforeUnification, m_afterUnification, m_beforeOptimization,
+    m_constCoalescing, m_genIrLowering, m_layout, m_optimized,
+    m_pushAnalysis, m_codeHoisting, m_codeSinking;
 };
 
 }  // namespace glretrace

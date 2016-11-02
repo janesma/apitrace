@@ -44,11 +44,41 @@ class Call;
 namespace glretrace {
 class OnFrameRetrace;
 
+class StateTrack;
 class OutputPoller {
  public:
   virtual std::string poll() = 0;
+  virtual void poll(StateTrack *cb) = 0;
   virtual ~OutputPoller() {}
   virtual void init() = 0;
+};
+
+enum ShaderType {
+  kShaderTypeUnknown,
+  kVertex,
+  kFragment,
+  kTessEvel,
+  kTessControl,
+  kGeometry,
+  kCompute
+};
+
+enum AssemblyType {
+  kAssemblyTypeUnknown,
+  kOriginal,
+  kBeforeUnification,
+  kAfterUnification,
+  kBeforeOptimization,
+  kConstCoalescing,
+  kGenIrLowering,
+  kLayout,
+  kOptimized,
+  kPushAnalysis,
+  kCodeHoisting,
+  kCodeSinking,
+  kSimd8,
+  kSimd16,
+  kSimd32
 };
 
 // tracks subset of gl state for frameretrace purposes
@@ -65,6 +95,7 @@ class StateTrack {
   const ShaderAssembly &currentTessEvalShader() const;
   const ShaderAssembly &currentGeomShader() const;
   const ShaderAssembly &currentCompShader() const;
+  void onAssembly(ShaderType st, AssemblyType at, const std::string &assembly);
   uint64_t currentContext() const { return current_context; }
   int useProgram(int orig_program,
                  const std::string &vs, const std::string &fs,

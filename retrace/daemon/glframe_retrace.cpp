@@ -71,11 +71,12 @@ using glretrace::WARN;
 using image::Image;
 using retrace::parser;
 using trace::Call;
+using glretrace::WinShaders;
 
 extern retrace::Retracer retracer;
 
 #ifdef WIN32
-static NoRedirect assemblyOutput;
+static WinShaders assemblyOutput;
 #else
 static StdErrRedirect assemblyOutput;
 #endif
