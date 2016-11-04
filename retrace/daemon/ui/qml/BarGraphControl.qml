@@ -67,6 +67,7 @@ Item {
     
     ColumnLayout {
         anchors.fill: parent
+        anchors.topMargin: 20
         Item {
             Layout.alignment: Qt.AlignTop
             Layout.preferredHeight: 40
@@ -84,7 +85,8 @@ Item {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: vertLabel.right
-                width: (parent.width / 2) - vertLabel.width
+                anchors.leftMargin: 5
+                width: (parent.width / 2) - vertLabel.width - 15
                 id: vertMetric
                 model: vert_metrics
                 onCurrentIndexChanged : {
@@ -98,6 +100,7 @@ Item {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: vertMetric.right
+                anchors.leftMargin: 10
                 id: horizLabel
                 text: "Horizontal Metric: "
             }
@@ -105,7 +108,8 @@ Item {
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.left: horizLabel.right
-                width: (parent.width / 2) - horizLabel.width
+                anchors.leftMargin: 5
+                width: (parent.width / 2) - horizLabel.width - 5
                 model: horiz_metrics
                 onCurrentIndexChanged : {
                     horiz_metric = model[currentIndex]
@@ -120,11 +124,14 @@ Item {
             Layout.preferredHeight: 400
             Layout.fillWidth: true
             Layout.fillHeight: true
+            anchors.top: comboBoxes.bottom
+            anchors.topMargin: 10
 
             BarGraph {
                 id: barGraph
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
                 anchors.left: parent.left
                 anchors.right: scale.left
                 model: metric_model
@@ -159,6 +166,7 @@ Item {
                 id: scale
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
+                anchors.bottomMargin: 10
                 anchors.right: parent.right
                 width: axisText.width
                 Text {

@@ -33,6 +33,23 @@ ApplicationWindow {
         id: openfile
         anchors.fill:parent
         Component.onCompleted: visible = true
+        Rectangle {
+            id: imageBox
+            anchors.top: parent.top
+            anchors.topMargin: 30
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 500
+            height: 120
+            border.width: 1
+            visible: true
+            Image {
+                height: 120
+                width: 500
+                id: appIcon
+                source: "qrc:///qml/images/retracer_icon.png"
+                visible: true
+            }
+        }
         Text {
             id: enterText
             width: 500
@@ -51,22 +68,30 @@ ApplicationWindow {
             height: textHeight.height * 1.5
             anchors.top: enterText.bottom
             anchors.left: enterText.left
-            TextInput {
-                anchors.verticalCenter: parent.verticalCenter
-                verticalAlignment: Text.AlignVCenter
-                height: textHeight.height
-                width:500
-                selectByMouse: true
-                activeFocusOnPress : true
-                focus: true
-                id: textInput
-                text: ""
+            Flickable {
+                id: flickText
+                anchors.fill: parent
+                contentWidth: textInput.width
+                contentHeight: textInput.height
+                flickableDirection: Flickable.HorizontalFlick
+                clip: true
+                TextInput {
+                    anchors.verticalCenter: parent.verticalCenter
+                    verticalAlignment: Text.AlignVCenter
+                    height: textBox.height
+                    width:500
+                    selectByMouse: true
+                    activeFocusOnPress : true
+                    focus: true
+                    id: textInput
+                    text: ""
 
-                Settings {
-                    property alias file_name: textInput.text
+                    Settings {
+                        property alias file_name: textInput.text
+                    }
+                    KeyNavigation.tab: file_rect
+                    KeyNavigation.backtab: cancelButton
                 }
-                KeyNavigation.tab: file_rect
-                KeyNavigation.backtab: cancelButton
             }
         }
         Rectangle {
@@ -109,6 +134,7 @@ ApplicationWindow {
         Text {
             id: frameText
             anchors.top: file_rect.bottom
+            anchors.topMargin: 10
             anchors.left: textBox.left
             text: "frame number:"
         }
@@ -139,6 +165,7 @@ ApplicationWindow {
         Text {
             id: hostText
             anchors.top: frameBox.bottom
+            anchors.topMargin: 10
             anchors.left: frameBox.left
             text: "host:"
         }
@@ -170,6 +197,7 @@ ApplicationWindow {
             id: okButton
             anchors.left: hostBox.left
             anchors.top: hostBox.bottom
+            anchors.topMargin: 10
             text: "OK"
             onClicked: {
                 openfile.visible = false
@@ -187,6 +215,8 @@ ApplicationWindow {
             id: cancelButton
             anchors.left: okButton.right
             anchors.top: hostBox.bottom
+            anchors.topMargin: 10
+            anchors.leftMargin: 10
             onClicked: {
                 Qt.quit();
             }
