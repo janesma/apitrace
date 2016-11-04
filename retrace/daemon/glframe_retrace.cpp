@@ -73,7 +73,7 @@ extern retrace::Retracer retracer;
 #ifdef WIN32
 static NoRedirect assemblyOutput;
 #else
-static StdErrRedirect assemblyOutput;
+static NoRedirect assemblyOutput;
 #endif
 
 FrameRetrace::FrameRetrace()
