@@ -64,7 +64,10 @@ FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_selection(NULL),
                                          m_selection_count(0),
                                          m_open_percent(0),
-                                         m_max_metric(0) {
+                                         m_max_metric(0),
+                                         m_clear_before_render(false),
+                                         m_stop_at_render(false),
+                                         m_highlight_render(false) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
   filterMetrics("");
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
