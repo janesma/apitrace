@@ -49,7 +49,7 @@ void WinShaders::init() {
 
 
 void 
-WinShaders::poll(StateTrack *cb) {
+WinShaders::poll(int current_program, StateTrack *cb) {
   HANDLE dir_handle;
   WIN32_FIND_DATA found;
   dir_handle = FindFirstFile(m_dump_pattern.c_str(), &found);

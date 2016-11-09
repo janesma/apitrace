@@ -47,8 +47,7 @@ class OnFrameRetrace;
 class StateTrack;
 class OutputPoller {
  public:
-  virtual std::string poll() = 0;
-  virtual void poll(StateTrack *cb) = 0;
+  virtual void poll(int current_program, StateTrack *cb) = 0;
   virtual ~OutputPoller() {}
   virtual void init() = 0;
 };
@@ -57,7 +56,7 @@ enum ShaderType {
   kShaderTypeUnknown,
   kVertex,
   kFragment,
-  kTessEvel,
+  kTessEval,
   kTessControl,
   kGeometry,
   kCompute
@@ -78,7 +77,10 @@ enum AssemblyType {
   kCodeSinking,
   kSimd8,
   kSimd16,
-  kSimd32
+  kSimd32,
+  kIr,
+  kNirSsa,
+  kNirFinal
 };
 
 // tracks subset of gl state for frameretrace purposes
