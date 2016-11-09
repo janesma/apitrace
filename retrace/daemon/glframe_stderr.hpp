@@ -34,8 +34,7 @@ namespace glretrace {
 class StdErrRedirect : public OutputPoller {
  public:
   StdErrRedirect();
-  std::string poll();
-  void poll(StateTrack *cb) {}
+  void poll(int current_program, StateTrack *cb);
   ~StdErrRedirect();
   void init();
 
@@ -47,8 +46,7 @@ class StdErrRedirect : public OutputPoller {
 class NoRedirect : public OutputPoller {
  public:
   NoRedirect() {}
-  std::string poll() { return ""; }
-  void poll(StateTrack *cb) {}
+  void poll(int current_program, StateTrack *cb) {}
   ~NoRedirect() {}
   void init() {}
 };
@@ -56,8 +54,7 @@ class NoRedirect : public OutputPoller {
 class WinShaders : public OutputPoller {
  public:
   WinShaders() {}
-  std::string poll() { return ""; }
-  void poll(StateTrack *cb);
+  void poll(int current_program, StateTrack *cb);
   ~WinShaders() {}
   void init();
  private:
