@@ -162,6 +162,10 @@ QMetricsModel::onSelect(QList<int> selection) {
 void
 QMetricsModel::refresh() {
   // retrace the metrics for the full frame
+  if (!m_retrace)
+    // no metrics available
+    return;
+
   RenderSelection s;
   s.id = SelectionId(0);
   s.series.push_back(RenderSequence(RenderId(0), RenderId(m_render_count)));
