@@ -86,6 +86,7 @@ if (NOT WIN32)
   Lint( RETRACE_SOURCES )
 endif()
 
+add_subdirectory (framestat)
 add_subdirectory (test)
 add_subdirectory (ui)
 add_subdirectory (server)
