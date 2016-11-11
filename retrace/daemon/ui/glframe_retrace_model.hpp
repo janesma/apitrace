@@ -108,7 +108,7 @@ class FrameRetraceModel : public QObject,
              WRITE setStopAtRender)
   Q_PROPERTY(bool highlightRender READ highlightRender
              WRITE setHighlightRender)
-  Q_PROPERTY(QStringList apiCalls
+  Q_PROPERTY(QString apiCalls
              READ apiCalls NOTIFY onApiCalls)
   Q_PROPERTY(glretrace::QShader* vsShader READ vsShader NOTIFY onShaders)
   Q_PROPERTY(glretrace::QShader* fsShader READ fsShader NOTIFY onShaders)
@@ -173,7 +173,7 @@ class FrameRetraceModel : public QObject,
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
-  QStringList apiCalls();
+  QString apiCalls();
   QShader *vsShader() { return &m_vs; }
   QShader *fsShader() { return &m_fs; }
   QShader *tessControlShader() { return &m_tess_control; }
@@ -230,7 +230,7 @@ class FrameRetraceModel : public QObject,
   QString m_shader_compile_error;
   QString main_exe;  // for path to frame_retrace_server
 
-  QStringList m_api_calls;
+  QString m_api_calls;
   int m_open_percent;
 
   // thread-safe storage for member data updated from the retrace
