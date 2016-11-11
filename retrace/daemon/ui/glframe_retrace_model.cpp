@@ -482,7 +482,7 @@ FrameRetraceModel::refreshMetrics() {
   m_metrics_table.refresh();
 }
 
-QStringList
+QString
 FrameRetraceModel::apiCalls() {
   ScopedLock s(m_protect);
   return m_api_calls;
