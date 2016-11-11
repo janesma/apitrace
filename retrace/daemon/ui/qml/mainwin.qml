@@ -443,11 +443,15 @@ ApplicationWindow {
                 id: apiTab
                 clip: true
                 ScrollView {
-                    ListView {
-                        model: frameRetrace.apiCalls
-                        anchors.fill: apiTab
-                        delegate: Text {
-                            text: modelData
+                    Flickable {
+                        anchors.fill: parent
+                        contentWidth: api.width; contentHeight: api.height
+                        clip: true
+                        TextEdit {
+                            id: api
+                            readOnly: true
+                            selectByMouse: true
+                            text: frameRetrace.apiCalls
                         }
                     }
                 }
