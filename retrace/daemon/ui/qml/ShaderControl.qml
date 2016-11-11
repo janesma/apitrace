@@ -52,8 +52,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: ir.width; contentHeight: ir.height
                 clip: true
-                Text {
+                TextEdit {
                     id: ir
+                    readOnly: true
+                    selectByMouse: true
                     text: model.ir
                 }
             }
@@ -67,8 +69,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: nirSsa.width; contentHeight: nirSsa.height
                 clip: true
-                Text {
+                TextEdit {
                     id: nirSsa
+                    readOnly: true
+                    selectByMouse: true
                     text: model.nirSsa
                 }
             }
@@ -82,8 +86,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: nirFinal.width; contentHeight: nirFinal.height
                 clip: true
-                Text {
+                TextEdit {
                     id: nirFinal
+                    readOnly: true
+                    selectByMouse: true
                     text: model.nirFinal
                 }
             }
@@ -97,8 +103,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: simd8.width; contentHeight: simd8.height
                 clip: true
-                Text {
+                TextEdit {
                     id: simd8
+                    readOnly: true
+                    selectByMouse: true
                     text: model.simd8
                 }
             }
@@ -112,8 +120,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: simd16.width; contentHeight: simd16.height
                 clip: true
-                Text {
+                TextEdit {
                     id: simd16
+                    readOnly: true
+                    selectByMouse: true
                     text: model.simd16
                 }
             }
@@ -127,8 +137,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: simd32.width; contentHeight: simd32.height
                 clip: true
-                Text {
+                TextEdit {
                     id: simd32
+                    readOnly: true
+                    selectByMouse: true
                     text: model.simd32
                 }
             }
@@ -142,8 +154,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: beforeUnification.width; contentHeight: beforeUnification.height
                 clip: true
-                Text {
+                TextEdit {
                     id: beforeUnification
+                    readOnly: true
+                    selectByMouse: true
                     text: model.beforeUnification
                 }
             }
@@ -157,8 +171,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: afterUnification.width; contentHeight: afterUnification.height
                 clip: true
-                Text {
+                TextEdit {
                     id: afterUnification
+                    readOnly: true
+                    selectByMouse: true
                     text: model.afterUnification
                 }
             }
@@ -172,8 +188,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: beforeOptimization.width; contentHeight: beforeOptimization.height
                 clip: true
-                Text {
+                TextEdit {
                     id: beforeOptimization
+                    readOnly: true
+                    selectByMouse: true
                     text: model.beforeOptimization
                 }
             }
@@ -187,8 +205,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: constCoalescing.width; contentHeight: constCoalescing.height
                 clip: true
-                Text {
+                TextEdit {
                     id: constCoalescing
+                    readOnly: true
+                    selectByMouse: true
                     text: model.constCoalescing
                 }
             }
@@ -202,8 +222,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: genIrLowering.width; contentHeight: genIrLowering.height
                 clip: true
-                Text {
+                TextEdit {
                     id: genIrLowering
+                    readOnly: true
+                    selectByMouse: true
                     text: model.genIrLowering
                 }
             }
@@ -217,8 +239,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: layout.width; contentHeight: layout.height
                 clip: true
-                Text {
+                TextEdit {
                     id: layout
+                    readOnly: true
+                    selectByMouse: true
                     text: model.layout
                 }
             }
@@ -232,8 +256,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: optimized.width; contentHeight: optimized.height
                 clip: true
-                Text {
+                TextEdit {
                     id: optimized
+                    readOnly: true
+                    selectByMouse: true
                     text: model.optimized
                 }
             }
@@ -247,8 +273,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: pushAnalysis.width; contentHeight: pushAnalysis.height
                 clip: true
-                Text {
+                TextEdit {
                     id: pushAnalysis
+                    readOnly: true
+                    selectByMouse: true
                     text: model.pushAnalysis
                 }
             }
@@ -262,8 +290,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: codeHoisting.width; contentHeight: codeHoisting.height
                 clip: true
-                Text {
+                TextEdit {
                     id: codeHoisting
+                    readOnly: true
+                    selectByMouse: true
                     text: model.codeHoisting
                 }
             }
@@ -277,8 +307,10 @@ Item {
                 anchors.fill: parent
                 contentWidth: codeSinking.width; contentHeight: codeSinking.height
                 clip: true
-                Text {
+                TextEdit {
                     id: codeSinking
+                    readOnly: true
+                    selectByMouse: true
                     text: model.codeSinking
                 }
             }
