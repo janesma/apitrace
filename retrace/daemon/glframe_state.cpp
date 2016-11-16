@@ -72,6 +72,8 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glBindAttribLocation"] = &StateTrack::trackBindAttribLocation;
   lookup["glGetAttribLocation"] = &StateTrack::trackGetAttribLocation;
   lookup["glGetUniformLocation"] = &StateTrack::trackGetUniformLocation;
+  lookup["glGetUniformBlockIndex"] = &StateTrack::trackGetUniformBlockIndex;
+  lookup["glUniformBlockBinding"] = &StateTrack::trackUniformBlockBinding;
 }
 
 bool
@@ -224,30 +226,44 @@ void
 StateTrack::trackDeleteProgram(const trace::Call &call) {
   const int deleted_program =
       getRetracedProgram(call.args[0].value->toDouble());
-  auto i = program_to_vertex.find(deleted_program);
-  if (i != program_to_vertex.end())
+  {
+    auto i = program_to_vertex.find(deleted_program);
+    if (i != program_to_vertex.end())
       program_to_vertex.erase(i);
-  i = program_to_fragment.find(deleted_program);
-  if (i != program_to_fragment.end())
+    i = program_to_fragment.find(deleted_program);
+    if (i != program_to_fragment.end())
       program_to_fragment.erase(i);
-  i = program_to_tess_control.find(deleted_program);
-  if (i != program_to_tess_control.end())
+    i = program_to_tess_control.find(deleted_program);
+    if (i != program_to_tess_control.end())
       program_to_tess_control.erase(i);
-  i = program_to_tess_eval.find(deleted_program);
-  if (i != program_to_tess_eval.end())
+    i = program_to_tess_eval.find(deleted_program);
+    if (i != program_to_tess_eval.end())
       program_to_tess_eval.erase(i);
-  i = program_to_geom.find(deleted_program);
-  if (i != program_to_geom.end())
+    i = program_to_geom.find(deleted_program);
+    if (i != program_to_geom.end())
       program_to_geom.erase(i);
-  i = program_to_comp.find(deleted_program);
-  if (i != program_to_comp.end())
+    i = program_to_comp.find(deleted_program);
+    if (i != program_to_comp.end())
       program_to_comp.erase(i);
-  auto j = m_program_to_bound_attrib.find(deleted_program);
-  if (j != m_program_to_bound_attrib.end())
-    m_program_to_bound_attrib.erase(j);
-  j = m_program_to_uniform_name.find(deleted_program);
-  if (j != m_program_to_uniform_name.end())
-    m_program_to_uniform_name.erase(j);
+  }
+  {
+    auto i = m_program_to_bound_attrib.find(deleted_program);
+    if (i != m_program_to_bound_attrib.end())
+      m_program_to_bound_attrib.erase(i);
+    i = m_program_to_uniform_name.find(deleted_program);
+    if (i != m_program_to_uniform_name.end())
+      m_program_to_uniform_name.erase(i);
+  }
+  {
+    auto i = m_program_to_uniform_block_index.find(deleted_program);
+    if (i != m_program_to_uniform_block_index.end())
+      m_program_to_uniform_block_index.erase(i);
+  }
+  {
+    auto i = m_program_to_uniform_block_binding.find(deleted_program);
+    if (i != m_program_to_uniform_block_binding.end())
+      m_program_to_uniform_block_binding.erase(i);
+  }
 }
 
 void
@@ -573,6 +589,21 @@ StateTrack::useProgram(int orig_retraced_program,
 
   m_sources_to_program[k] = pid;
   program_to_replacements[orig_retraced_program].push_back(pid);
+
+  for (const auto &name_to_index :
+           m_program_to_uniform_block_index[orig_retraced_program]) {
+    const char *name = name_to_index.first.c_str();
+    const int index = GlFunctions::GetUniformBlockIndex(pid, name);
+    if (index == -1)
+      continue;
+    const int orig_index = name_to_index.second;
+    auto &block_binding =
+        m_program_to_uniform_block_binding[orig_retraced_program];
+    const int binding = block_binding[orig_index];
+    GlFunctions::UniformBlockBinding(pid, index,
+                                     binding);
+  }
+
   return pid;
 }
 
@@ -666,7 +697,8 @@ StateTrack::trackGetAttribLocation(const trace::Call &call) {
   const int call_program = call.args[0].value->toDouble();
   const int program = glretrace::getRetracedProgram(call_program);
   const std::string name(call.args[1].value->toString());
-  const int location = call.ret->toDouble();
+  const int location = GlFunctions::GetAttribLocation(program,
+                                                      name.c_str());
   m_program_to_bound_attrib[program][location] = name;
 }
 
@@ -675,8 +707,37 @@ StateTrack::trackGetUniformLocation(const Call &call) {
   const int call_program = call.args[0].value->toDouble();
   const int program = glretrace::getRetracedProgram(call_program);
   const std::string name(call.args[1].value->toString());
-  const int location = call.ret->toDouble();
+  const int location = GlFunctions::GetUniformLocation(program,
+                                                       name.c_str());
   m_program_to_uniform_name[program][location] = name;
+}
+
+void
+StateTrack::trackGetUniformBlockIndex(const trace::Call &call) {
+  const int call_index = call.ret->toDouble();
+  if (call_index == -1)
+    return;
+  const int call_program = call.args[0].value->toDouble();
+
+  const int retraced_index =
+      glretrace::getRetracedUniformBlockIndex(call_program, call_index);
+
+  const int program = glretrace::getRetracedProgram(call_program);
+  const std::string name(call.args[1].value->toString());
+  m_program_to_uniform_block_index[program][name] = retraced_index;
+}
+
+void
+StateTrack::trackUniformBlockBinding(const trace::Call &call) {
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
+  const int call_index = call.args[1].value->toDouble();
+
+  const int retraced_index =
+      glretrace::getRetracedUniformBlockIndex(call_program, call_index);
+
+  const int binding = call.args[2].value->toDouble();
+  m_program_to_uniform_block_binding[program][retraced_index] = binding;
 }
 
 void

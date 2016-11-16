@@ -216,6 +216,9 @@ getRetracedProgram(GLint traced_program);
 GLint
 getRetracedShader(GLint traced_shader);
 
+GLuint 
+getRetracedUniformBlockIndex(GLuint traced_program, GLuint traced_index);
+
 } /* namespace glretrace */
 
 

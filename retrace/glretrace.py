@@ -681,4 +681,10 @@ glretrace::getRetracedShader(GLint traced_shader) {
     return _shader_map[traced_shader];
 }
 
+GLuint 
+glretrace::getRetracedUniformBlockIndex(GLuint traced_program, 
+                                        GLuint traced_index) {
+    return _uniformBlock_map[traced_program][traced_index];
+}
+
 '''
