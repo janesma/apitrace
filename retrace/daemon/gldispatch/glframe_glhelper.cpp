@@ -91,6 +91,8 @@ static void *pBlendEquationSeparate = NULL;
 static void *pBindAttribLocation = NULL;
 static void *pValidateProgram = NULL;
 static void *pIsEnabled = NULL;
+static void *pGetUniformBlockIndex = NULL;
+static void *pUniformBlockBinding = NULL;
 
 }  // namespace
 
@@ -243,6 +245,10 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pValidateProgram);
   pIsEnabled = _GetProcAddress("glIsEnabled");
   assert(pIsEnabled);
+  pGetUniformBlockIndex = _GetProcAddress("glGetUniformBlockIndex");
+  assert(pGetUniformBlockIndex);
+  pUniformBlockBinding = _GetProcAddress("glUniformBlockBinding");
+  assert(pUniformBlockBinding);
 }
 
 GLuint
@@ -626,4 +632,23 @@ GLboolean
 GlFunctions::IsEnabled(GLenum cap) {
   typedef GLboolean (*ISENABLED)(GLenum cap);
   return ((ISENABLED) pIsEnabled)(cap);
+}
+
+GLuint
+GlFunctions::GetUniformBlockIndex(GLuint program,
+                                  const GLchar *uniformBlockName) {
+  typedef GLuint (*GETUNIFORMBLOCKINDEX)(GLuint program,
+                                         const GLchar *uniformBlockName);
+  return ((GETUNIFORMBLOCKINDEX) pGetUniformBlockIndex)(program,
+                                                        uniformBlockName);
+}
+
+void
+GlFunctions::UniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
+                                 GLuint uniformBlockBinding) {
+  typedef void (*UNIFORMBLOCKBINDING)(GLuint program, GLuint uniformBlockIndex,
+                                      GLuint uniformBlockBinding);
+  return ((UNIFORMBLOCKBINDING) pUniformBlockBinding)(program,
+                                                      uniformBlockIndex,
+                                                      uniformBlockBinding);
 }

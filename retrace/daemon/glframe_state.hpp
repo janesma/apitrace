@@ -142,6 +142,8 @@ class StateTrack {
   void trackBindAttribLocation(const trace::Call &);
   void trackGetAttribLocation(const trace::Call &);
   void trackGetUniformLocation(const trace::Call &);
+  void trackGetUniformBlockIndex(const trace::Call &);
+  void trackUniformBlockBinding(const trace::Call &);
 
   OutputPoller *m_poller;
   int current_program;
@@ -152,6 +154,9 @@ class StateTrack {
   std::map<ProgramKey, int> m_sources_to_program;
   std::map<int, std::map<int, std::string>> m_program_to_bound_attrib;
   std::map<int, std::map<int, std::string>> m_program_to_uniform_name;
+  std::map<int, std::map<std::string, int>> m_program_to_uniform_block_index;
+  // key is program, internal key is index, value is binding
+  std::map<int, std::map<int, int>> m_program_to_uniform_block_binding;
 
   // for these maps, key is program
   std::map<int, ShaderAssembly> program_to_vertex;
