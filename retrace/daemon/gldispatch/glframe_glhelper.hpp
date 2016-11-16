@@ -129,6 +129,11 @@ class GlFunctions {
   static void ValidateProgram(GLuint program);
   static GLboolean IsEnabled(GLenum cap);
 
+  static GLuint GetUniformBlockIndex(GLuint program,
+                                     const GLchar *uniformBlockName);
+  static void UniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
+                                  GLuint uniformBlockBinding);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
