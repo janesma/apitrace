@@ -27,6 +27,10 @@
 
 #include "glframe_metrics_model.hpp"
 
+#include <QApplication>
+#include <QClipboard>
+
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -199,3 +203,33 @@ QMetricsModel::filter(const QString& f) {
   emit onMetricsChanged();
 }
 
+// select rows for subsequent copy
+void
+QMetricsModel::copySelect(int row) {
+  m_copy_selection.push_back(row);
+}
+
+// copy selected rows to the clipboard
+void
+QMetricsModel::copy() {
+  std::stringstream ss;
+  ss << "Metric\tSelection\tFrame\tDescription\n";
+  int metric_count = 0;
+  auto selection = m_copy_selection.begin();
+  for (auto m : m_filtered_metric_list) {
+    if (selection == m_copy_selection.end())
+      break;
+    if (metric_count == *selection) {
+      ss << m->name().toStdString() << "\t"
+         << m->value() << "\t"
+         << m->frameValue() << "\t"
+         << m->description().toStdString() << "\n";
+      ++selection;
+    }
+    ++metric_count;
+  }
+  m_copy_selection.clear();
+  QClipboard *clipboard = QApplication::clipboard();
+  QString q(ss.str().c_str());
+  clipboard->setText(q);
+}
