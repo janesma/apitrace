@@ -78,6 +78,9 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   Q_PROPERTY(QQmlListProperty<glretrace::QMetricValue> metrics
              READ metrics NOTIFY onMetricsChanged)
  public:
+  Q_INVOKABLE void copySelect(int row);
+  Q_INVOKABLE void copy();
+
   QMetricsModel();
   ~QMetricsModel();
   void init(IFrameRetrace *r,
@@ -129,6 +132,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   RenderSelection m_render_selection;
   std::map<MetricId, QMetricValue*> m_metrics;
   QList<QMetricValue *> m_metric_list, m_filtered_metric_list;
+  std::vector<int> m_copy_selection;
 };
 
 }  // namespace glretrace
