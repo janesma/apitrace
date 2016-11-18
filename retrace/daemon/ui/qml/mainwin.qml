@@ -126,10 +126,23 @@ ApplicationWindow {
             selectMultiple: false
             nameFilters: [ "trace files (*.trace)", "All files (*)" ]
             onAccepted: {
-                var path = fileDialog.fileUrl
-                textInput.text = frameRetrace.urlToFilePath(path)
+                var path = frameRetrace.urlToFilePath(fileDialog.fileUrl)
+                textInput.text = path
+
+                var frame_count = frameRetrace.getFrameCount(path)
+                if (frame_count > 0) {
+                    frameText.text = "frame number: (1-%1)".arg(frame_count)
+                }
+
                 fileDialog.visible = false
             }
+        }
+        MessageDialog {
+            id: errorDialog
+            icon: StandardIcon.Warning
+            visible: false
+            Component.onCompleted: visible = false
+
         }
         Text {
             id: frameText
@@ -200,9 +213,14 @@ ApplicationWindow {
             anchors.topMargin: 10
             text: "OK"
             onClicked: {
-                openfile.visible = false
-                progressBar.visible = true
-                frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text);
+                if (frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text)) {
+                    openfile.visible = false
+                    progressBar.visible = true
+                } else {
+                    errorDialog.title = "Error processing trace"
+                    errorDialog.text = "Invalid trace or frame number"
+                    errorDialog.visible = true
+                }
             }
             KeyNavigation.tab: cancelButton
             KeyNavigation.backtab: hostInput

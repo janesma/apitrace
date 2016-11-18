@@ -132,7 +132,8 @@ class FrameRetraceModel : public QObject,
 
   virtual void subscribe(QBarGraphRenderer *graph);
 
-  Q_INVOKABLE void setFrame(const QString &filename, int framenumber,
+  Q_INVOKABLE int getFrameCount(const QString &filename);
+  Q_INVOKABLE bool setFrame(const QString &filename, int framenumber,
                             const QString &host);
   Q_INVOKABLE void setMetric(int index, int id);
   Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs,

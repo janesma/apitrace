@@ -269,11 +269,16 @@ class FrameState {
   // StateTrack tracker;
   // trace::RenderBookmark frame_start;
   // std::vector<trace::RenderBookmark> renders;
+  std::string filename;
+  int framenumber;
   int render_count;
+  int frame_count;
  public:
   FrameState(const std::string &filename,
              int framenumber);
+  bool init();
   int getRenderCount() const { return render_count; }
+  int getFrameCount() const { return frame_count; }
 };
 
 } /* namespace glretrace */
