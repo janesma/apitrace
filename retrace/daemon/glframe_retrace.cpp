@@ -270,9 +270,12 @@ FrameState::FrameState(const std::string &filename,
   while ((call = p->scan_call()) && current_frame < framenumber) {
     if (call->flags & trace::CALL_FLAG_END_FRAME) {
       ++current_frame;
-      if (current_frame == framenumber)
+      if (current_frame == framenumber) {
+        delete call;
         break;
+      }
     }
+    delete call;
   }
 
   while ((call = p->scan_call())) {
@@ -281,8 +284,10 @@ FrameState::FrameState(const std::string &filename,
     }
 
     if (call->flags & trace::CALL_FLAG_END_FRAME) {
+      delete call;
       break;
     }
+    delete call;
   }
 }
 
