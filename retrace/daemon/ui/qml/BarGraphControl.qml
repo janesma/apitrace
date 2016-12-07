@@ -121,21 +121,29 @@ Item {
         }
         Item {
             Layout.alignment: Qt.AlignTop
-            Layout.preferredHeight: 400
+            Layout.preferredHeight: 500
             Layout.fillWidth: true
             Layout.fillHeight: true
             anchors.top: comboBoxes.bottom
             anchors.topMargin: 10
+            anchors.bottomMargin: 10
 
             BarGraph {
                 id: barGraph
                 anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 10
+                anchors.bottom: scrollBar.top
                 anchors.left: parent.left
                 anchors.right: scale.left
                 model: metric_model
                 selection: control.selection
+
+                onZoomChanged : {
+                    scrollBar.positionHandle();
+                }
+                onTranslateChanged : {
+                    scrollBar.positionHandle();
+                }
+
                 MouseArea {
                     property var startx : -1.0;
                     property var starty : -1.0;
@@ -165,8 +173,7 @@ Item {
             Rectangle {
                 id: scale
                 anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 10
+                anchors.bottom: scrollBar.top
                 anchors.right: parent.right
                 width: axisText.width
                 Text {
@@ -178,6 +185,104 @@ Item {
                         + formatFloat(metric_model.maxMetric * 0.6) + "\n"
                         + formatFloat(metric_model.maxMetric * 0.4) + "\n"
                         + formatFloat(metric_model.maxMetric * 0.2)
+                }
+            }
+            Item {
+                id: scrollBar
+                height: 20
+                anchors {
+                    bottom: parent.bottom
+                    left: parent.left
+                    right: parent.right
+                    margins: 1;
+                }
+                function zoomIn () {
+                    barGraph.mouseWheel(45, 0.5);
+                }
+                function zoomOut () {
+                    barGraph.mouseWheel(-45, 0.5);
+                }
+                function positionHandle() {
+                    handle.width = (backScrollbar.width - 2 * backScrollbar.height) / barGraph.zoom
+                    var maxXOffset = backScrollbar.width - 2 * backScrollbar.height - handle.width;
+                    var fullTranslation = 1.0 - barGraph.zoom;
+                    if (fullTranslation == 0) {
+                        handle.x = backScrollbar.height;
+                    } else {
+                        handle.x = backScrollbar.height + barGraph.translate * maxXOffset / fullTranslation;
+                    }
+                }
+                Rectangle {
+                    id: backScrollbar;
+                    radius: 2;
+                    color: Qt.rgba(0.5, 0.5, 0.5, 0.85);
+                    anchors { fill: parent; }
+                }
+                MouseArea {
+                    width: height;
+                    anchors {
+                        top: parent.top;
+                        left: parent.left;
+                        bottom: parent.bottom;
+                        margins: (backScrollbar.border.width +1);
+                    }
+                    onClicked: { scrollBar.zoomOut(); }
+
+                    Text {
+                        text: "-";
+                        anchors.centerIn: parent;
+                    }
+                }
+                MouseArea {
+                    width: height;
+                    anchors {
+                        top: parent.top;
+                        right: parent.right;
+                        bottom: parent.bottom;
+                        margins: (backScrollbar.border.width +1);
+                    }
+                    onClicked: { scrollBar.zoomIn(); }
+
+                    Text {
+                        text: "+";
+                        anchors.centerIn: parent;
+                    }
+                }
+
+                Item {
+                    id: handle;
+                    width: (backScrollbar.width - 2 * backScrollbar.height) / barGraph.zoom
+                    x: backScrollbar.height
+                    onXChanged: {
+                        if (barGraph.zoom == 1.0) {
+                            barGraph.translate = 0.0;
+                        } else {
+                            var fullTranslation = 1.0 - barGraph.zoom;
+                            var xOffset = handle.x - backScrollbar.height;
+                            var maxXOffset = backScrollbar.width - 2 * backScrollbar.height - handle.width;
+                            barGraph.translate = fullTranslation * xOffset / maxXOffset;
+                        }
+                    }
+
+                    anchors {
+                        top: parent.top;
+                        bottom: parent.bottom;
+                    }
+                    Rectangle {
+                        id: backHandle;
+                        color: Qt.rgba(0.2, 0.2, 0.2, 1.0)
+                        anchors { fill: parent; }
+                    }
+                    MouseArea {
+                        id: clicker;
+                        drag {
+                            target: handle;
+                            minimumX: backScrollbar.height;
+                            maximumX: (backScrollbar.width - backScrollbar.height - handle.width);
+                            axis: Drag.XAxis;
+                        }
+                        anchors { fill: parent; }
+                    }
                 }
             }
         }

@@ -77,6 +77,15 @@ class BarGraphView : public QQuickFramebufferObject,
              READ randomBarCount
              WRITE setRandomBarCount
              NOTIFY onRandomBarCount)
+  Q_PROPERTY(float zoom
+             READ getZoom
+             WRITE setZoom
+             NOTIFY zoomChanged)
+  Q_PROPERTY(float translate
+             READ getTranslate
+             WRITE setTranslate
+             NOTIFY translateChanged)
+
  public:
   BarGraphView();
   QQuickFramebufferObject::Renderer *createRenderer() const;
@@ -95,6 +104,12 @@ class BarGraphView : public QQuickFramebufferObject,
   int randomBarCount() const {return m_randomBars;}
   void setRandomBarCount(int count);
 
+  float getZoom() const { return m_zoom; }
+  void setZoom(float z);
+
+  float getTranslate() const { return m_translate; }
+  void setTranslate(float z);
+
   void zoom(float *zoom, float *translate) const;
 
   std::vector<float> mouse_area;
@@ -102,6 +117,8 @@ class BarGraphView : public QQuickFramebufferObject,
  signals:
   void onModel();
   void onRandomBarCount();
+  void zoomChanged();
+  void translateChanged();
 
  private:
   mutable std::mutex m_protect;

@@ -225,6 +225,8 @@ BarGraphView::mouseWheel(int degrees, float zoom_point_x) {
 
   m_translate = new_translate;
   m_zoom = new_zoom;
+  emit zoomChanged();
+  emit translateChanged();
   update();
 }
 
@@ -233,3 +235,18 @@ BarGraphView::zoom(float *zoom, float *translate) const {
   *zoom = m_zoom;
   *translate = m_translate;
 }
+
+void
+BarGraphView::setZoom(float z) {
+  m_zoom = z;
+  emit zoomChanged();
+  update();
+}
+
+void
+BarGraphView::setTranslate(float z) {
+  m_translate = z;
+  emit translateChanged();
+  update();
+}
+
