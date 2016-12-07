@@ -6,8 +6,8 @@ import ApiTrace 1.0
 import Qt.labs.settings 1.0
 
 ApplicationWindow {
-    width: 600
-    height: 500
+    width: 1000
+    height: 800
     visible: true
     id: mainWindow
 
@@ -36,15 +36,15 @@ ApplicationWindow {
         Rectangle {
             id: imageBox
             anchors.top: parent.top
-            anchors.topMargin: 30
+            anchors.topMargin: 100
             anchors.horizontalCenter: parent.horizontalCenter
-            width: 500
-            height: 120
+            width: 800
+            height: 200
             border.width: 1
             visible: true
             Image {
-                height: 120
-                width: 500
+                height: 200
+                width: 800
                 id: appIcon
                 source: "qrc:///qml/images/retracer_icon.png"
                 visible: true
@@ -52,7 +52,7 @@ ApplicationWindow {
         }
         Text {
             id: enterText
-            width: 500
+            width: 800
             anchors.centerIn: parent
             text: "trace file:"
         }
@@ -62,7 +62,7 @@ ApplicationWindow {
             text: "ForHeight"
         }
         Rectangle {
-            width: 500
+            width: 800
             id: textBox
             border.width: 1
             height: textHeight.height * 1.5
