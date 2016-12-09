@@ -35,6 +35,7 @@
 #include <map>
 
 #include "glframe_glhelper.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::GlFunctions;
@@ -225,7 +226,23 @@ PerfMetricGroup::begin(RenderId render) {
   }
   GLuint query_handle = m_free_query_handles.back();
   m_free_query_handles.pop_back();
-  GlFunctions::BeginPerfQueryINTEL(query_handle);
+
+  // When more than one process requests metrics concurrently,
+  // BeginPerfQueryINTEL fails.
+  int retry = 0;
+  GL::GetError();
+  while (true) {
+    GlFunctions::BeginPerfQueryINTEL(query_handle);
+    if (GL_NO_ERROR == GL::GetError())
+      break;
+    if (++retry > 20) {
+      GRLOG(glretrace::ERR, "failed to begin metrics query, aborting");
+      assert(false);
+      exit(-1);
+    }
+    GRLOG(glretrace::WARN, "failed to begin metrics query");
+    glretrace_delay(200);
+  }
   m_extant_query_handles[render] = query_handle;
 }
 
