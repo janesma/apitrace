@@ -207,33 +207,74 @@ void set_shader_assembly(const ApiTrace::ShaderAssembly &response,
   assembly->codeSinking = response.code_sinking();
 }
 
+void makeRenderSelection(const RenderSelection &selection,
+                         ApiTrace::RenderSelection *proto_sel) {
+    proto_sel->set_selection_count(selection.id());
+    for (auto sequence : selection.series) {
+      auto series = proto_sel->add_render_series();
+      series->set_begin(sequence.begin());
+      series->set_end(sequence.end());
+    }
+}
+
 class RetraceShaderAssemblyRequest : public IRetraceRequest {
  public:
-  RetraceShaderAssemblyRequest(RenderId id, OnFrameRetrace *cb)
-      : m_callback(cb) {
+  RetraceShaderAssemblyRequest(SelectionId *current_selection,
+                               std::mutex *protect,
+                               const RenderSelection &selection,
+                               OnFrameRetrace *cb)
+      : m_sel_count(current_selection),
+        m_protect(protect),
+        m_callback(cb) {
     auto shaderRequest = m_proto_msg.mutable_shaderassembly();
-    shaderRequest->set_renderid(id());
+    makeRenderSelection(selection, shaderRequest->mutable_render_selection());
     m_proto_msg.set_requesttype(ApiTrace::SHADER_ASSEMBLY_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &s = m_proto_msg.shaderassembly().render_selection();
+      if (*m_sel_count != SelectionId(s.selection_count()))
+        // more recent selection was made while this was enqueued
+        return;
+    }
     RetraceResponse response;
-    s->retrace(m_proto_msg, &response);
-    assert(response.has_shaderassembly());
-    auto shader = response.shaderassembly();
-    std::vector<ShaderAssembly> assemblies(6);
-    set_shader_assembly(shader.vertex(), &(assemblies[0]));
-    set_shader_assembly(shader.fragment(), &(assemblies[1]));
-    set_shader_assembly(shader.tess_control(), &(assemblies[2]));
-    set_shader_assembly(shader.tess_eval(), &(assemblies[3]));
-    set_shader_assembly(shader.geom(), &(assemblies[4]));
-    set_shader_assembly(shader.comp(), &(assemblies[5]));
-    m_callback->onShaderAssembly(
-        RenderId(m_proto_msg.rendertarget().renderid()),
-        assemblies[0], assemblies[1], assemblies[2], assemblies[3],
-        assemblies[4], assemblies[5]);
+    // sends single request, read multiple responses
+    s->request(m_proto_msg);
+    while (true) {
+      response.Clear();
+      s->response(&response);
+      assert(response.has_shaderassembly());
+      auto shader = response.shaderassembly();
+      if (shader.render_id() == -1)
+        // all responses sent
+        break;
+      const auto &selection = m_proto_msg.shaderassembly().render_selection();
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_sel_count != SelectionId(selection.selection_count()))
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
+      std::vector<ShaderAssembly> assemblies(6);
+      set_shader_assembly(shader.vertex(), &(assemblies[0]));
+      set_shader_assembly(shader.fragment(), &(assemblies[1]));
+      set_shader_assembly(shader.tess_control(), &(assemblies[2]));
+      set_shader_assembly(shader.tess_eval(), &(assemblies[3]));
+      set_shader_assembly(shader.geom(), &(assemblies[4]));
+      set_shader_assembly(shader.comp(), &(assemblies[5]));
+      m_callback->onShaderAssembly(
+          RenderId(shader.render_id()),
+          SelectionId(selection.selection_count()),
+          assemblies[0], assemblies[1], assemblies[2], assemblies[3],
+          assemblies[4], assemblies[5]);
+    }
   }
 
  private:
+  SelectionId *m_sel_count;
+  std::mutex *m_protect;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
 };
@@ -358,12 +399,7 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
     auto metricsRequest = m_proto_msg.mutable_allmetrics();
     metricsRequest->set_experiment_count(experimentCount());
     auto selectionRequest = metricsRequest->mutable_selection();
-    selectionRequest->set_selection_count(selection.id());
-    for (auto sequence : selection.series) {
-      auto series = selectionRequest->add_render_series();
-      series->set_begin(sequence.begin());
-      series->set_end(sequence.end());
-    }
+    makeRenderSelection(selection, selectionRequest);
     m_proto_msg.set_requesttype(ApiTrace::ALL_METRICS_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
@@ -594,9 +630,15 @@ FrameRetraceStub::retraceRenderTarget(SelectionId selectionCount,
 }
 
 void
-FrameRetraceStub::retraceShaderAssembly(RenderId renderId,
+FrameRetraceStub::retraceShaderAssembly(const RenderSelection &selection,
                                         OnFrameRetrace *callback) {
-  m_thread->push(new RetraceShaderAssemblyRequest(renderId, callback));
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_render_selection = selection.id;
+  }
+  m_thread->push(new RetraceShaderAssemblyRequest(&m_current_render_selection,
+                                                  &m_mutex,
+                                                  selection, callback));
 }
 
 void

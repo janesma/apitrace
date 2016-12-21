@@ -81,6 +81,7 @@ class RenderId {
   }
 
   uint32_t operator()() const { return value; }
+  RenderId &operator++() { ++value; return *this; }
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
   bool operator<(const RenderId &o) const { return value < o.value; }
   bool operator>(const RenderId &o) const { return value > o.value; }
@@ -200,6 +201,7 @@ class OnFrameRetrace {
                              bool finished,
                              uint32_t percent_complete) = 0;
   virtual void onShaderAssembly(RenderId renderId,
+                                SelectionId selectionCount,
                                 const ShaderAssembly &vertex,
                                 const ShaderAssembly &fragment,
                                 const ShaderAssembly &tess_control,
@@ -242,7 +244,7 @@ class IFrameRetrace {
                                    RenderTargetType type,
                                    RenderOptions options,
                                    OnFrameRetrace *callback) const = 0;
-  virtual void retraceShaderAssembly(RenderId renderId,
+  virtual void retraceShaderAssembly(const RenderSelection &selection,
                                      OnFrameRetrace *callback) = 0;
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
