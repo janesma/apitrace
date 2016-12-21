@@ -180,6 +180,7 @@ FrameRetraceModel::metricList() {
 
 void
 FrameRetraceModel::onShaderAssembly(RenderId renderId,
+                                    SelectionId selectionCount,
                                     const ShaderAssembly &vertex,
                                     const ShaderAssembly &fragment,
                                     const ShaderAssembly &tess_control,
@@ -187,6 +188,9 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const ShaderAssembly &geom,
                                     const ShaderAssembly &comp) {
   ScopedLock s(m_protect);
+  if (m_selection_count != selectionCount)
+    // retrace is out of date
+    return;
   m_vs.onShaderAssembly(vertex);
   m_fs.onShaderAssembly(fragment);
   m_tess_control.onShaderAssembly(tess_control);
@@ -241,8 +245,12 @@ void
 FrameRetraceModel::retrace_shader_assemblies() {
   if (m_cached_selection.empty())
     return;
-  m_retrace.retraceShaderAssembly(RenderId(m_cached_selection.back()),
-                                  this);
+
+  RenderSelection rs;
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &rs);
+  m_retrace.retraceShaderAssembly(rs, this);
 }
 
 

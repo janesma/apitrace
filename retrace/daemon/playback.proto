@@ -50,7 +50,7 @@ message RenderTargetResponse {
 }
 
 message ShaderAssemblyRequest {
-  required uint32 renderId = 1;
+  required RenderSelection render_selection = 1;
 }
 
 message MetricsRequest {
@@ -94,12 +94,14 @@ message ShaderAssembly {
 }
 
 message ShaderAssemblyResponse {
-  required ShaderAssembly vertex = 1;
-  required ShaderAssembly fragment = 2;
-  required ShaderAssembly tess_control = 3;
-  required ShaderAssembly tess_eval = 4;
-  required ShaderAssembly geom = 5;
-  required ShaderAssembly comp = 6;
+  required uint32 render_id = 1;
+  required uint32 selection_id = 2;
+  required ShaderAssembly vertex = 3;
+  required ShaderAssembly fragment = 4;
+  required ShaderAssembly tess_control = 5;
+  required ShaderAssembly tess_eval = 6;
+  required ShaderAssembly geom = 7;
+  required ShaderAssembly comp = 8;
   }
 
 message MetricSeries {

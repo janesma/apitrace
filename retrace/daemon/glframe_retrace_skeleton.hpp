@@ -55,6 +55,7 @@ class FrameRetraceSkeleton : public Thread,
 
   // callback responses, to be sent through the socket to the caller
   virtual void onShaderAssembly(RenderId renderId,
+                                SelectionId selectionCount,
                                 const ShaderAssembly &vertex_shader,
                                 const ShaderAssembly &fragment_shader,
                                 const ShaderAssembly &tess_control_shader,

@@ -42,6 +42,10 @@
 
 namespace glretrace {
 
+void
+renderSelectionFromList(SelectionId id, const QList<int> &l,
+                        RenderSelection *rs);
+
 class QSelection;
 class QMetricValue : public QObject,
                 NoCopy, NoAssign, NoMove {
@@ -93,6 +97,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                      bool finished,
                      uint32_t percent_complete) { assert(false); }
   void onShaderAssembly(RenderId renderId,
+                        SelectionId selectionCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,

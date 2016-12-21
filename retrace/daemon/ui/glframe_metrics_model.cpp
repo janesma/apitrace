@@ -145,19 +145,8 @@ QMetricsModel::onSelect(QList<int> selection) {
       m->setValue(0.0);
     return;
   }
-  m_render_selection.id = ++m_current_selection_count;
-  int last_render = -5;
-  for (auto i : selection) {
-    if (i != last_render + 1) {
-      if (last_render >= 0) {
-        m_render_selection.series.back().end = RenderId(last_render + 1);
-      }
-      m_render_selection.series.push_back(RenderSequence(RenderId(i),
-                                                         RenderId(0)));
-    }
-    last_render = i;
-  }
-  m_render_selection.series.back().end = RenderId(last_render + 1);
+  renderSelectionFromList(++m_current_selection_count, selection,
+                          &m_render_selection);
   // TODO(majanes) track ExperimentId, request new metrics on
   // experiments
   m_retrace->retraceAllMetrics(m_render_selection, ExperimentId(0), this);
@@ -233,3 +222,35 @@ QMetricsModel::copy() {
   QString q(ss.str().c_str());
   clipboard->setText(q);
 }
+
+void
+glretrace::renderSelectionFromList(SelectionId id,
+                                   const QList<int> &l,
+                                   RenderSelection *rs) {
+  rs->id = id;
+  if (l.empty())
+    return;
+  RenderSeries &series = rs->series;
+  series.clear();
+  auto i = l.begin();
+  RenderId begin(*i);
+  RenderId end(*i + 1);
+
+  while (true) {
+    ++i;
+    if (i == l.end()) {
+      series.push_back(RenderSequence(begin, end));
+      break;
+    }
+    if (*i == end.index()) {
+      // part of a contiguous sequence
+      ++end;
+      continue;
+    }
+    // else
+    series.push_back(RenderSequence(begin, end));
+    begin = RenderId(*i);
+    end = RenderId(*i + 1);
+  }
+}
+

@@ -45,6 +45,8 @@ using glretrace::MetricId;
 using glretrace::MetricSeries;
 using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
+using glretrace::RenderSelection;
+using glretrace::RenderSequence;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
@@ -60,6 +62,7 @@ class NullCallback : public OnFrameRetrace {
                      bool finished,
                      uint32_t percent_complete) {}
   void onShaderAssembly(RenderId renderId,
+                        SelectionId selectionCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
@@ -138,8 +141,10 @@ TEST_F(RetraceTest, ReplaceShaders) {
   rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "",
                     "", "", "", &cb);
   EXPECT_GT(cb.compile_error.size(), 0);
-
-  rt.retraceShaderAssembly(RenderId(1), &cb);
+  RenderSelection rs;
+  rs.id = SelectionId(1);
+  rs.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
+  rt.retraceShaderAssembly(rs, &cb);
   EXPECT_GT(cb.fs.size(), 0);
   std::string vs("attribute vec2 coord2d;\n"
                  "varying vec2 v_TexCoordinate;\n"

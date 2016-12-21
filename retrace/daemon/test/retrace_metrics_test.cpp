@@ -44,6 +44,7 @@ class MetricsCallback : public OnFrameRetrace {
                      bool finished,
                      uint32_t percent_complete) {}
   void onShaderAssembly(RenderId renderId,
+                        SelectionId sc,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
