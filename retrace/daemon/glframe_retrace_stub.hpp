@@ -59,7 +59,7 @@ class FrameRetraceStub : public IFrameRetrace {
                                    RenderTargetType type,
                                    RenderOptions options,
                                    OnFrameRetrace *callback) const;
-  virtual void retraceShaderAssembly(RenderId renderId,
+  virtual void retraceShaderAssembly(const RenderSelection &selection,
                                      OnFrameRetrace *callback);
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
@@ -81,7 +81,8 @@ class FrameRetraceStub : public IFrameRetrace {
 
  private:
   mutable std::mutex m_mutex;
-  mutable SelectionId m_current_rt_selection, m_current_met_selection;
+  mutable SelectionId m_current_rt_selection, m_current_met_selection,
+    m_current_render_selection;
   ThreadedRetrace *m_thread = NULL;
 };
 }  // namespace glretrace

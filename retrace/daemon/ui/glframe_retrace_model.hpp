@@ -150,6 +150,7 @@ class FrameRetraceModel : public QObject,
   void onFileOpening(bool needUpload, bool finished,
                      uint32_t percent_complete);
   void onShaderAssembly(RenderId renderId,
+                        SelectionId selectionCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,

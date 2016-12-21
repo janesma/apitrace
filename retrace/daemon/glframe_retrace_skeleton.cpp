@@ -94,6 +94,40 @@ writeResponse(Socket *s,
 }
 
 void
+makeRenderSelection(const ApiTrace::RenderSelection &sel,
+                    glretrace::RenderSelection *selection) {
+  selection->id = SelectionId(sel.selection_count());
+  selection->series.resize(sel.render_series_size());
+  for (int i = 0; i < sel.render_series_size(); ++i) {
+    auto sequence = sel.render_series(i);
+    auto &series = selection->series[i];
+    series.begin = RenderId(sequence.begin());
+    series.end = RenderId(sequence.end());
+  }
+}
+
+void set_shader_assembly(const ShaderAssembly &assembly,
+                         ApiTrace::ShaderAssembly *response) {
+  response->set_shader(assembly.shader);
+  response->set_ir(assembly.ir);
+  response->set_nir_ssa(assembly.ssa);
+  response->set_nir_final(assembly.nir);
+  response->set_simd8(assembly.simd8);
+  response->set_simd16(assembly.simd16);
+  response->set_simd32(assembly.simd32);
+  response->set_before_unification(assembly.beforeUnification);
+  response->set_after_unification(assembly.afterUnification);
+  response->set_before_optimization(assembly.beforeOptimization);
+  response->set_const_coalescing(assembly.constCoalescing);
+  response->set_gen_ir_lowering(assembly.genIrLowering);
+  response->set_layout(assembly.layout);
+  response->set_optimized(assembly.optimized);
+  response->set_push_analysis(assembly.pushAnalysis);
+  response->set_code_hoisting(assembly.codeHoisting);
+  response->set_code_sinking(assembly.codeSinking);
+}
+
+void
 FrameRetraceSkeleton::Run() {
   while (true) {
     // leading 4 bytes is the message length
@@ -202,15 +236,8 @@ FrameRetraceSkeleton::Run() {
         {
           assert(request.has_allmetrics());
           auto met = request.allmetrics();
-          auto sel = met.selection();
           RenderSelection selection;
-          selection.id = SelectionId(sel.selection_count());
-          selection.series.resize(sel.render_series_size());
-          for (int i = 0; i < sel.render_series_size(); ++i) {
-            auto sequence = sel.render_series(i);
-            selection.series[i].begin = RenderId(sequence.begin());
-            selection.series[i].end = RenderId(sequence.end());
-          }
+          makeRenderSelection(met.selection(), &selection);
           m_multi_metrics_response->Clear();
           m_frame->retraceAllMetrics(selection,
                                      ExperimentId(met.experiment_count()),
@@ -224,8 +251,23 @@ FrameRetraceSkeleton::Run() {
         {
           assert(request.has_shaderassembly());
           auto shader = request.shaderassembly();
-          m_frame->retraceShaderAssembly(glretrace::RenderId(shader.renderid()),
+          RenderSelection selection;
+          makeRenderSelection(shader.render_selection(), &selection);
+          m_frame->retraceShaderAssembly(selection,
                                          this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto shader_resp = proto_response.mutable_shaderassembly();
+          shader_resp->set_render_id(-1);
+          shader_resp->set_selection_id(-1);
+          ShaderAssembly s;
+          set_shader_assembly(s, shader_resp->mutable_vertex());
+          set_shader_assembly(s, shader_resp->mutable_fragment());
+          set_shader_assembly(s, shader_resp->mutable_tess_control());
+          set_shader_assembly(s, shader_resp->mutable_tess_eval());
+          set_shader_assembly(s, shader_resp->mutable_geom());
+          set_shader_assembly(s, shader_resp->mutable_comp());
+          writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
       case ApiTrace::REPLACE_SHADERS_REQUEST:
@@ -267,30 +309,10 @@ FrameRetraceSkeleton::onFileOpening(bool needUpload,
   writeResponse(m_socket, proto_response, &m_buf);
 }
 
-void set_shader_assembly(const ShaderAssembly &assembly,
-                         ApiTrace::ShaderAssembly *response) {
-  response->set_shader(assembly.shader);
-  response->set_ir(assembly.ir);
-  response->set_nir_ssa(assembly.ssa);
-  response->set_nir_final(assembly.nir);
-  response->set_simd8(assembly.simd8);
-  response->set_simd16(assembly.simd16);
-  response->set_simd32(assembly.simd32);
-  response->set_before_unification(assembly.beforeUnification);
-  response->set_after_unification(assembly.afterUnification);
-  response->set_before_optimization(assembly.beforeOptimization);
-  response->set_const_coalescing(assembly.constCoalescing);
-  response->set_gen_ir_lowering(assembly.genIrLowering);
-  response->set_layout(assembly.layout);
-  response->set_optimized(assembly.optimized);
-  response->set_push_analysis(assembly.pushAnalysis);
-  response->set_code_hoisting(assembly.codeHoisting);
-  response->set_code_sinking(assembly.codeSinking);
-}
-
 void
 FrameRetraceSkeleton::onShaderAssembly(
     RenderId renderId,
+    SelectionId selectionCount,
     const ShaderAssembly &vertex,
     const ShaderAssembly &fragment,
     const ShaderAssembly &tess_control,
@@ -299,6 +321,8 @@ FrameRetraceSkeleton::onShaderAssembly(
     const ShaderAssembly &comp)  {
   RetraceResponse proto_response;
   auto shader = proto_response.mutable_shaderassembly();
+  shader->set_render_id(renderId());
+  shader->set_selection_id(selectionCount());
   auto vertex_response = shader->mutable_vertex();
   set_shader_assembly(vertex, vertex_response);
   auto fragment_response = shader->mutable_fragment();

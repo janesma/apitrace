@@ -236,29 +236,38 @@ FrameRetrace::retraceRenderTarget(SelectionId selectionCount,
       m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
 }
 
-
 void
-FrameRetrace::retraceShaderAssembly(RenderId renderId,
+FrameRetrace::retraceShaderAssembly(const RenderSelection &selection,
                                     OnFrameRetrace *callback) {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
   StateTrack tmp_tracker = m_tracker;
 
-  // play up to the end of the render
-  for (int i = 0; i <= renderId.index(); ++i)
-    m_renders[i]->retrace(&tmp_tracker);
-
-  callback->onShaderAssembly(renderId,
-                             tmp_tracker.currentVertexShader(),
-                             tmp_tracker.currentFragmentShader(),
-                             tmp_tracker.currentTessControlShader(),
-                             tmp_tracker.currentTessEvalShader(),
-                             tmp_tracker.currentGeomShader(),
-                             tmp_tracker.currentCompShader());
-
+  RenderId current_render_id(0);
+  for (const auto &sequence : selection.series) {
+    // play up to the end of the render
+    while (current_render_id < sequence.begin) {
+      m_renders[current_render_id.index()]->retrace(&tmp_tracker);
+      ++current_render_id;
+    }
+    while (current_render_id < sequence.end) {
+      m_renders[current_render_id.index()]->retrace(&tmp_tracker);
+      callback->onShaderAssembly(current_render_id,
+                                 selection.id,
+                                 tmp_tracker.currentVertexShader(),
+                                 tmp_tracker.currentFragmentShader(),
+                                 tmp_tracker.currentTessControlShader(),
+                                 tmp_tracker.currentTessEvalShader(),
+                                 tmp_tracker.currentGeomShader(),
+                                 tmp_tracker.currentCompShader());
+      ++current_render_id;
+    }
+  }
   // play to the rest of the frame
-  for (int i = renderId.index() + 1; i < m_renders.size(); ++i)
-    m_renders[i]->retrace(&tmp_tracker);
+  while (current_render_id.index() < m_renders.size()) {
+    m_renders[current_render_id.index()]->retrace(&tmp_tracker);
+    ++current_render_id;
+  }
 }
 
 FrameState::FrameState(const std::string &filename,

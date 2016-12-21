@@ -70,7 +70,7 @@ class FileTransfer : public IFrameRetrace {
                            RenderTargetType type,
                            RenderOptions options,
                            OnFrameRetrace *callback) const {}
-  void retraceShaderAssembly(RenderId renderId,
+  void retraceShaderAssembly(const RenderSelection &rs,
                              OnFrameRetrace *callback) {}
   void retraceMetrics(const std::vector<MetricId> &ids,
                       ExperimentId experimentCount,
@@ -100,6 +100,7 @@ class FileTransferCB : public OnFrameRetrace {
     m_needUpload |= needUpload;
   }
   void onShaderAssembly(RenderId renderId,
+                        SelectionId selectionCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,

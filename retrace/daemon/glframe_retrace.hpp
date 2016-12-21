@@ -73,7 +73,7 @@ class FrameRetrace : public IFrameRetrace {
                            RenderTargetType type,
                            RenderOptions options,
                            OnFrameRetrace *callback) const;
-  void retraceShaderAssembly(RenderId renderId,
+  void retraceShaderAssembly(const RenderSelection &selection,
                              OnFrameRetrace *callback);
   void retraceMetrics(const std::vector<MetricId> &ids,
                       ExperimentId experimentCount,
