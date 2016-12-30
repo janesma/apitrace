@@ -191,15 +191,13 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
   if (m_selection_count != selectionCount)
     // retrace is out of date
     return;
-  m_vs.onShaderAssembly(vertex);
-  m_fs.onShaderAssembly(fragment);
-  m_tess_control.onShaderAssembly(tess_control);
-  m_tess_eval.onShaderAssembly(tess_eval);
-  m_geom.onShaderAssembly(geom);
-  m_comp.onShaderAssembly(comp);
   // do not emit onShaders().  The QShader model (reference) is
   // unchanged, even if it's contents have.  The ShaderControl binds
-  // to the contenst of the QShader model.
+  // to the contents of the QShader model.
+  m_shaders.onShaderAssembly(renderId, selectionCount,
+                             vertex, fragment,
+                             tess_control, tess_eval,
+                             geom, comp);
 }
 
 
