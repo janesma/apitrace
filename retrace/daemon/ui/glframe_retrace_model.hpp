@@ -52,7 +52,6 @@ namespace glretrace {
 
 class FrameRetrace;
 class QSelection;
-class QShader;
 
 class QRenderBookmark : public QObject {
   Q_OBJECT
@@ -110,16 +109,7 @@ class FrameRetraceModel : public QObject,
              WRITE setHighlightRender)
   Q_PROPERTY(QString apiCalls
              READ apiCalls NOTIFY onApiCalls)
-  Q_PROPERTY(glretrace::QShader* vsShader READ vsShader NOTIFY onShaders)
-  Q_PROPERTY(glretrace::QShader* fsShader READ fsShader NOTIFY onShaders)
-  Q_PROPERTY(glretrace::QShader* tessControlShader READ tessControlShader
-             NOTIFY onShaders)
-  Q_PROPERTY(glretrace::QShader* tessEvalShader READ tessEvalShader
-             NOTIFY onShaders)
-  Q_PROPERTY(glretrace::QShader* geomShader READ geomShader
-             NOTIFY onShaders)
-  Q_PROPERTY(glretrace::QShader* compShader READ compShader
-             NOTIFY onShaders)
+  Q_PROPERTY(glretrace::QRenderShaders* shaders READ shaders CONSTANT)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
@@ -175,12 +165,7 @@ class FrameRetraceModel : public QObject,
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
-  QShader *vsShader() { return &m_vs; }
-  QShader *fsShader() { return &m_fs; }
-  QShader *tessControlShader() { return &m_tess_control; }
-  QShader *tessEvalShader() { return &m_tess_eval; }
-  QShader *geomShader() { return &m_geom; }
-  QShader *compShader() { return &m_comp; }
+  QRenderShaders *shaders() { return &m_shaders; }
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
@@ -197,7 +182,6 @@ class FrameRetraceModel : public QObject,
   void onSelect(QList<int> selection);
 
  signals:
-  void onShaders();
   void onQMetricList();
   void onQMetricData(QList<glretrace::BarMetrics> metrics);
   void onRenders();
@@ -227,7 +211,7 @@ class FrameRetraceModel : public QObject,
   QList<QMetric *> m_metrics_model, m_filtered_metric_list;
   QList<BarMetrics> m_metrics;
 
-  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom, m_comp;
+  QRenderShaders m_shaders;
   QString m_shader_compile_error;
   QString main_exe;  // for path to frame_retrace_server
 

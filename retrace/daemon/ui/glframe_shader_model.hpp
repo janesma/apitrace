@@ -115,6 +115,51 @@ class QShader : public QObject,
     m_pushAnalysis, m_codeHoisting, m_codeSinking;
 };
 
+// Encapsulates all shader data for a render
+class QRenderShaders  : public QObject,
+                        NoCopy, NoAssign, NoMove {
+  Q_OBJECT
+
+  Q_PROPERTY(glretrace::QShader* vsShader READ vsShader CONSTANT)
+  Q_PROPERTY(glretrace::QShader* fsShader READ fsShader CONSTANT)
+  Q_PROPERTY(glretrace::QShader* tessControlShader READ tessControlShader
+             CONSTANT)
+  Q_PROPERTY(glretrace::QShader* tessEvalShader READ tessEvalShader
+             CONSTANT)
+  Q_PROPERTY(glretrace::QShader* geomShader READ geomShader
+             CONSTANT)
+  Q_PROPERTY(glretrace::QShader* compShader READ compShader
+             CONSTANT)
+ public:
+  QRenderShaders() {}
+  ~QRenderShaders() {}
+  QShader *vsShader() { return &m_vs; }
+  QShader *fsShader() { return &m_fs; }
+  QShader *tessControlShader() { return &m_tess_control; }
+  QShader *tessEvalShader() { return &m_tess_eval; }
+  QShader *geomShader() { return &m_geom; }
+  QShader *compShader() { return &m_comp; }
+
+  void onShaderAssembly(RenderId renderId,
+                        SelectionId selectionCount,
+                        const ShaderAssembly &vertex,
+                        const ShaderAssembly &fragment,
+                        const ShaderAssembly &tess_control,
+                        const ShaderAssembly &tess_eval,
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp) {
+    m_vs.onShaderAssembly(vertex);
+    m_fs.onShaderAssembly(fragment);
+    m_tess_control.onShaderAssembly(tess_control);
+    m_tess_eval.onShaderAssembly(tess_eval);
+    m_geom.onShaderAssembly(geom);
+    m_comp.onShaderAssembly(comp);
+  }
+
+ private:
+  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom, m_comp;
+};
+
 }  // namespace glretrace
 
 #endif /* _GLFRAME_SHADER_MODEL_HPP_ */
