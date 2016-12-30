@@ -276,21 +276,21 @@ ApplicationWindow {
         }
 
         RowLayout {
-            id: compileRow
+            id: mainCompileRow
             visible: false
             Button {
-                id: compileButton
+                id: mainCompileButton
                 visible: false
                 text: "Compile"
-                property var vsText
-                property var fsText
-                property var tessControlText
-                property var tessEvalText
-                property var geomText
-                property var compText
+                property var vsText: ""
+                property var fsText: ""
+                property var tessControlText: ""
+                property var tessEvalText: ""
+                property var geomText: ""
+                property var compText: ""
                 onClicked: {
                     visible = false
-                    compileRow.visible = false;
+                    mainCompileRow.visible = false;
                     frameRetrace.overrideShaders(vsText, fsText,
                                                  tessControlText,
                                                  tessEvalText,
@@ -306,10 +306,10 @@ ApplicationWindow {
                 onTextChanged: {
                     if (text == "") {
                         visible = false;
-                        compileRow.visible = false;
+                        mainCompileRow.visible = false;
                     } else {
                         visible = true;
-                        compileRow.visible = true;
+                        mainCompileRow.visible = true;
                     }
                 }
             }
@@ -323,81 +323,12 @@ ApplicationWindow {
             Layout.fillHeight: true
             Tab {
                 title: "Shaders"
-                TabView {
-                    Tab {
-                        title: "Vertex"
-                        active: true
-                        anchors.fill: parent
-                        ShaderControl {
-                            shader_type: "vs"
-                            model: frameRetrace.vsShader
-                            compile_button: compileButton
-                            compile_row: compileRow
-                        }
-                    }
-                    Tab {
-                        title: "Fragment"
-                        active: true
-                        anchors.fill: parent
-                        ShaderControl {
-                            shader_type: "fs"
-                            model: frameRetrace.fsShader
-                            compile_button: compileButton
-                            compile_row: compileRow
-                        }
-                    }
-                    Tab {
-                        title: "Tesselation"
-                        active: true
-                        anchors.fill: parent
-                        TabView {
-                            anchors.fill: parent
-                            Tab {
-                                title: "Control"
-                                active: true
-                                anchors.fill: parent
-                                ShaderControl {
-                                    shader_type: "tess_control"
-                                    model: frameRetrace.tessControlShader
-                                    compile_button: compileButton
-                                    compile_row: compileRow
-                                }
-                            }
-                            Tab {
-                                title: "Evaluation"
-                                active: true
-                                anchors.fill: parent
-                                ShaderControl {
-                                    shader_type: "tess_eval"
-                                    model: frameRetrace.tessEvalShader
-                                    compile_button: compileButton
-                                    compile_row: compileRow
-                                }
-                            }
-                        }
-                    }
-                    Tab {
-                        title: "Geometry"
-                        active: true
-                        anchors.fill: parent
-                        ShaderControl {
-                            shader_type: "geom"
-                            model: frameRetrace.geomShader
-                            compile_button: compileButton
-                            compile_row: compileRow
-                        }
-                    }
-                    Tab {
-                        title: "Compute"
-                        active: true
-                        anchors.fill: parent
-                        ShaderControl {
-                            shader_type: "comp"
-                            model: frameRetrace.compShader
-                            compile_button: compileButton
-                            compile_row: compileRow
-                        }
-                    }
+                anchors.fill: parent
+                RenderShadersControl {
+                    anchors.fill: parent
+                    renderModel: frameRetrace.shaders
+                    compileButton: mainCompileButton
+                    compileRow: mainCompileRow
                 }
             }
             Tab {

@@ -59,6 +59,7 @@ using glretrace::GlFunctions;
 using glretrace::Logger;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
+using glretrace::QRenderShaders;
 using glretrace::ServerSocket;
 using glretrace::Socket;
 
@@ -98,6 +99,8 @@ int main(int argc, char *argv[]) {
   qmlRegisterType<glretrace::BarGraphView>("ApiTrace", 1, 0, "BarGraph");
   qmlRegisterType<glretrace::QSelection>("ApiTrace", 1, 0, "Selection");
   qmlRegisterType<glretrace::QShader>("ApiTrace", 1, 0, "Shader");
+  qmlRegisterType<glretrace::QRenderShaders>("ApiTrace", 1, 0,
+                                             "QRenderShaders");
 
   glretrace::FrameImages::Create();
 

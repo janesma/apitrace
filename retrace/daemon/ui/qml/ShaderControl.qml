@@ -6,8 +6,8 @@ import ApiTrace 1.0
 
 Item {
     property var model
-    property var compile_button
-    property var compile_row
+    property Button compile_button
+    property RowLayout compile_row
     property var shader_type
     id: shader_tab
 
