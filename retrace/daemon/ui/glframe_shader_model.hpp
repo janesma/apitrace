@@ -30,9 +30,13 @@
 #define _GLFRAME_SHADER_MODEL_HPP_
 
 #include <QObject>
+#include <QList>
 #include <QString>
 
+#include <vector>
+
 #include "glframe_retrace_interface.hpp"
+#include "glframe_traits.hpp"
 
 namespace glretrace {
 
@@ -116,8 +120,8 @@ class QShader : public QObject,
 };
 
 // Encapsulates all shader data for a render
-class QRenderShaders  : public QObject,
-                        NoCopy, NoAssign, NoMove {
+class QRenderShaders : public QObject,
+                       NoCopy, NoAssign, NoMove {
   Q_OBJECT
 
   Q_PROPERTY(glretrace::QShader* vsShader READ vsShader CONSTANT)
@@ -130,8 +134,9 @@ class QRenderShaders  : public QObject,
              CONSTANT)
   Q_PROPERTY(glretrace::QShader* compShader READ compShader
              CONSTANT)
+  Q_PROPERTY(QString renders READ renders NOTIFY onRenders)
  public:
-  QRenderShaders() {}
+  QRenderShaders() : m_currentSelectionId(0) {}
   ~QRenderShaders() {}
   QShader *vsShader() { return &m_vs; }
   QShader *fsShader() { return &m_fs; }
@@ -140,6 +145,33 @@ class QRenderShaders  : public QObject,
   QShader *geomShader() { return &m_geom; }
   QShader *compShader() { return &m_comp; }
 
+  void onShaderAssembly(const ShaderAssembly &vertex,
+                        const ShaderAssembly &fragment,
+                        const ShaderAssembly &tess_control,
+                        const ShaderAssembly &tess_eval,
+                        const ShaderAssembly &geom,
+                        const ShaderAssembly &comp);
+  QString renders() { return m_renders; }
+ signals:
+  void onRenders();
+ private:
+  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom, m_comp;
+  SelectionId m_currentSelectionId;
+  QString m_renders;
+};
+
+// collates renders that share programs
+class QRenderShadersList : public QObject,
+                           NoCopy, NoAssign, NoMove {
+  Q_OBJECT
+  Q_PROPERTY(glretrace::QRenderShaders* shaders READ shaders
+             CONSTANT)
+  Q_PROPERTY(QStringList renders
+             READ renders NOTIFY onRendersChanged)
+ public:
+  QRenderShadersList() {}
+  ~QRenderShadersList() {}
+  QRenderShaders *shaders() { return &m_shaders; }
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
                         const ShaderAssembly &vertex,
@@ -147,17 +179,16 @@ class QRenderShaders  : public QObject,
                         const ShaderAssembly &tess_control,
                         const ShaderAssembly &tess_eval,
                         const ShaderAssembly &geom,
-                        const ShaderAssembly &comp) {
-    m_vs.onShaderAssembly(vertex);
-    m_fs.onShaderAssembly(fragment);
-    m_tess_control.onShaderAssembly(tess_control);
-    m_tess_eval.onShaderAssembly(tess_eval);
-    m_geom.onShaderAssembly(geom);
-    m_comp.onShaderAssembly(comp);
-  }
-
+                        const ShaderAssembly &comp);
+  QStringList renders();
+  Q_INVOKABLE void setIndex(int index);
+ signals:
+  void onRendersChanged();
  private:
-  QShader m_vs, m_fs, m_tess_control, m_tess_eval, m_geom, m_comp;
+  QRenderShaders m_shaders;
+  QStringList m_render_strings;
+  std::vector<std::vector<ShaderAssembly>> m_shader_assemblies;
+  SelectionId m_current_selection;
 };
 
 }  // namespace glretrace
