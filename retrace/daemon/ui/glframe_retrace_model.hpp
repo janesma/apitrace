@@ -109,7 +109,7 @@ class FrameRetraceModel : public QObject,
              WRITE setHighlightRender)
   Q_PROPERTY(QString apiCalls
              READ apiCalls NOTIFY onApiCalls)
-  Q_PROPERTY(glretrace::QRenderShaders* shaders READ shaders CONSTANT)
+  Q_PROPERTY(glretrace::QRenderShadersList* shaders READ shaders CONSTANT)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
@@ -165,7 +165,7 @@ class FrameRetraceModel : public QObject,
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
-  QRenderShaders *shaders() { return &m_shaders; }
+  QRenderShadersList *shaders() { return &m_shaders; }
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
@@ -211,7 +211,7 @@ class FrameRetraceModel : public QObject,
   QList<QMetric *> m_metrics_model, m_filtered_metric_list;
   QList<BarMetrics> m_metrics;
 
-  QRenderShaders m_shaders;
+  QRenderShadersList m_shaders;
   QString m_shader_compile_error;
   QString main_exe;  // for path to frame_retrace_server
 
