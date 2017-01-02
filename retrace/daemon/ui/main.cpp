@@ -101,6 +101,8 @@ int main(int argc, char *argv[]) {
   qmlRegisterType<glretrace::QShader>("ApiTrace", 1, 0, "Shader");
   qmlRegisterType<glretrace::QRenderShaders>("ApiTrace", 1, 0,
                                              "QRenderShaders");
+  qmlRegisterType<glretrace::QRenderShadersList>("ApiTrace", 1, 0,
+                                                 "QRenderShadersList");
 
   glretrace::FrameImages::Create();
 
