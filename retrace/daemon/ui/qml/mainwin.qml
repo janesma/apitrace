@@ -275,47 +275,6 @@ ApplicationWindow {
             Layout.fillHeight: true
         }
 
-        RowLayout {
-            id: mainCompileRow
-            visible: false
-            Button {
-                id: mainCompileButton
-                visible: false
-                text: "Compile"
-                property var vsText: ""
-                property var fsText: ""
-                property var tessControlText: ""
-                property var tessEvalText: ""
-                property var geomText: ""
-                property var compText: ""
-                onClicked: {
-                    visible = false
-                    mainCompileRow.visible = false;
-                    frameRetrace.overrideShaders(vsText, fsText,
-                                                 tessControlText,
-                                                 tessEvalText,
-                                                 geomText,
-                                                 compText);
-                }
-                Component.onCompleted: { visible = false; }
-            }
-            Text {
-                id: compileError
-                text: frameRetrace.shaderCompileError
-                visible: false
-                onTextChanged: {
-                    if (text == "") {
-                        visible = false;
-                        mainCompileRow.visible = false;
-                    } else {
-                        visible = true;
-                        mainCompileRow.visible = true;
-                    }
-                }
-            }
-            Component.onCompleted: { visible = false; }
-        }
-
         TabView {
             Layout.preferredWidth: 400
             Layout.alignment: Qt.AlignTop
@@ -327,8 +286,6 @@ ApplicationWindow {
                 RenderShadersControl {
                     anchors.fill: parent
                     renderModel: frameRetrace.shaders
-                    compileButton: mainCompileButton
-                    compileRow: mainCompileRow
                 }
             }
             Tab {
