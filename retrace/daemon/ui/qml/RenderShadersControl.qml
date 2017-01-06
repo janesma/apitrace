@@ -6,10 +6,55 @@ import ApiTrace 1.0
 
 Item {
     property QRenderShadersList renderModel
-    property Button compileButton
-    property RowLayout compileRow
+    RowLayout {
+        id: compileRow
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        visible: false
+        Button {
+            id: compileButton
+            visible: false
+            text: "Compile"
+            property var vsText: ""
+            property var fsText: ""
+            property var tessControlText: ""
+            property var tessEvalText: ""
+            property var geomText: ""
+            property var compText: ""
+            onClicked: {
+                visible = false
+                compileRow.visible = false;
+                frameRetrace.overrideShaders(vsText, fsText,
+                                             tessControlText,
+                                             tessEvalText,
+                                             geomText,
+                                             compText);
+            }
+            Component.onCompleted: { visible = false; }
+        }
+        Text {
+            id: compileError
+            text: frameRetrace.shaderCompileError
+            visible: false
+            onTextChanged: {
+                if (text == "") {
+                    visible = false;
+                    compileRow.visible = false;
+                } else {
+                    visible = true;
+                    compileRow.visible = true;
+                }
+            }
+        }
+        Component.onCompleted: { visible = false; }
+    }
     SplitView {
-        anchors.fill: parent
+        anchors.top: compileRow.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
         ScrollView {
             Layout.preferredWidth: 100
             Layout.preferredHeight: parent.height
