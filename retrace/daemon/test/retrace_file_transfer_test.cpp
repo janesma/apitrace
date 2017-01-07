@@ -64,9 +64,8 @@ class FileTransfer : public IFrameRetrace {
                 OnFrameRetrace *callback) {
     callback->onFileOpening(false, true, 101);
   }
-  void retraceRenderTarget(SelectionId selectionCount,
-                           RenderId renderId,
-                           int render_target_number,
+  void retraceRenderTarget(ExperimentId experimentCount,
+                           const RenderSelection &selection,
                            RenderTargetType type,
                            RenderOptions options,
                            OnFrameRetrace *callback) const {}
@@ -107,7 +106,8 @@ class FileTransferCB : public OnFrameRetrace {
                         const ShaderAssembly &tess_eval,
                         const ShaderAssembly &geom,
                         const ShaderAssembly &comp) {}
-  void onRenderTarget(RenderId renderId, RenderTargetType type,
+  void onRenderTarget(SelectionId selectionCount,
+                      ExperimentId experimentCount,
                       const uvec & pngImageData) {}
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names,

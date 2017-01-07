@@ -36,8 +36,8 @@ message MetricsList {
 }
 
 message RenderTargetRequest {
-  required uint32 selection_count = 4;
-  required uint32 renderId = 1;
+  required uint32 experiment_count = 4;
+  required RenderSelection render_selection = 1;
   required RenderTargetType type = 2;
   // options is a mask of:
   // STOP_AT_RENDER = 0x1,
@@ -46,7 +46,9 @@ message RenderTargetRequest {
 }
 
 message RenderTargetResponse {
-  required bytes image = 1;
+  required uint32 selection_count = 1;
+  required uint32 experiment_count = 2;
+  required bytes image = 3;
 }
 
 message ShaderAssemblyRequest {

@@ -149,6 +149,7 @@ class ExperimentId {
 
   uint32_t operator()() const { return value; }
   uint32_t count() const { return value & (~ID_PREFIX_MASK); }
+  bool operator!=(const ExperimentId &o) const { return value != o.value; }
  private:
   uint32_t value;
 };
@@ -208,7 +209,8 @@ class OnFrameRetrace {
                                 const ShaderAssembly &tess_eval,
                                 const ShaderAssembly &geom,
                                 const ShaderAssembly &comp) = 0;
-  virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
+  virtual void onRenderTarget(SelectionId selectionCount,
+                              ExperimentId experimentCount,
                               const uvec & pngImageData) = 0;
   virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names,
@@ -238,9 +240,8 @@ class IFrameRetrace {
                         uint64_t fileSize,
                         uint32_t frameNumber,
                         OnFrameRetrace *callback) = 0;
-  virtual void retraceRenderTarget(SelectionId selectionCount,
-                                   RenderId renderId,
-                                   int render_target_number,
+  virtual void retraceRenderTarget(ExperimentId experimentCount,
+                                   const RenderSelection &selection,
                                    RenderTargetType type,
                                    RenderOptions options,
                                    OnFrameRetrace *callback) const = 0;

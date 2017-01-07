@@ -177,63 +177,81 @@ FrameRetrace::getRenderCount() const {
 }
 
 void
-FrameRetrace::retraceRenderTarget(SelectionId selectionCount,
-                                  RenderId renderId,
-                                  int render_target_number,
+FrameRetrace::retraceRenderTarget(ExperimentId experimentCount,
+                                  const RenderSelection &selection,
                                   RenderTargetType type,
                                   RenderOptions options,
                                   OnFrameRetrace *callback) const {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
 
+  bool clear_once = true;
+
   // play up to the beginning of the render
-  for (int i = 0; i < renderId.index(); ++i)
-    m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
+  RenderId current_render_id(0);
+  for (const auto &sequence : selection.series) {
+    while (current_render_id < sequence.begin) {
+      m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
+                                                                NORMAL_RENDER);
+      ++current_render_id;
+    }
 
-  if (options & glretrace::CLEAR_BEFORE_RENDER) {
-    GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
-    GlFunctions::Clear(GL_DEPTH_BUFFER_BIT);
-    GlFunctions::Clear(GL_STENCIL_BUFFER_BIT);
-    GlFunctions::Clear(GL_ACCUM_BUFFER_BIT);
-    // ignore errors from unsupported clears
-    GlFunctions::GetError();
-  }
+    while (current_render_id < sequence.end) {
+      if ((options & glretrace::CLEAR_BEFORE_RENDER) && clear_once) {
+        GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
+        GlFunctions::Clear(GL_DEPTH_BUFFER_BIT);
+        GlFunctions::Clear(GL_STENCIL_BUFFER_BIT);
+        GlFunctions::Clear(GL_ACCUM_BUFFER_BIT);
+        // ignore errors from unsupported clears
+        GlFunctions::GetError();
 
-  // play up to the end of the render
-  m_renders[renderId.index()]->retraceRenderTarget(m_tracker, type);
-  RenderId last_played_render = renderId;
+        // don't clear the frame buffer before every sequence.  We
+        // want to clear everything before the first selection.
+        clear_once = false;
+      }
 
-  if (!(options & glretrace::STOP_AT_RENDER)) {
-    // play to the end of the render target
+      // play up to the end of the render
+      m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
+                                                                type);
+      ++current_render_id;
+    }
 
-    const RenderId last_render = lastRenderForRTRegion(renderId);
-    for (int i = renderId.index() + 1; i <= last_render.index(); ++i) {
-      m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
-      last_played_render = RenderId(i);
+    if (!(options & glretrace::STOP_AT_RENDER)) {
+      // play to the end of the render target
+
+      const RenderId last_render = lastRenderForRTRegion(current_render_id);
+      while (current_render_id < last_render) {
+        const int i = current_render_id.index();
+        m_renders[i]->retraceRenderTarget(m_tracker,
+                                          NORMAL_RENDER);
+        ++current_render_id;
+      }
+    }
+
+    Image *i = glstate::getDrawBufferImage(0);
+    if (!i) {
+      GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
+             current_render_id());
+      if (callback)
+        callback->onError("Failed to obtain draw buffer image");
+    } else {
+      std::stringstream png;
+      i->writePNG(png);
+
+      std::vector<unsigned char> d;
+      const int bytes = png.str().size();
+      d.resize(bytes);
+      memcpy(d.data(), png.str().c_str(), bytes);
+      if (callback)
+        callback->onRenderTarget(selection.id, experimentCount, d);
     }
   }
-
-  Image *i = glstate::getDrawBufferImage(0);
-  if (!i) {
-    GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
-           renderId());
-    if (callback)
-      callback->onError("Failed to obtain draw buffer image");
-  } else {
-    std::stringstream png;
-    i->writePNG(png);
-
-    std::vector<unsigned char> d;
-    const int bytes = png.str().size();
-    d.resize(bytes);
-    memcpy(d.data(), png.str().c_str(), bytes);
-    if (callback)
-      callback->onRenderTarget(renderId, type, d);
-  }
-
   // play to the rest of the frame
-  for (int i = last_played_render.index() + 1; i < m_renders.size(); ++i)
-      m_renders[i]->retraceRenderTarget(m_tracker, NORMAL_RENDER);
+  while (current_render_id.index() < m_renders.size()) {
+    m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
+                                                              NORMAL_RENDER);
+    ++current_render_id;
+  }
 }
 
 void

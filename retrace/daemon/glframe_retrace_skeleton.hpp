@@ -65,8 +65,9 @@ class FrameRetraceSkeleton : public Thread,
   virtual void onFileOpening(bool needs_upload,
                              bool finished,
                              uint32_t percent_complete);
-  virtual void onRenderTarget(RenderId renderId, RenderTargetType type,
-                              const std::vector<unsigned char> &pngImageData);
+  virtual void onRenderTarget(SelectionId selectionCount,
+                              ExperimentId experimentCount,
+                              const uvec & pngImageData);
   virtual void onShaderCompile(RenderId renderId,
                                ExperimentId experimentCount,
                                bool status,
