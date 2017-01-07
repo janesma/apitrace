@@ -33,6 +33,7 @@
 #include <QList>
 #include <QString>
 
+#include <mutex>
 #include <vector>
 
 #include "glframe_retrace_interface.hpp"
@@ -160,6 +161,7 @@ class QRenderShaders : public QObject,
   QString m_renders;
 };
 
+class FrameRetraceModel;
 // collates renders that share programs
 class QRenderShadersList : public QObject,
                            NoCopy, NoAssign, NoMove {
@@ -169,8 +171,10 @@ class QRenderShadersList : public QObject,
   Q_PROPERTY(QStringList renders
              READ renders NOTIFY onRendersChanged)
  public:
-  QRenderShadersList() {}
+  QRenderShadersList() : m_retracer(NULL), m_retraceModel(NULL) {}
   ~QRenderShadersList() {}
+  void setRetrace(IFrameRetrace *retracer,
+                  FrameRetraceModel *model);
   QRenderShaders *shaders() { return &m_shaders; }
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
@@ -182,13 +186,24 @@ class QRenderShadersList : public QObject,
                         const ShaderAssembly &comp);
   QStringList renders();
   Q_INVOKABLE void setIndex(int index);
+  Q_INVOKABLE void overrideShaders(int index,
+                                   const QString &vs, const QString &fs,
+                                   const QString &tess_control,
+                                   const QString &tess_eval,
+                                   const QString &geom, const QString &comp);
  signals:
   void onRendersChanged();
  private:
+  void setIndexDirect(int index);
+
+  mutable std::mutex m_protect;
   QRenderShaders m_shaders;
   QStringList m_render_strings;
+  std::vector<std::vector<RenderId>> m_renders;
   std::vector<std::vector<ShaderAssembly>> m_shader_assemblies;
   SelectionId m_current_selection;
+  IFrameRetrace *m_retracer;
+  FrameRetraceModel *m_retraceModel;
 };
 
 }  // namespace glretrace

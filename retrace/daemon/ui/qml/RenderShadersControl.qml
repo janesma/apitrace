@@ -25,11 +25,12 @@ Item {
             onClicked: {
                 visible = false
                 compileRow.visible = false;
-                frameRetrace.overrideShaders(vsText, fsText,
-                                             tessControlText,
-                                             tessEvalText,
-                                             geomText,
-                                             compText);
+                renderModel.overrideShaders(shader_selection.currentIndex,
+                                            vsText, fsText,
+                                            tessControlText,
+                                            tessEvalText,
+                                            geomText,
+                                            compText);
             }
             Component.onCompleted: { visible = false; }
         }

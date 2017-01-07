@@ -125,10 +125,6 @@ class FrameRetraceModel : public QObject,
   Q_INVOKABLE void setFrame(const QString &filename, int framenumber,
                             const QString &host);
   Q_INVOKABLE void setMetric(int index, int id);
-  Q_INVOKABLE void overrideShaders(const QString &vs, const QString &fs,
-                                   const QString &tess_control,
-                                   const QString &tess_eval,
-                                   const QString &geom, const QString &comp);
   Q_INVOKABLE void refreshMetrics();
   Q_INVOKABLE void filterMetrics(const QString &f);
   Q_INVOKABLE QString urlToFilePath(const QUrl &url);
@@ -161,6 +157,7 @@ class FrameRetraceModel : public QObject,
                  SelectionId selectionCount);
   void onApi(RenderId renderId, const std::vector<std::string> &api_calls);
   void onError(const std::string &message);
+  void onShadersChanged();
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }

@@ -72,6 +72,7 @@ FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
   filterMetrics("");
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
           this, &glretrace::FrameRetraceModel::onUpdateMetricList);
+  m_shaders.setRetrace(&m_retrace, this);
 }
 
 FrameRetraceModel::~FrameRetraceModel() {
@@ -447,34 +448,6 @@ FrameRetraceModel::setHighlightRender(bool v) {
 }
 
 void
-FrameRetraceModel::overrideShaders(const QString &vs, const QString &fs,
-                                   const QString &tess_control,
-                                   const QString &tess_eval,
-                                   const QString &geom,
-                                   const QString &comp) {
-  ScopedLock s(m_protect);
-  const std::string &vss = vs.toStdString(),
-                    &fss = fs.toStdString(),
-         &tess_control_s = tess_control.toStdString(),
-            &tess_eval_s = tess_eval.toStdString(),
-                 &geom_s = geom.toStdString(),
-                 &comp_s = comp.toStdString();
-
-  GRLOGF(DEBUG, "vs: %s\nfs: %s\ntess_control: %s\n"
-         "tess_eval: %s\ngeom: %s\ncomp: %s",
-         vss.c_str(), fss.c_str(),
-         tess_control_s.c_str(), tess_eval_s.c_str(), geom_s.c_str(),
-         comp_s.c_str());
-  m_retrace.replaceShaders(RenderId(m_cached_selection.back()),
-                           ExperimentId(0), vss, fss,
-                           tess_control_s, tess_eval_s, geom_s, comp_s, this);
-  retrace_rendertarget();
-  retrace_shader_assemblies();
-  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
-                           this);
-}
-
-void
 FrameRetraceModel::refreshMetrics() {
   // sending a second null metric to be retraced will result in two
   // data axis being returned.  Instead, we want a single metric, and
@@ -530,4 +503,12 @@ FrameRetraceModel::filterMetrics(const QString &f) {
 Q_INVOKABLE QString
 FrameRetraceModel::urlToFilePath(const QUrl &url) {
   return url.toLocalFile();
+}
+
+void
+FrameRetraceModel::onShadersChanged() {
+  retrace_rendertarget();
+  retrace_shader_assemblies();
+  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
+                           this);
 }
