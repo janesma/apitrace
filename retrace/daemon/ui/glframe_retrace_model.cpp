@@ -203,8 +203,8 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
 
 
 void
-FrameRetraceModel::onRenderTarget(RenderId renderId,
-                                  RenderTargetType type,
+FrameRetraceModel::onRenderTarget(SelectionId selectionCount,
+                                  ExperimentId experimentCount,
                                   const std::vector<unsigned char> &data) {
   ScopedLock s(m_protect);
   glretrace::FrameImages::instance()->SetImage(data);
@@ -234,9 +234,13 @@ FrameRetraceModel::retrace_rendertarget() {
     rt_type = HIGHLIGHT_RENDER;
   if (m_cached_selection.empty())
     return;
-  m_retrace.retraceRenderTarget(m_selection_count,
-                                RenderId(m_cached_selection.back()),
-                                0, rt_type,
+  RenderSelection rs;
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &rs);
+  m_retrace.retraceRenderTarget(ExperimentId(0),
+                                rs,
+                                rt_type,
                                 opt, this);
 }
 

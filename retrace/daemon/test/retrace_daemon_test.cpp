@@ -71,7 +71,8 @@ class NullCallback : public OnFrameRetrace {
                         const ShaderAssembly &comp) {
     fs = fragment.shader;
   }
-  void onRenderTarget(RenderId renderId, RenderTargetType type,
+  void onRenderTarget(SelectionId selectionCount,
+                      ExperimentId experimentCount,
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, ExperimentId count,
                        bool status,
@@ -127,7 +128,11 @@ TEST_F(RetraceTest, LoadFile) {
   int renderCount = rt.getRenderCount();
   EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
   for (int i = 0; i < renderCount; ++i) {
-    rt.retraceRenderTarget(SelectionId(0), RenderId(i), 0,
+    RenderSelection s;
+    s.id = SelectionId(0);
+    s.series.push_back(RenderSequence(RenderId(i), RenderId(i+1)));
+    rt.retraceRenderTarget(ExperimentId(0),
+                           s,
                            glretrace::NORMAL_RENDER,
                            glretrace::STOP_AT_RENDER, &cb);
   }

@@ -67,9 +67,8 @@ class FrameRetrace : public IFrameRetrace {
   // TODO(majanes) move to frame state tracker
   int getRenderCount() const;
   // std::vector<int> renderTargets() const;
-  void retraceRenderTarget(SelectionId selectionCount,
-                           RenderId renderId,
-                           int render_target_number,
+  void retraceRenderTarget(ExperimentId experimentCount,
+                           const RenderSelection &selection,
                            RenderTargetType type,
                            RenderOptions options,
                            OnFrameRetrace *callback) const;

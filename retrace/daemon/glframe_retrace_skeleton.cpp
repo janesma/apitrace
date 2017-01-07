@@ -202,15 +202,10 @@ FrameRetraceSkeleton::Run() {
         {
           assert(request.has_rendertarget());
           auto rt = request.rendertarget();
-          // std::cout << "skel rt: "
-          //           << rt.renderid() << ", "
-          //           << rt.type() << ", "
-          //           << rt.options() << ", "
-          //           << "\n";
-
-          m_frame->retraceRenderTarget(SelectionId(rt.selection_count()),
-                                       RenderId(rt.renderid()),
-                                       0,
+          RenderSelection selection;
+          makeRenderSelection(rt.render_selection(), &selection);
+          m_frame->retraceRenderTarget(ExperimentId(rt.experiment_count()),
+                                       selection,
                                        (RenderTargetType)rt.type(),
                                        (RenderOptions)rt.options(),
                                        this);
@@ -341,32 +336,16 @@ FrameRetraceSkeleton::onShaderAssembly(
 typedef std::vector<unsigned char> Buffer;
 
 void
-FrameRetraceSkeleton::onRenderTarget(RenderId renderId,
-                                     RenderTargetType type,
-                                     const Buffer &pngImageData) {
-  // std::cout << "onRenderTarget\n";
+FrameRetraceSkeleton::onRenderTarget(SelectionId selectionCount,
+                                     ExperimentId experimentCount,
+                                     const uvec & pngImageData) {
   RetraceResponse proto_response;
   auto rt_response = proto_response.mutable_rendertarget();
+  rt_response->set_selection_count(selectionCount());
+  rt_response->set_experiment_count(experimentCount());
   std::string *image = rt_response->mutable_image();
   image->assign((const char *)pngImageData.data(), pngImageData.size());
   writeResponse(m_socket, proto_response, &m_buf);
-  // const uint32_t write_size = proto_response.ByteSize();
-  // std::cout << "onRenderTarget: writing size: " << write_size << "\n";
-  // if (! m_socket->Write(write_size)) {
-  //     std::cout << "no write: len\n";
-  //     return;
-  // }
-
-  // m_buf.clear();
-  // m_buf.resize(write_size);
-  // ArrayOutputStream array_out(m_buf.data(), write_size);
-  // CodedOutputStream coded_out(&array_out);
-  // proto_response.SerializeToCodedStream(&coded_out);
-  // std::cout << "onRenderTarget: writing image\n";
-  // if (!m_socket->WriteVec(m_buf)) {
-  //     std::cout << "no write: buf\n";
-  //     return;
-  // }
 }
 
 void
