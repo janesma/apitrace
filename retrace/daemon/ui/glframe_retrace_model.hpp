@@ -143,7 +143,8 @@ class FrameRetraceModel : public QObject,
                         const ShaderAssembly &tess_eval,
                         const ShaderAssembly &geom,
                         const ShaderAssembly &comp);
-  void onRenderTarget(RenderId renderId, RenderTargetType type,
+  void onRenderTarget(SelectionId selectionCount,
+                      ExperimentId experimentCount,
                       const std::vector<unsigned char> &data);
   void onShaderCompile(RenderId renderId,
                        ExperimentId experimentCount,
