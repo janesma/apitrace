@@ -80,10 +80,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  FrameLoop loop(frame_file, out_file);
+  FrameLoop loop(frame_file, out_file, loop_count);
   for (auto f : frames) {
     loop.advanceToFrame(f);
-    loop.loop(loop_count);
+    loop.loop();
   }
   return 0;
 }
