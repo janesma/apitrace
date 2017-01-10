@@ -44,18 +44,22 @@ using trace::Call;
 extern retrace::Retracer retracer;
 
 FrameLoop::FrameLoop(const std::string filepath,
-                     const std::string out_path)
-    : m_of(), m_o(NULL),
-      m_current_frame(1) {
+                     const std::string out_path,
+                     int loop_count)
+    : m_of(), m_out(NULL),
+      m_current_frame(1),
+      m_loop_count(loop_count) {
   if (out_path.size()) {
     m_of.open(out_path);
-    m_o = new JSONWriter(m_of);
+    m_out = new std::ostream(m_of.rdbuf());
   } else {
-    m_o = new JSONWriter(std::cout);
+    m_out = new std::ostream(std::cout.rdbuf());
   }
-  m_o->beginMember("file");
-  m_o->writeString(filepath);
-  m_o->endMember();
+  *m_out << filepath << std::endl;
+  *m_out << "frame";
+  for (int i = 0; i < loop_count; ++i)
+    *m_out << "\t" << i;
+  *m_out << std::endl;
 
   retrace::debug = 0;
   retracer.addCallbacks(glretrace::gl_callbacks);
@@ -68,11 +72,14 @@ FrameLoop::FrameLoop(const std::string filepath,
 }
 
 FrameLoop::~FrameLoop() {
-  delete m_o;
+  if (m_of.is_open())
+    m_of.close();
+  delete m_out;
 }
 
 void
 FrameLoop::advanceToFrame(int f) {
+  *m_out << std::endl << f;
   for (auto c : m_calls)
     delete c;
   m_calls.clear();
@@ -123,10 +130,7 @@ get_ms_time() {
 #endif
 
 void
-FrameLoop::loop(int count) {
-  std::vector<unsigned int> frame_times;
-  frame_times.reserve(count);
-
+FrameLoop::loop() {
   // warm up with 5 frames
   // retrace count frames and output frame time
   for (int i = 0; i < 5; ++i) {
@@ -135,20 +139,13 @@ FrameLoop::loop(int count) {
     }
   }
   unsigned int begin = get_ms_time();
-  for (int i = 0; i < count; ++i) {
+  for (int i = 0; i < m_loop_count; ++i) {
     for (auto c : m_calls) {
       retracer.retrace(*c);
     }
     const unsigned int end = get_ms_time();
-    frame_times.push_back(end - begin);
+    *m_out << "\t" << end - begin;
     begin = end;
   }
-  std::stringstream frame_name;
-  frame_name << "frame " << m_current_frame - 1;
-  m_o->beginMember(frame_name.str().c_str());
-  m_o->beginArray();
-  for (auto t : frame_times)
-    m_o->writeInt(t);
-  m_o->endArray();
 }
 
