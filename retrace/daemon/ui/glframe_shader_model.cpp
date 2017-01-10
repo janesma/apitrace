@@ -36,10 +36,14 @@
 #include "glframe_retrace_model.hpp"
 
 using glretrace::DEBUG;
+using glretrace::IFrameRetrace;
 using glretrace::FrameRetraceModel;
+using glretrace::RenderId;
 using glretrace::QRenderShaders;
 using glretrace::QRenderShadersList;
 using glretrace::ScopedLock;
+using glretrace::SelectionId;
+using glretrace::ShaderAssembly;
 
 void
 QRenderShaders::onShaderAssembly(const ShaderAssembly &vertex,
