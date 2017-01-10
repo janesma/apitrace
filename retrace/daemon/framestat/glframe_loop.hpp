@@ -33,8 +33,6 @@
 
 #include <fstream> // NOLINT
 
-#include "json.hpp"
-
 namespace trace {
 class Call;
 }
@@ -44,16 +42,16 @@ namespace glretrace {
 class FrameLoop {
  public:
   FrameLoop(const std::string filepath,
-            const std::string out_path);
+            const std::string out_path,
+            int loop_count);
   ~FrameLoop();
-
   void advanceToFrame(int f);
-  void loop(int count);
+  void loop();
 
  private:
   std::ofstream m_of;
-  JSONWriter *m_o;
-  int m_current_frame;
+  std::ostream *m_out;
+  int m_current_frame, m_loop_count;
   std::vector<trace::Call*> m_calls;
 };
 
