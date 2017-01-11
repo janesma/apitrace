@@ -227,25 +227,26 @@ FrameRetrace::retraceRenderTarget(ExperimentId experimentCount,
         ++current_render_id;
       }
     }
-
-    Image *i = glstate::getDrawBufferImage(0);
-    if (!i) {
-      GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
-             current_render_id());
-      if (callback)
-        callback->onError("Failed to obtain draw buffer image");
-    } else {
-      std::stringstream png;
-      i->writePNG(png);
-
-      std::vector<unsigned char> d;
-      const int bytes = png.str().size();
-      d.resize(bytes);
-      memcpy(d.data(), png.str().c_str(), bytes);
-      if (callback)
-        callback->onRenderTarget(selection.id, experimentCount, d);
-    }
   }
+
+  Image *i = glstate::getDrawBufferImage(0);
+  if (!i) {
+    GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
+           current_render_id());
+    if (callback)
+      callback->onError("Failed to obtain draw buffer image");
+  } else {
+    std::stringstream png;
+    i->writePNG(png);
+
+    std::vector<unsigned char> d;
+    const int bytes = png.str().size();
+    d.resize(bytes);
+    memcpy(d.data(), png.str().c_str(), bytes);
+    if (callback)
+      callback->onRenderTarget(selection.id, experimentCount, d);
+  }
+
   // play to the rest of the frame
   while (current_render_id.index() < m_renders.size()) {
     m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
