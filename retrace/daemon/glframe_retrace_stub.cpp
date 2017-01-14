@@ -598,16 +598,19 @@ using glretrace::ThreadedRetrace;
 
 void
 FrameRetraceStub::Init(const char *host, int port) {
-  assert(m_thread == NULL);
-  m_thread = new ThreadedRetrace(host, port);
-  m_thread->Start();
+  if (!m_thread) {
+    m_thread = new ThreadedRetrace(host, port);
+    m_thread->Start();
+  }
 }
 
 void
 FrameRetraceStub::Shutdown() {
-  assert(m_thread != NULL);
-  m_thread->stop();
-  delete m_thread;
+  if (m_thread) {
+    m_thread->stop();
+    delete m_thread;
+    m_thread = 0;
+  }
 }
 
 void
