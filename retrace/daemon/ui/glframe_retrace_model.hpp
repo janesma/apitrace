@@ -156,7 +156,9 @@ class FrameRetraceModel : public QObject,
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount,
                  SelectionId selectionCount);
-  void onApi(RenderId renderId, const std::vector<std::string> &api_calls);
+  void onApi(SelectionId selectionCount,
+             RenderId renderId,
+             const std::vector<std::string> &api_calls);
   void onError(const std::string &message);
   void onShadersChanged();
   QString renderTargetImage() const;

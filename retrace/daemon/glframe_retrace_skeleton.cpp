@@ -284,7 +284,12 @@ FrameRetraceSkeleton::Run() {
         {
           assert(request.has_api());
           auto api = request.api();
-          m_frame->retraceApi(RenderId(api.render_id()),
+          // TODO(majanes) build selection from message
+          RenderSelection selection;
+          auto &s = selection.series;
+          s.push_back(RenderSequence(RenderId(api.render_id()),
+                                     RenderId(api.render_id() + 1)));
+          m_frame->retraceApi(selection,
                               this);
           break;
         }
@@ -392,8 +397,10 @@ FrameRetraceSkeleton::onMetrics(const MetricSeries &metricData,
 }
 
 void
-FrameRetraceSkeleton::onApi(RenderId renderId,
+FrameRetraceSkeleton::onApi(SelectionId selectionCount,
+                            RenderId renderId,
                             const std::vector<std::string> &api_calls) {
+  // TODO(majanes) encode selectionCount in message
   RetraceResponse proto_response;
   auto api = proto_response.mutable_api();
   api->set_render_id(renderId());

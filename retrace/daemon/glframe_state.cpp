@@ -615,7 +615,8 @@ StateTrack::useProgram(int program) {
 
 void
 StateTrack::onApi(OnFrameRetrace *callback) {
-  callback->onApi(RenderId(-1), tracked_calls);
+  // TODO(majanes) include selectioncount in call to get all api calls
+  callback->onApi(SelectionId(0), RenderId(-1), tracked_calls);
 }
 
 void

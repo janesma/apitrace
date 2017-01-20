@@ -87,7 +87,8 @@ class NullCallback : public OnFrameRetrace {
   void onMetrics(const MetricSeries &metricData,
                  ExperimentId experimentCount,
                  SelectionId selectionCount) {}
-  void onApi(RenderId renderId,
+  void onApi(SelectionId selectionCount,
+             RenderId renderId,
              const std::vector<std::string> &api_calls) {
     calls = api_calls;
   }
@@ -183,9 +184,14 @@ TEST_F(RetraceTest, ApiCalls) {
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
-  rt.retraceApi(RenderId(-1), &cb);
+  RenderSelection sel;
+  sel.series.push_back(RenderSequence(RenderId(-1),
+                                      RenderId(-1)));
+  rt.retraceApi(sel, &cb);
   EXPECT_GT(cb.calls.size(), 0);
-  rt.retraceApi(RenderId(1), &cb);
+  sel.series.back().begin = RenderId(1);
+  sel.series.back().end = RenderId(2);
+  rt.retraceApi(sel, &cb);
   EXPECT_GT(cb.calls.size(), 0);
 }
 
