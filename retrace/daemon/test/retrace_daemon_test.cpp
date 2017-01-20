@@ -69,11 +69,13 @@ class NullCallback : public OnFrameRetrace {
                         const ShaderAssembly &tess_eval,
                         const ShaderAssembly &geom,
                         const ShaderAssembly &comp) {
-    fs = fragment.shader;
+    fs.push_back(fragment.shader);
   }
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
-                      const uvec & pngImageData) {}
+                      const uvec & pngImageData) {
+    ++renderTargetCount;
+  }
   void onShaderCompile(RenderId renderId, ExperimentId count,
                        bool status,
                        const std::string &errorString) {
@@ -90,7 +92,9 @@ class NullCallback : public OnFrameRetrace {
     calls = api_calls;
   }
   void onError(const std::string &message) {}
-  std::string compile_error, fs;
+  int renderTargetCount;
+  std::string compile_error;
+  std::vector<std::string> fs;
   std::vector<std::string> calls;
 };
 
@@ -127,7 +131,9 @@ TEST_F(RetraceTest, LoadFile) {
   rt.openFile(test_file, md5, fileSize, 7, &cb);
   int renderCount = rt.getRenderCount();
   EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
+  cb.renderTargetCount = 0;
   for (int i = 0; i < renderCount; ++i) {
+    // retrace the rt for each render
     RenderSelection s;
     s.id = SelectionId(0);
     s.series.push_back(RenderSequence(RenderId(i), RenderId(i+1)));
@@ -136,6 +142,16 @@ TEST_F(RetraceTest, LoadFile) {
                            glretrace::NORMAL_RENDER,
                            glretrace::STOP_AT_RENDER, &cb);
   }
+  EXPECT_EQ(cb.renderTargetCount, 2);
+  // retrace the rt for the full frame
+  RenderSelection s;
+  s.id = SelectionId(0);
+  s.series.push_back(RenderSequence(RenderId(0), RenderId(2)));
+  rt.retraceRenderTarget(ExperimentId(0),
+                         s,
+                         glretrace::NORMAL_RENDER,
+                         glretrace::STOP_AT_RENDER, &cb);
+  EXPECT_EQ(cb.renderTargetCount, 3);
 }
 
 TEST_F(RetraceTest, ReplaceShaders) {
@@ -150,14 +166,14 @@ TEST_F(RetraceTest, ReplaceShaders) {
   rs.id = SelectionId(1);
   rs.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
   rt.retraceShaderAssembly(rs, &cb);
-  EXPECT_GT(cb.fs.size(), 0);
+  EXPECT_GT(cb.fs.back().size(), 0);
   std::string vs("attribute vec2 coord2d;\n"
                  "varying vec2 v_TexCoordinate;\n"
                  "void main(void) {\n"
                  "  gl_Position = vec4(coord2d.x, -1.0 * coord2d.y, 0, 1);\n"
                  "  v_TexCoordinate = vec2(coord2d.x, coord2d.y);\n"
                  "}\n");
-  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs,
+  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs.back(),
                     "", "", "", "", &cb);
   EXPECT_EQ(cb.compile_error.size(), 0);
 }
@@ -171,4 +187,48 @@ TEST_F(RetraceTest, ApiCalls) {
   EXPECT_GT(cb.calls.size(), 0);
   rt.retraceApi(RenderId(1), &cb);
   EXPECT_GT(cb.calls.size(), 0);
+}
+
+TEST_F(RetraceTest, ShaderAssembly) {
+  NullCallback cb;
+  FrameRetrace rt;
+  get_md5(test_file, &md5, &fileSize);
+  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  RenderSelection selection;
+  std::string expected("uniform sampler2D texUnit;\n"
+                       "varying vec2 v_TexCoordinate;\nvoid main(void) {\n"
+                       "  gl_FragColor = texture2D(texUnit, v_TexCoordinate);\n"
+                       "}");
+  // retrace shaders for render 0
+  selection.series.push_back(RenderSequence(RenderId(0), RenderId(1)));
+  rt.retraceShaderAssembly(selection, &cb);
+  EXPECT_EQ(cb.fs.size(), 1);
+  EXPECT_EQ(cb.fs[0], expected);
+
+  // retrace shaders for render 1
+  cb.fs.clear();
+  selection.series.clear();
+  selection.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
+  rt.retraceShaderAssembly(selection, &cb);
+  EXPECT_EQ(cb.fs.size(), 1);
+  EXPECT_EQ(cb.fs[0], expected);
+
+  // retrace shaders for render 0 & 1 (single sequence)
+  cb.fs.clear();
+  selection.series.clear();
+  selection.series.push_back(RenderSequence(RenderId(0), RenderId(2)));
+  rt.retraceShaderAssembly(selection, &cb);
+  EXPECT_EQ(cb.fs.size(), 2);
+  EXPECT_EQ(cb.fs[0], expected);
+  EXPECT_EQ(cb.fs[1], expected);
+
+  // retrace shaders for render 0 & 1 (separate sequence)
+  cb.fs.clear();
+  selection.series.clear();
+  selection.series.push_back(RenderSequence(RenderId(0), RenderId(1)));
+  selection.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
+  rt.retraceShaderAssembly(selection, &cb);
+  EXPECT_EQ(cb.fs.size(), 2);
+  EXPECT_EQ(cb.fs[0], expected);
+  EXPECT_EQ(cb.fs[1], expected);
 }
