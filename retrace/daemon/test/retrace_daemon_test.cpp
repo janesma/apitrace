@@ -27,6 +27,7 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
 #include <vector>
 #include <string>
 
@@ -90,13 +91,15 @@ class NullCallback : public OnFrameRetrace {
   void onApi(SelectionId selectionCount,
              RenderId renderId,
              const std::vector<std::string> &api_calls) {
-    calls = api_calls;
+    last_selection = selectionCount;
+    calls[renderId] = api_calls;
   }
   void onError(const std::string &message) {}
   int renderTargetCount;
+  SelectionId last_selection;
   std::string compile_error;
   std::vector<std::string> fs;
-  std::vector<std::string> calls;
+  std::map<RenderId, std::vector<std::string>> calls;
 };
 
 void
@@ -185,14 +188,38 @@ TEST_F(RetraceTest, ApiCalls) {
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
   RenderSelection sel;
-  sel.series.push_back(RenderSequence(RenderId(-1),
-                                      RenderId(-1)));
+  sel.id = SelectionId(5);
+
+  // retrace empty selection to get all api calls
   rt.retraceApi(sel, &cb);
-  EXPECT_GT(cb.calls.size(), 0);
-  sel.series.back().begin = RenderId(1);
-  sel.series.back().end = RenderId(2);
+  EXPECT_EQ(cb.calls.size(), 2);
+  EXPECT_EQ(cb.last_selection, sel.id);
+
+  // retrace single selection
+  cb.calls.clear();
+  sel.clear();
+  sel.id = SelectionId(6);
+  sel.push_back(0, 1);
   rt.retraceApi(sel, &cb);
-  EXPECT_GT(cb.calls.size(), 0);
+  EXPECT_EQ(cb.calls.size(), 1);
+  EXPECT_EQ(cb.last_selection, sel.id);
+
+  // retrace single selection with 2 series
+  cb.calls.clear();
+  sel.id = SelectionId(7);
+  sel.push_back(1, 2);
+  rt.retraceApi(sel, &cb);
+  EXPECT_EQ(cb.calls.size(), 2);
+  EXPECT_EQ(cb.last_selection, sel.id);
+
+  // retrace single selection with 1 multi-series
+  cb.calls.clear();
+  sel.clear();
+  sel.id = SelectionId(8);
+  sel.push_back(0, 2);
+  rt.retraceApi(sel, &cb);
+  EXPECT_EQ(cb.calls.size(), 2);
+  EXPECT_EQ(cb.last_selection, sel.id);
 }
 
 TEST_F(RetraceTest, ShaderAssembly) {
