@@ -514,7 +514,9 @@ class ApiRequest : public IRetraceRequest {
     apis.reserve(api_str_vec.size());
     for (auto a : api_str_vec)
       apis.push_back(a);
-    m_callback->onApi(rid, apis);
+
+    // TODO(majanes) decode selectionCount from message
+    m_callback->onApi(SelectionId(0), rid, apis);
   }
 
  private:
@@ -689,9 +691,10 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
 }
 
 void
-FrameRetraceStub::retraceApi(RenderId renderId,
+FrameRetraceStub::retraceApi(const RenderSelection &selection,
                              OnFrameRetrace *callback) {
-  m_thread->push(new ApiRequest(renderId, callback));
+  // TODO(majanes) encode selectionCount in message
+  m_thread->push(new ApiRequest(selection.series[0].begin, callback));
 }
 
 void

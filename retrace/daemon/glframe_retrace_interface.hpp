@@ -222,7 +222,8 @@ class OnFrameRetrace {
                                ExperimentId experimentCount,
                                bool status,
                                const std::string &errorString) = 0;
-  virtual void onApi(RenderId renderId,
+  virtual void onApi(SelectionId selectionCount,
+                     RenderId renderId,
                      const std::vector<std::string> &api_calls) = 0;
   virtual void onError(const std::string &message) = 0;
 };
@@ -262,7 +263,7 @@ class IFrameRetrace {
                               const std::string &geom,
                               const std::string &comp,
                               OnFrameRetrace *callback) = 0;
-  virtual void retraceApi(RenderId renderId,
+  virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback) = 0;
 };
 

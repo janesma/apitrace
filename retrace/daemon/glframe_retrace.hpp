@@ -96,7 +96,7 @@ class FrameRetrace : public IFrameRetrace {
   //                 const std::string &fs,
   //                 OnFrameRetrace *callback);
   // void revertModifications();
-  void retraceApi(RenderId renderId,
+  void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback);
 
  private:

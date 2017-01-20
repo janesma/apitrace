@@ -86,7 +86,7 @@ class FileTransfer : public IFrameRetrace {
                       const std::string &geom,
                       const std::string &comp,
                       OnFrameRetrace *callback) {}
-  void retraceApi(RenderId renderId,
+  void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback) {}
 };
 
@@ -119,7 +119,8 @@ class FileTransferCB : public OnFrameRetrace {
                        ExperimentId experimentCount,
                        bool status,
                        const std::string &errorString) {}
-  void onApi(RenderId renderId,
+  void onApi(SelectionId selectionCount,
+             RenderId renderId,
              const std::vector<std::string> &api_calls) {}
   void onError(const std::string &message) {}
   bool m_needUpload;
