@@ -173,6 +173,12 @@ struct RenderSelection {
   SelectionId id;
   RenderSeries series;
   void clear() { series.clear(); }
+  void push_back(int begin, int end) {
+    series.push_back(RenderSequence(RenderId(begin), RenderId(end)));
+  }
+  void push_back(int render) {
+    series.push_back(RenderSequence(RenderId(render), RenderId(render+1)));
+  }
 };
 
 struct ShaderAssembly {
