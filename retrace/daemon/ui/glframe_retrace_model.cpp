@@ -165,7 +165,11 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
   MD5Final(md5.data(), &md5c);
   m_retrace.openFile(filename.toStdString(), md5, total_bytes,
                      framenumber, this);
-  m_retrace.retraceApi(RenderId(-1), this);
+
+  RenderSelection sel;
+  // TODO(majanes) properly set selection
+  sel.series.push_back(RenderSequence(RenderId(-1), RenderId(-1)));
+  m_retrace.retraceApi(sel, this);
 }
 
 QQmlListProperty<QRenderBookmark>
@@ -268,12 +272,17 @@ FrameRetraceModel::renderTargetImage() const {
 
 void
 FrameRetraceModel::retrace_api() {
-  if (m_cached_selection.empty())
-    return m_retrace.retraceApi(RenderId(-1 ^ glretrace::ID_PREFIX_MASK),
-                                this);
+  // TODO(majanes) build proper selection object
+  RenderSelection sel;
+  if (m_cached_selection.empty()) {
+    sel.series.push_back(RenderSequence(RenderId(-1), RenderId(-1)));
+    return m_retrace.retraceApi(sel, this);
+  }
 
-  m_retrace.retraceApi(RenderId(m_cached_selection.back()),
-                       this);
+  // else
+  sel.series.push_back(RenderSequence(RenderId(m_cached_selection.back()),
+                                      RenderId(m_cached_selection.back() + 1)));
+  m_retrace.retraceApi(sel, this);
 }
 
 void
@@ -472,8 +481,10 @@ FrameRetraceModel::apiCalls() {
 }
 
 void
-FrameRetraceModel::onApi(RenderId renderId,
+FrameRetraceModel::onApi(SelectionId selectionCount,
+                         RenderId renderId,
                          const std::vector<std::string> &api_calls) {
+  // TODO(majanes): discard out of date selectionCount
   m_api_calls.clear();
   for (auto i : api_calls) {
     m_api_calls.append(QString::fromStdString(i));
