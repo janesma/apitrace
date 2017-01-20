@@ -107,7 +107,6 @@ StateTrack::track(const Call &call) {
     std::stringstream call_stream;
     trace::dump(const_cast<Call&>(call), call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
-    tracked_calls.push_back(call_stream.str());
     GRLOG(glretrace::DEBUG, call_stream.str().c_str());
   }
 
@@ -611,12 +610,6 @@ void
 StateTrack::useProgram(int program) {
   current_program = program;
   parse();
-}
-
-void
-StateTrack::onApi(OnFrameRetrace *callback) {
-  // TODO(majanes) include selectioncount in call to get all api calls
-  callback->onApi(SelectionId(0), RenderId(-1), tracked_calls);
 }
 
 void
