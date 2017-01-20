@@ -436,10 +436,24 @@ FrameRetrace::replaceShaders(RenderId renderId,
 void
 FrameRetrace::retraceApi(const RenderSelection &selection,
                          OnFrameRetrace *callback) {
-  // TODO(majanes) replace stubbed interface: get api for every render
-  // in the selection
-  RenderId renderId = selection.series[0].begin;
-  if (renderId.index() == RenderId(-1).index())
-    return m_tracker.onApi(callback);
-  m_renders[renderId.index()]->onApi(renderId, callback);
+  if (selection.series.empty()) {
+    // empty selection: display the full api log
+    for (RenderId currentRender(0);
+         currentRender.index() < m_renders.size();
+         ++currentRender) {
+      m_renders[currentRender.index()]->onApi(selection.id,
+                                              currentRender,
+                                              callback);
+    }
+    return;
+  }
+  for (auto sequence : selection.series) {
+    auto currentRender = sequence.begin;
+    while (currentRender < sequence.end) {
+      m_renders[currentRender.index()]->onApi(selection.id,
+                                              currentRender,
+                                              callback);
+      ++currentRender;
+    }
+  }
 }

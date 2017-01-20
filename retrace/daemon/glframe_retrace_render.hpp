@@ -71,7 +71,9 @@ class RetraceRender {
   void overrideFragmentShader(StateTrack *tracker, bool enable,
                               const std::string &fs);
   void revertShaders();
-  void onApi(RenderId renderId, OnFrameRetrace *callback);
+  void onApi(SelectionId selId,
+             RenderId renderId,
+             OnFrameRetrace *callback);
 
  private:
   trace::AbstractParser *m_parser;

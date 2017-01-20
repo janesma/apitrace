@@ -495,31 +495,63 @@ class ReplaceShadersRequest : public IRetraceRequest {
 
 class ApiRequest : public IRetraceRequest {
  public:
-  ApiRequest(RenderId renderId,
+  ApiRequest(SelectionId *current_selection,
+             std::mutex *protect,
+             const RenderSelection &selection,
              OnFrameRetrace *cb)
-      : m_callback(cb) {
-    auto shaderRequest = m_proto_msg.mutable_api();
-    shaderRequest->set_render_id(renderId());
+      : m_sel_count(current_selection),
+        m_protect(protect),
+        m_callback(cb) {
+    auto apiRequest = m_proto_msg.mutable_api();
+    auto selectionRequest = apiRequest->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
     m_proto_msg.set_requesttype(ApiTrace::API_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &sel = m_proto_msg.api().selection();
+      const SelectionId id(sel.selection_count());
+      if (*m_sel_count != id)
+        // more recent selection was made while this was enqueued
+        return;
+    }
     RetraceResponse response;
-    s->retrace(m_proto_msg, &response);
-    assert(response.has_api());
-    auto api_response = response.api();
+    // sends single request, read multiple responses
+    s->request(m_proto_msg);
+    while (true) {
+      response.Clear();
+      s->response(&response);
+      assert(response.has_api());
+      const auto &api_response = response.api();
+      if (api_response.render_id() == -1)
+        // all responses sent
+        break;
 
-    const RenderId rid(api_response.render_id());
-    std::vector<std::string> apis;
-    auto &api_str_vec = api_response.apis();
-    apis.reserve(api_str_vec.size());
-    for (auto a : api_str_vec)
-      apis.push_back(a);
+      const auto selection = api_response.selection_count();
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_sel_count != SelectionId(selection))
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
 
-    // TODO(majanes) decode selectionCount from message
-    m_callback->onApi(SelectionId(0), rid, apis);
+      const RenderId rid(api_response.render_id());
+      std::vector<std::string> apis;
+      auto &api_str_vec = api_response.apis();
+      apis.reserve(api_str_vec.size());
+      for (auto a : api_str_vec)
+        apis.push_back(a);
+
+      m_callback->onApi(SelectionId(selection),
+                        rid, apis);
+    }
   }
 
  private:
+  const SelectionId * const m_sel_count;
+  std::mutex *m_protect;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
 };
@@ -693,8 +725,13 @@ FrameRetraceStub::replaceShaders(RenderId renderId,
 void
 FrameRetraceStub::retraceApi(const RenderSelection &selection,
                              OnFrameRetrace *callback) {
-  // TODO(majanes) encode selectionCount in message
-  m_thread->push(new ApiRequest(selection.series[0].begin, callback));
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_render_selection = selection.id;
+  }
+  m_thread->push(new ApiRequest(&m_current_render_selection,
+                                &m_mutex,
+                                selection, callback));
 }
 
 void

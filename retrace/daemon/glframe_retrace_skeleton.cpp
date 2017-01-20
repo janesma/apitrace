@@ -284,13 +284,16 @@ FrameRetraceSkeleton::Run() {
         {
           assert(request.has_api());
           auto api = request.api();
-          // TODO(majanes) build selection from message
           RenderSelection selection;
-          auto &s = selection.series;
-          s.push_back(RenderSequence(RenderId(api.render_id()),
-                                     RenderId(api.render_id() + 1)));
+          makeRenderSelection(api.selection(), &selection);
           m_frame->retraceApi(selection,
                               this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto shader_resp = proto_response.mutable_api();
+          shader_resp->set_render_id(-1);
+          shader_resp->set_selection_count(-1);
+          writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
     }
@@ -403,6 +406,7 @@ FrameRetraceSkeleton::onApi(SelectionId selectionCount,
   // TODO(majanes) encode selectionCount in message
   RetraceResponse proto_response;
   auto api = proto_response.mutable_api();
+  api->set_selection_count(selectionCount());
   api->set_render_id(renderId());
   for (auto a : api_calls) {
     api->add_apis(a);

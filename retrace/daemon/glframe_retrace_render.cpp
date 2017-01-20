@@ -40,6 +40,7 @@
 using glretrace::DEBUG;
 using glretrace::GlFunctions;
 using glretrace::RetraceRender;
+using glretrace::SelectionId;
 using glretrace::StateTrack;
 using glretrace::RenderTargetType;
 using glretrace::RenderId;
@@ -275,8 +276,8 @@ RetraceRender::replaceShaders(StateTrack *tracker,
 }
 
 void
-RetraceRender::onApi(RenderId renderId, OnFrameRetrace *callback) {
-  // TODO(majanes): replace stubbed renderId
-  callback->onApi(SelectionId(0),
-                  renderId, m_api_calls);
+RetraceRender::onApi(SelectionId selId,
+                     RenderId renderId,
+                     OnFrameRetrace *callback) {
+  callback->onApi(selId, renderId, m_api_calls);
 }
