@@ -136,10 +136,11 @@ message ReplaceShadersResponse {
 }
 
 message ApiRequest {
-  required uint32 render_id = 1;
+  required RenderSelection selection = 1;
 }
 
 message ApiResponse {
+  required uint32 selection_count = 3;
   required uint32 render_id = 1;
   repeated string apis = 2;
 }
@@ -156,7 +157,7 @@ message RetraceRequest {
   optional MetricsRequest metrics = 5;
   optional AllMetricsRequest allMetrics = 6;
   optional ReplaceShadersRequest shaders = 7;
-  optional ApiResponse api = 8;
+  optional ApiRequest api = 8;
 }
 
 message RetraceResponse {

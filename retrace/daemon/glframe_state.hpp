@@ -105,7 +105,6 @@ class StateTrack {
                  const std::string &geom, const std::string &comp,
                  std::string *message = NULL);
   void useProgram(int program);
-  void onApi(OnFrameRetrace *callback);
   void retraceProgramSideEffects(int orig_program, trace::Call *c,
                                  retrace::Retracer *retracer) const;
 
@@ -174,8 +173,6 @@ class StateTrack {
   std::map<int, int> comp_to_program;
 
   const ShaderAssembly empty_shader;
-
-  std::vector<std::string> tracked_calls;
 
   // any call with program side effects (eg glUniform) needs to be
   // executed on replacement programs (eg rendertarget highlighting)

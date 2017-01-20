@@ -167,8 +167,9 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
                      framenumber, this);
 
   RenderSelection sel;
-  // TODO(majanes) properly set selection
-  sel.series.push_back(RenderSequence(RenderId(-1), RenderId(-1)));
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &sel);
   m_retrace.retraceApi(sel, this);
 }
 
@@ -272,16 +273,10 @@ FrameRetraceModel::renderTargetImage() const {
 
 void
 FrameRetraceModel::retrace_api() {
-  // TODO(majanes) build proper selection object
   RenderSelection sel;
-  if (m_cached_selection.empty()) {
-    sel.series.push_back(RenderSequence(RenderId(-1), RenderId(-1)));
-    return m_retrace.retraceApi(sel, this);
-  }
-
-  // else
-  sel.series.push_back(RenderSequence(RenderId(m_cached_selection.back()),
-                                      RenderId(m_cached_selection.back() + 1)));
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &sel);
   m_retrace.retraceApi(sel, this);
 }
 
@@ -484,8 +479,16 @@ void
 FrameRetraceModel::onApi(SelectionId selectionCount,
                          RenderId renderId,
                          const std::vector<std::string> &api_calls) {
-  // TODO(majanes): discard out of date selectionCount
   m_api_calls.clear();
+
+  {
+    ScopedLock s(m_protect);
+    if (m_selection_count != selectionCount)
+      // retrace is out of date
+      return;
+  }
+
+  // TODO(majanes): cache calls by render
   for (auto i : api_calls) {
     m_api_calls.append(QString::fromStdString(i));
   }
