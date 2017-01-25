@@ -38,25 +38,48 @@ using glretrace::RenderId;
 using glretrace::ScopedLock;
 using glretrace::SelectionId;
 
+QApiModel::QApiModel() : m_sel_count(0), m_index(-1) {
+}
+
 QApiModel::~QApiModel() {
     m_api_calls.clear();
 }
 
 QString
 QApiModel::apiCalls() {
-  return m_api_calls;
+  if (m_index < 0)
+    return QString("");
+  return m_api_calls[m_renders[m_index]];
 }
 
 void
 QApiModel::onApi(SelectionId selectionCount,
                  RenderId renderId,
                  const std::vector<std::string> &api_calls) {
-  m_api_calls.clear();
-
-  // TODO(majanes): cache calls by render
-  for (auto i : api_calls) {
-    m_api_calls.append(QString::fromStdString(i));
+  if (m_sel_count != selectionCount) {
+    m_api_calls.clear();
+    m_renders.clear();
+    m_sel_count = selectionCount;
   }
+
+  m_renders.push_back(QString("%1").arg(renderId.index()));
+  QString &api = m_api_calls[m_renders.back()];
+  for (auto i : api_calls) {
+    api.append(QString::fromStdString(i));
+  }
+  m_api_calls[m_renders.back()] = api;
+  if (m_api_calls.size() == 1)
+    setIndex(0);
+  emit onRenders();
+}
+
+void
+QApiModel::setIndex(int index) {
+  m_index = index;
   emit onApiCalls();
 }
 
+QStringList
+QApiModel::renders() const {
+  return m_renders;
+}
