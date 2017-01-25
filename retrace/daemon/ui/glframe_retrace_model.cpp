@@ -40,6 +40,7 @@
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_qutil.hpp"
 #include "glframe_socket.hpp"
 #include "md5.h"  // NOLINT
 
