@@ -43,6 +43,7 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
 #include "glframe_os.hpp"
+#include "glframe_api_model.hpp"
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
@@ -57,6 +58,7 @@ using glretrace::FrameRetraceSkeleton;
 using glretrace::FrameRetraceStub;
 using glretrace::GlFunctions;
 using glretrace::Logger;
+using glretrace::QApiModel;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QRenderShaders;
@@ -103,6 +105,8 @@ int main(int argc, char *argv[]) {
                                              "QRenderShaders");
   qmlRegisterType<glretrace::QRenderShadersList>("ApiTrace", 1, 0,
                                                  "QRenderShadersList");
+  qmlRegisterType<glretrace::QApiModel>("ApiTrace", 1, 0,
+                                        "QApiModel");
 
   glretrace::FrameImages::Create();
 
