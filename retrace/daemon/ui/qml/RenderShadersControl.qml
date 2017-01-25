@@ -64,6 +64,7 @@ Item {
                 id: shader_selection
                 model: renderModel.renders
                 highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+                focus: true
                 delegate: Component {
                     Item {
                         height: render_text.height
@@ -81,6 +82,22 @@ Item {
                                 compileRow.visible=false
                             }
                         }
+                    }
+                }
+                Keys.onDownPressed: {
+                    if (shader_selection.currentIndex + 1 < shader_selection.count) {
+                        shader_selection.currentIndex += 1;
+                        renderModel.setIndex(shader_selection.currentIndex);
+                        compileButton.visible=false;
+                        compileRow.visible=false
+                    }
+                }
+                Keys.onUpPressed: {
+                    if (shader_selection.currentIndex > 0) {
+                        shader_selection.currentIndex -= 1;
+                        renderModel.setIndex(shader_selection.currentIndex);
+                        compileButton.visible=false;
+                        compileRow.visible=false
                     }
                 }
             }
