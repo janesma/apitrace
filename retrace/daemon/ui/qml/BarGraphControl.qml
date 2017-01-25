@@ -166,7 +166,7 @@ Item {
                         barGraph.mouseWheel(wheel.angleDelta.y / 5, wheelx);
                     }
                     onReleased : {
-                        barGraph.mouseRelease();
+                        barGraph.mouseRelease(mouse.modifiers & Qt.ShiftModifier);
                     }
                 }
             }

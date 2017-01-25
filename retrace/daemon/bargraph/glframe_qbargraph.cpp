@@ -88,13 +88,14 @@ QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
   m_graph.setZoom(zoom, zoom_translate);
 
   if (v->clicked) {
-    m_graph.selectMouseArea();
+    m_graph.selectMouseArea(v->shift);
     m_graph.setMouseArea(0, 0, 0, 0);
     v->mouse_area[0] = -1.0;
     v->mouse_area[1] = -1.0;
     v->mouse_area[2] = -1.0;
     v->mouse_area[3] = -1.0;
     v->clicked = false;
+    v->shift = false;
   }
 }
 
@@ -137,7 +138,8 @@ BarGraphView::createRenderer() const {
   return new QBarGraphRenderer();
 }
 
-BarGraphView::BarGraphView() : mouse_area(4), clicked(false),
+BarGraphView::BarGraphView() : mouse_area(4),
+                               clicked(false), shift(false),
                                selection(NULL), model(NULL),
                                m_randomBars(0),
                                m_zoom(1.0),
@@ -145,8 +147,9 @@ BarGraphView::BarGraphView() : mouse_area(4), clicked(false),
 }
 
 void
-BarGraphView::mouseRelease() {
+BarGraphView::mouseRelease(bool _shift) {
   clicked = true;
+  shift = _shift;
   update();
 }
 

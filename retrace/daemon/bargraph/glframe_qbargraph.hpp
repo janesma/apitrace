@@ -89,7 +89,7 @@ class BarGraphView : public QQuickFramebufferObject,
  public:
   BarGraphView();
   QQuickFramebufferObject::Renderer *createRenderer() const;
-  Q_INVOKABLE void mouseRelease();
+  Q_INVOKABLE void mouseRelease(bool shift);
   Q_INVOKABLE void mouseDrag(float x1, float y1, float x2, float y2);
   Q_INVOKABLE void mouseWheel(int degrees, float zoom_point_x);
 
@@ -114,6 +114,7 @@ class BarGraphView : public QQuickFramebufferObject,
 
   std::vector<float> mouse_area;
   bool clicked;
+  bool shift;
  signals:
   void onModel();
   void onRandomBarCount();
