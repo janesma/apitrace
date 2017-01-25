@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "glframe_qselection.hpp"
+#include "glframe_qutil.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::IFrameRetrace;
@@ -221,36 +222,5 @@ QMetricsModel::copy() {
   QClipboard *clipboard = QApplication::clipboard();
   QString q(ss.str().c_str());
   clipboard->setText(q);
-}
-
-void
-glretrace::renderSelectionFromList(SelectionId id,
-                                   const QList<int> &l,
-                                   RenderSelection *rs) {
-  rs->id = id;
-  if (l.empty())
-    return;
-  RenderSeries &series = rs->series;
-  series.clear();
-  auto i = l.begin();
-  RenderId begin(*i);
-  RenderId end(*i + 1);
-
-  while (true) {
-    ++i;
-    if (i == l.end()) {
-      series.push_back(RenderSequence(begin, end));
-      break;
-    }
-    if (*i == end.index()) {
-      // part of a contiguous sequence
-      ++end;
-      continue;
-    }
-    // else
-    series.push_back(RenderSequence(begin, end));
-    begin = RenderId(*i);
-    end = RenderId(*i + 1);
-  }
 }
 

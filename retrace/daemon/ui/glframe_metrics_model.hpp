@@ -42,10 +42,6 @@
 
 namespace glretrace {
 
-void
-renderSelectionFromList(SelectionId id, const QList<int> &l,
-                        RenderSelection *rs);
-
 class QSelection;
 class QMetricValue : public QObject,
                 NoCopy, NoAssign, NoMove {
