@@ -33,26 +33,38 @@
 
 #include <mutex>
 #include <string>
+#include <map>
 #include <vector>
 
 #include "glframe_retrace_interface.hpp"
+#include "glframe_traits.hpp"
 
 namespace glretrace {
 
-class QApiModel : public QObject {
+class QApiModel : public QObject,
+                  NoCopy, NoAssign, NoMove{
   Q_OBJECT
   Q_PROPERTY(QString apiCalls READ apiCalls NOTIFY onApiCalls)
+  Q_PROPERTY(QStringList renders READ renders NOTIFY onRenders)
  public:
+  QApiModel();
   ~QApiModel();
   QString apiCalls();
+  QStringList renders() const;
   void onApi(SelectionId selectionCount,
              RenderId renderId,
              const std::vector<std::string> &api_calls);
+  Q_INVOKABLE void setIndex(int index);
+
  signals:
   void onApiCalls();
+  void onRenders();
 
  private:
-  QString m_api_calls;
+  std::map<QString, QString> m_api_calls;
+  QStringList m_renders;
+  SelectionId m_sel_count;
+  int m_index;
 };
 
 }  // namespace glretrace

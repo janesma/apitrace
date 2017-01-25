@@ -87,6 +87,7 @@ int main(int argc, char *argv[]) {
   app.setApplicationName("frame_retrace");
 
   qRegisterMetaType<QList<glretrace::BarMetrics> >();
+  qRegisterMetaType<QList<int> >();
   qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0,
                                               "QRenderBookmark");
   qmlRegisterType<glretrace::QMetric>("ApiTrace", 1, 0,
