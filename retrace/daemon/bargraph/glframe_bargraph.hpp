@@ -64,7 +64,7 @@ class BarGraphRenderer : protected QOpenGLFunctions {
   void setBars(const std::vector<BarMetrics> &bars);
   void setSelection(const std::set<int> &selection);
   void setMouseArea(float x1, float y1, float x2, float y2);
-  void selectMouseArea();  // on click or drag-release
+  void selectMouseArea(bool shift);  // on click or drag-release
   void setZoom(float z, float t);
   void render();
   void subscribe(BarGraphSubscriber *s);

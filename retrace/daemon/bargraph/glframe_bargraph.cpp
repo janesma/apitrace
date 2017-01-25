@@ -234,12 +234,23 @@ BarGraphRenderer::subscribe(BarGraphSubscriber *s) {
 }
 
 void
-BarGraphRenderer::selectMouseArea() {
+BarGraphRenderer::selectMouseArea(bool shift) {
   if (!subscriber)
     return;
 
   std::vector<int> selected_renders;
-  // TODO(majanes) unzoom the x
+  if (shift) {
+    // preserve previous selection for shift-click
+    for (int i = 0; i < selected.size(); ++i) {
+      if (selected[i])
+        selected_renders.push_back(i);
+    }
+  } else {
+    for (int i = 0; i < selected.size(); ++i) {
+      selected[i] = false;
+    }
+  }
+
   const float min_x = unzoomX(std::min(mouse_area[0].x, mouse_area[1].x));
   const float max_x = unzoomX(std::max(mouse_area[0].x, mouse_area[1].x));
   const float min_y = max_y * std::min(mouse_area[0].y, mouse_area[1].y);
@@ -249,15 +260,17 @@ BarGraphRenderer::selectMouseArea() {
   for (auto i = vertices.begin(); i < vertices.end(); i += 4) {
     BarVertices *current_bar = reinterpret_cast<BarVertices*>(&*i);
     current_render += 1;
-    selected[current_render] = false;
     if (current_bar->bottom_right.x < min_x)
       continue;
     if (current_bar->top_left.y < min_y)
       continue;
     if (current_bar->bottom_left.x > max_x)
       break;
-    selected_renders.push_back(current_render);
-    selected[current_render] = true;
+    if (!selected[current_render]) {
+      // current_render should be added to selection
+      selected_renders.push_back(current_render);
+      selected[current_render] = true;
+    }
   }
   subscriber->onBarSelect(selected_renders);
   mouse_area[0].x = -1;

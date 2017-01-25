@@ -221,14 +221,37 @@ TEST(BarGraph, MouseSelectBars) {
   MockSubscriber s;
   r.subscribe(&s);
   r.setBars(bars);
+
+  // select first bar
   r.setMouseArea(0.0, 0.0, 0.5, 0.5);
-  r.selectMouseArea();
+  r.selectMouseArea(false);
   EXPECT_EQ(s.selection, std::vector<int> {0});
+
+  // select second bar
   r.setMouseArea(0.5, 0.0, 1.0, 0.5);
-  r.selectMouseArea();
+  r.selectMouseArea(false);
   EXPECT_EQ(s.selection, std::vector<int> {1});
+
+  // shift-select first bar
+  r.setMouseArea(0.0, 0.0, 0.5, 0.5);
+  r.selectMouseArea(true);
+  // order of bars is off because selection starts with previous list,
+  // and new bars are appended.
+  EXPECT_EQ(s.selection, (std::vector<int> {1, 0}));
+
+  // shift-select nothing (preserve selection)
+  r.setMouseArea(0.0, 0.0, 0.01, 0.01);
+  r.selectMouseArea(true);
+  EXPECT_EQ(s.selection, (std::vector<int> {0, 1}));
+
+  // deselect
+  r.setMouseArea(0.0, 0.0, 0.01, 0.01);
+  r.selectMouseArea(false);
+  EXPECT_EQ(s.selection, (std::vector<int> {}));
+
+  // select both bars
   r.setMouseArea(0.0, 0.0, 1.0, 0.5);
-  r.selectMouseArea();
+  r.selectMouseArea(false);
   EXPECT_EQ(s.selection, (std::vector<int> {0, 1}));
 }
 
