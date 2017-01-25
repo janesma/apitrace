@@ -42,8 +42,9 @@
 
 #include "glframe_retrace.hpp"
 #include "glframe_retrace_stub.hpp"
-#include "glframe_os.hpp"
+#include "glframe_api_model.hpp"
 #include "glframe_bargraph.hpp"
+#include "glframe_os.hpp"
 #include "glframe_qselection.hpp"
 #include "glframe_shader_model.hpp"
 #include "glframe_metrics_model.hpp"
@@ -107,9 +108,8 @@ class FrameRetraceModel : public QObject,
              WRITE setStopAtRender)
   Q_PROPERTY(bool highlightRender READ highlightRender
              WRITE setHighlightRender)
-  Q_PROPERTY(QString apiCalls
-             READ apiCalls NOTIFY onApiCalls)
   Q_PROPERTY(glretrace::QRenderShadersList* shaders READ shaders CONSTANT)
+  Q_PROPERTY(glretrace::QApiModel* api READ api CONSTANT)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
@@ -166,6 +166,7 @@ class FrameRetraceModel : public QObject,
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
   QRenderShadersList *shaders() { return &m_shaders; }
+  QApiModel *api() { return &m_api; }
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
@@ -203,6 +204,7 @@ class FrameRetraceModel : public QObject,
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   QMetricsModel m_metrics_table;
+  QApiModel m_api;
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;
@@ -215,7 +217,6 @@ class FrameRetraceModel : public QObject,
   QString m_shader_compile_error;
   QString main_exe;  // for path to frame_retrace_server
 
-  QString m_api_calls;
   int m_open_percent;
 
   // thread-safe storage for member data updated from the retrace

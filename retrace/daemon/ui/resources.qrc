@@ -7,5 +7,6 @@
         <file>qml/RefreshControl.qml</file>
         <file>qml/images/retracer_icon.png</file>
         <file>qml/RenderShadersControl.qml</file>
+        <file>qml/ApiControl.qml</file>
     </qresource>
 </RCC>

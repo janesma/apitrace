@@ -82,7 +82,6 @@ FrameRetraceModel::~FrameRetraceModel() {
     delete m_state;
     m_state = NULL;
   }
-  m_api_calls.clear();
   m_retrace.Shutdown();
 }
 
@@ -470,30 +469,17 @@ FrameRetraceModel::refreshMetrics() {
   m_metrics_table.refresh();
 }
 
-QString
-FrameRetraceModel::apiCalls() {
-  ScopedLock s(m_protect);
-  return m_api_calls;
-}
-
 void
 FrameRetraceModel::onApi(SelectionId selectionCount,
                          RenderId renderId,
                          const std::vector<std::string> &api_calls) {
-  m_api_calls.clear();
-
   {
     ScopedLock s(m_protect);
     if (m_selection_count != selectionCount)
       // retrace is out of date
       return;
   }
-
-  // TODO(majanes): cache calls by render
-  for (auto i : api_calls) {
-    m_api_calls.append(QString::fromStdString(i));
-  }
-  emit onApiCalls();
+  m_api.onApi(selectionCount, renderId, api_calls);
 }
 
 void

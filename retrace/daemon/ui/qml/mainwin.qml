@@ -328,20 +328,11 @@ ApplicationWindow {
             }
             Tab {
                 title: "Api Calls"
-                id: apiTab
                 clip: true
-                ScrollView {
-                    Flickable {
-                        anchors.fill: parent
-                        contentWidth: api.width; contentHeight: api.height
-                        clip: true
-                        TextEdit {
-                            id: api
-                            readOnly: true
-                            selectByMouse: true
-                            text: frameRetrace.apiCalls
-                        }
-                    }
+                anchors.fill: parent
+                ApiControl {
+                    anchors.fill: parent
+                    apiModel: frameRetrace.api
                 }
             }
             Tab {
