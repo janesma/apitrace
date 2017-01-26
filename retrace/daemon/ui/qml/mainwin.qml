@@ -29,6 +29,16 @@ ApplicationWindow {
         }
     }
 
+    MessageDialog {
+        id: fileError
+        title: "FrameRetrace Error"
+        icon: StandardIcon.Warning
+        visible: false
+        onAccepted: {
+            visible = false
+        }
+    }
+
     Item {
         id: openfile
         anchors.fill:parent
@@ -200,9 +210,13 @@ ApplicationWindow {
             anchors.topMargin: 10
             text: "OK"
             onClicked: {
-                openfile.visible = false
-                progressBar.visible = true
-                frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text);
+                if (frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text)) {
+                    openfile.visible = false
+                    progressBar.visible = true
+                } else {
+                    fileError.text = "File not found:\n\t" + textInput.text;
+                    fileError.visible = true;
+                }
             }
             KeyNavigation.tab: cancelButton
             KeyNavigation.backtab: hostInput
