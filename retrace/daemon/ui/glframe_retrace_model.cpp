@@ -25,16 +25,15 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
-#include <qtextstream.h>
 #include "glframe_retrace_model.hpp"
 
-// this has to be first, yuck
-#include <QQuickImageProvider>   // NOLINT
-#include <QtConcurrentRun>   // NOLINT
+#include <QQuickImageProvider>
+#include <QtConcurrentRun>
+#include <QFileInfo>
 
-#include <sstream>  // NOLINT
-#include <string> // NOLINT
-#include <vector> // NOLINT
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace.hpp"
@@ -129,9 +128,15 @@ exec_retracer(const char *main_exe, int port) {
   glretrace::fork_execv(server_exe.c_str(), args);
 }
 
-void
+bool
 FrameRetraceModel::setFrame(const QString &filename, int framenumber,
                             const QString &host) {
+  QFileInfo check_file(filename);
+  if (!check_file.exists())
+    return false;
+  if (!check_file.isFile())
+    return false;
+
   // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
   future = QtConcurrent::run(frame_state_off_thread,
                              filename.toStdString(), framenumber);
@@ -171,6 +176,7 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
                                      m_cached_selection,
                                      &sel);
   m_retrace.retraceApi(sel, this);
+  return true;
 }
 
 QQmlListProperty<QRenderBookmark>
