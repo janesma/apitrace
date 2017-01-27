@@ -29,6 +29,7 @@
 
 #include <QApplication>
 #include <QClipboard>
+#include <math.h>
 
 #include <sstream>
 #include <string>
@@ -211,8 +212,8 @@ QMetricsModel::copy() {
       break;
     if (metric_count == *selection) {
       ss << m->name().toStdString() << "\t"
-         << m->value() << "\t"
-         << m->frameValue() << "\t"
+         << m->value_f() << "\t"
+         << m->frameValue_f() << "\t"
          << m->description().toStdString() << "\n";
       ++selection;
     }
@@ -224,3 +225,18 @@ QMetricsModel::copy() {
   clipboard->setText(q);
 }
 
+QString
+QMetricValue::value() const {
+  int precision = 4;
+  if (fabs(m_value - round(m_value)) < 0.00001)
+    precision = 0;
+  return QLocale(QLocale::English).toString(m_value, 'f', precision);
+}
+
+QString
+QMetricValue::frameValue() const {
+  int precision = 4;
+  if (fabs(m_frame_value - round(m_frame_value)) < 0.00001)
+    precision = 0;
+  return QLocale(QLocale::English).toString(m_frame_value, 'f', precision);
+}

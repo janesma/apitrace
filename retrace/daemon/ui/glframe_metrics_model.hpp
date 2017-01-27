@@ -48,8 +48,8 @@ class QMetricValue : public QObject,
   Q_OBJECT
   Q_PROPERTY(QString name READ name NOTIFY onName)
   Q_PROPERTY(QString description READ description NOTIFY onDescription)
-  Q_PROPERTY(float value READ value NOTIFY onValue)
-  Q_PROPERTY(float frameValue READ frameValue NOTIFY onFrameValue)
+  Q_PROPERTY(QString value READ value NOTIFY onValue)
+  Q_PROPERTY(QString frameValue READ frameValue NOTIFY onFrameValue)
 
  public:
   QMetricValue();
@@ -60,8 +60,10 @@ class QMetricValue : public QObject,
   void setFrameValue(float v);
   QString name() const { return m_name; }
   QString description() const { return m_description; }
-  float value() const { return m_value; }
-  float frameValue() const { return m_frame_value; }
+  QString value() const;
+  QString frameValue() const;
+  float value_f() const { return m_value; }
+  float frameValue_f() const { return m_frame_value; }
  signals:
   void onValue();
   void onFrameValue();
