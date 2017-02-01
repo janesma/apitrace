@@ -41,7 +41,6 @@
 #include "glframe_logger.hpp"
 #include "glframe_qutil.hpp"
 #include "glframe_socket.hpp"
-#include "md5.h"  // NOLINT
 
 using glretrace::DEBUG;
 using glretrace::ERR;
@@ -152,23 +151,12 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
   }
 
   m_retrace.Init(host.toStdString().c_str(), port);
-  struct MD5Context md5c;
-  MD5Init(&md5c);
-  std::vector<unsigned char> buf(1024 * 1024);
-  FILE * fh = fopen(filename.toStdString().c_str(), "r");
-  assert(fh);
-  size_t total_bytes = 0;
-  while (true) {
-    const size_t bytes = fread(buf.data(), 1, 1024 * 1024, fh);
-    total_bytes += bytes;
-    MD5Update(&md5c, buf.data(), bytes);
-    if (feof(fh))
-      break;
-    assert(!ferror(fh));
-  }
-  std::vector<unsigned char> md5(16);
-  MD5Final(md5.data(), &md5c);
-  m_retrace.openFile(filename.toStdString(), md5, total_bytes,
+
+  // let the stub calculate the md5 off-thread.  Doing it here
+  // conforms better to the interfaces, but blocks the UI.
+  std::vector<unsigned char> md5;
+
+  m_retrace.openFile(filename.toStdString(), md5, 0,
                      framenumber, this);
 
   RenderSelection sel;

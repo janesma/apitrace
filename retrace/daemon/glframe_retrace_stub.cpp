@@ -39,6 +39,7 @@
 #include "glframe_socket.hpp"
 #include "glframe_thread.hpp"
 #include "playback.pb.h" // NOLINT
+#include "md5.h"  // NOLINT
 
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
@@ -295,15 +296,38 @@ class RetraceOpenFileRequest: public IRetraceRequest {
                          uint64_t fileSize,
                          uint32_t frame,
                          OnFrameRetrace *cb)
-      : m_callback(cb) {
+      : m_filename(fn), m_callback(cb) {
     m_proto_msg.set_requesttype(ApiTrace::OPEN_FILE_REQUEST);
     auto file_open = m_proto_msg.mutable_fileopen();
     file_open->set_filename(fn);
-    file_open->set_md5sum(md5.data(), md5.size());
     file_open->set_filesize(fileSize);
     file_open->set_framenumber(frame);
+    // ignore md5 argument.  it will be calculated on the retrace thread.
   }
   virtual void retrace(RetraceSocket *s) {
+    // calculate md5 sum off-thread.  It takes a long time and will block the UI
+    {
+      struct MD5Context md5c;
+      MD5Init(&md5c);
+      std::vector<unsigned char> buf(1024 * 1024);
+      auto file_open = m_proto_msg.mutable_fileopen();
+      FILE * fh = fopen(file_open->filename().c_str(), "r");
+      assert(fh);
+      size_t total_bytes = 0;
+      while (true) {
+        const size_t bytes = fread(buf.data(), 1, 1024 * 1024, fh);
+        total_bytes += bytes;
+        MD5Update(&md5c, buf.data(), bytes);
+        if (feof(fh))
+          break;
+        assert(!ferror(fh));
+      }
+      std::vector<unsigned char> md5(16);
+      MD5Final(md5.data(), &md5c);
+      file_open->set_md5sum(md5.data(), md5.size());
+      file_open->set_filesize(total_bytes);
+    }
+
     s->request(m_proto_msg);
     while (true) {
       RetraceResponse response;
@@ -355,6 +379,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
   }
 
  private:
+  std::string m_filename;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
 };
