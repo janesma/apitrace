@@ -164,7 +164,7 @@ TEST(FrameRetrace, FileTransfer) {
   UploadSkel skel(server.Accept(), &frameretrace);
   skel.Start();
   std::vector<unsigned char> md5;
-  uint32_t fileSize;
+  uint32_t fileSize = 0;
 
   get_md5(test_file, &md5, &fileSize);
 
@@ -191,7 +191,7 @@ TEST(FrameRetrace, FileTransfer) {
   skel.noForce();
   // resend bogus path, and verify that upload is not requested (it is
   // in the cache)
-  stub.openFile(std::string("bogus_path"), md5,
+  stub.openFile(std::string(test_file), md5,
                 fileSize, 1, &cb);
   stub.Flush();
   EXPECT_FALSE(cb.m_needUpload);
