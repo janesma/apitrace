@@ -9,5 +9,5 @@ macro (Lint _FILE_LIST)
   string(REPLACE "/" "_" lint_target1 ${CMAKE_CURRENT_SOURCE_DIR}lint)
   string(REPLACE ":" "_" lint_target ${lint_target1})
   # create a target to run lint on source files
-  add_custom_target(${lint_target} ALL python ${PROJECT_SOURCE_DIR}/retrace/daemon/cpplint.py --output=emacs ${out_list})
+  add_custom_target(${lint_target} ALL python2 ${PROJECT_SOURCE_DIR}/retrace/daemon/cpplint.py --output=emacs ${out_list})
 endmacro(Lint)
