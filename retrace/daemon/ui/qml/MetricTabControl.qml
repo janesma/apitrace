@@ -23,11 +23,13 @@ Item {
                 role: "value"
                 title: "Selection"
                 width: 100
+                horizontalAlignment: Text.AlignRight
             }
             TableViewColumn {
                 role: "frameValue"
                 title: "Frame"
                 width: 100
+                horizontalAlignment: Text.AlignRight
             }
             TableViewColumn {
                 role: "description"

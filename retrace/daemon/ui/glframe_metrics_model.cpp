@@ -230,7 +230,7 @@ QMetricValue::value() const {
   int precision = 4;
   if (fabs(m_value - round(m_value)) < 0.00001)
     precision = 0;
-  return QLocale(QLocale::English).toString(m_value, 'f', precision);
+  return QLocale().toString(m_value, 'f', precision);
 }
 
 QString
@@ -238,5 +238,5 @@ QMetricValue::frameValue() const {
   int precision = 4;
   if (fabs(m_frame_value - round(m_frame_value)) < 0.00001)
     precision = 0;
-  return QLocale(QLocale::English).toString(m_frame_value, 'f', precision);
+  return QLocale().toString(m_frame_value, 'f', precision);
 }
