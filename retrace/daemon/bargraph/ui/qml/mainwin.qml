@@ -25,10 +25,10 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-import QtQuick 2.6
+import QtQuick 2.5
 import ApiTrace 1.0
-import QtQuick.Controls 1.5
-import QtQuick.Layouts 1.3
+import QtQuick.Controls 1.4
+import QtQuick.Layouts 1.2
 
 ApplicationWindow {
     width: 600
