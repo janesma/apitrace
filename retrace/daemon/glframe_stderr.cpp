@@ -38,11 +38,6 @@
 using glretrace::StdErrRedirect;
 
 StdErrRedirect::StdErrRedirect() {
-  pipe2(out_pipe, O_NONBLOCK);
-  fcntl(out_pipe[1], F_SETPIPE_SZ, 1048576);
-  dup2(out_pipe[1], STDERR_FILENO);
-  close(out_pipe[1]);
-  buf.resize(1024);
 }
 
 void
@@ -53,7 +48,7 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
       tess_control_ir, tess_control_ssa, tess_control_final, tess_control_simd8,
       geom_ir, geom_ssa, geom_final, geom_simd8,
       comp_ir, comp_ssa, comp_final, comp_simd8,
-      *current_target = NULL;
+      arb_vertex_shader, *current_target = NULL;
 
   int line_shader = -1;
 
@@ -227,8 +222,18 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
         current_target = &comp_simd8;
     }
 
+    if (matches <= 0) {
+      matches = sscanf(line.c_str(),
+                       "ARB_vertex_program %d ir for native vertex shader",
+                       &line_shader);
+      if (matches > 0)
+        current_target = &arb_vertex_shader;  // ignored
+    }
+
     if (current_target) {
       *current_target += line + "\n";
+    } else {
+      GRLOGF(glretrace::WARN, "%s", line.c_str());
     }
   }
 
@@ -302,4 +307,9 @@ void
 StdErrRedirect::init() {
   setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
   setenv("vblank_mode", "0", 1);
+  pipe2(out_pipe, O_NONBLOCK);
+  fcntl(out_pipe[1], F_SETPIPE_SZ, 1048576);
+  dup2(out_pipe[1], STDERR_FILENO);
+  close(out_pipe[1]);
+  buf.resize(1024);
 }
