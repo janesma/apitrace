@@ -6,6 +6,7 @@
         <file>qml/MetricTabControl.qml</file>
         <file>qml/RefreshControl.qml</file>
         <file>qml/images/retracer_icon.png</file>
+        <file>qml/images/no_render_target.png</file>
         <file>qml/RenderShadersControl.qml</file>
         <file>qml/ApiControl.qml</file>
     </qresource>

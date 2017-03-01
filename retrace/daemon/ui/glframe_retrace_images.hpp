@@ -48,7 +48,8 @@ class FrameImages : public QQuickImageProvider {
     m_rt.loadFromData(buf.data(), buf.size(), "PNG");
   }
  private:
-  FrameImages() : QQuickImageProvider(QQmlImageProviderBase::Image) {}
+  FrameImages() : QQuickImageProvider(QQmlImageProviderBase::Image),
+                  m_rt(":/qml/images/no_render_target.png") {}
   QImage m_rt;
   static FrameImages *m_instance;
 };
