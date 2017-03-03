@@ -49,6 +49,7 @@
 #include "glstate.hpp"
 #include "glstate_internal.hpp"
 #include "trace_dump.hpp"
+#include "glframe_gpu_speed.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
@@ -107,6 +108,7 @@ FrameRetrace::openFile(const std::string &filename,
                        uint64_t fileSize,
                        uint32_t framenumber,
                        OnFrameRetrace *callback) {
+  check_gpu_speed(callback);
   assemblyOutput.init();
   retrace::debug = 0;
   retracer.addCallbacks(glretrace::gl_callbacks);
