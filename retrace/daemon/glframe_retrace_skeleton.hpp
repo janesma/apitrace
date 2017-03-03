@@ -81,7 +81,7 @@ class FrameRetraceSkeleton : public Thread,
   virtual void onApi(SelectionId selectionCount,
                      RenderId renderid,
                      const std::vector<std::string> &api_calls);
-  virtual void onError(const std::string &message);
+  virtual void onError(ErrorSeverity s, const std::string &message);
 
  protected:
   bool m_force_upload;  // for unit test
@@ -91,6 +91,7 @@ class FrameRetraceSkeleton : public Thread,
   std::vector<unsigned char> m_buf;
   IFrameRetrace *m_frame;
   int m_remaining_metrics_requests;
+  bool m_fatal_error;
 
   // For aggregating metrics callbacks on a series of requests.
   // retraceMetrics is called several times, calling the onMetrics

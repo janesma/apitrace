@@ -40,7 +40,10 @@ ApplicationWindow {
         icon: StandardIcon.Warning
         visible: false
         onAccepted: {
-            visible = false
+            visible = false;
+            if (frameRetrace.errorSeverity == FrameRetrace.Fatal) {
+                Qt.quit();
+            }
         }
     }
 

@@ -52,6 +52,11 @@ enum RenderOptions {
   CLEAR_BEFORE_RENDER = 0x2,
 };
 
+enum ErrorSeverity {
+  RETRACE_WARN,
+  RETRACE_FATAL
+};
+
 // masked onto common integer Ids, to prevent any confusion between
 // integer identifiers.
 enum IdPrefix {
@@ -231,7 +236,7 @@ class OnFrameRetrace {
   virtual void onApi(SelectionId selectionCount,
                      RenderId renderId,
                      const std::vector<std::string> &api_calls) = 0;
-  virtual void onError(const std::string &message) = 0;
+  virtual void onError(ErrorSeverity s, const std::string &message) = 0;
 };
 
 class IFrameRetrace {

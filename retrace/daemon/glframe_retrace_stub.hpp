@@ -46,6 +46,7 @@ class FrameRetraceStub : public IFrameRetrace {
   // exit
   void Init(const char *host, int port);
   void Shutdown();
+  void Stop();
   void Flush();
 
   virtual void openFile(const std::string &filename,

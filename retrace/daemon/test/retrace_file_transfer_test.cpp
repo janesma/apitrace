@@ -37,6 +37,7 @@
 #include "glframe_socket.hpp"
 #include "retrace_test.hpp"
 
+using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
 using glretrace::FrameRetraceSkeleton;
 using glretrace::FrameRetraceSkeleton;
@@ -122,7 +123,7 @@ class FileTransferCB : public OnFrameRetrace {
   void onApi(SelectionId selectionCount,
              RenderId renderId,
              const std::vector<std::string> &api_calls) {}
-  void onError(const std::string &message) {}
+  void onError(ErrorSeverity s, const std::string &message) {}
   bool m_needUpload;
 };
 
