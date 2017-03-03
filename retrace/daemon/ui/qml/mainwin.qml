@@ -27,6 +27,11 @@ ApplicationWindow {
             progressBar.visible = false;
             mainUI.visible = true;
         }
+        onGeneralErrorChanged: {
+            fileError.text = frameRetrace.generalError;
+            fileError.detailedText = frameRetrace.generalErrorDetails;
+            fileError.visible = true;
+        }
     }
 
     MessageDialog {

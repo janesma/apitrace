@@ -346,6 +346,8 @@ class RetraceOpenFileRequest: public IRetraceRequest {
                                     status.percent_complete());
         if (status.finished())
           break;
+      } else if (response.has_error()) {
+        m_callback->onError(response.error().message());
       } else {
         assert(response.has_metricslist());
         std::vector<MetricId> ids;

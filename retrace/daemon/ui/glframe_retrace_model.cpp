@@ -479,6 +479,16 @@ FrameRetraceModel::onApi(SelectionId selectionCount,
 void
 FrameRetraceModel::onError(const std::string &message) {
   GRLOG(ERR, message.c_str());
+
+  // split on newline, to provide additional context behind the "show
+  // details" button.
+  QString m(message.c_str());
+  QStringList m_l = m.split("\n");
+  m_general_error = m_l[0];
+  m_general_error_details = "";
+  if (m_l.size() > 1)
+    m_general_error_details = m_l[1];
+  emit onGeneralError();
 }
 
 void

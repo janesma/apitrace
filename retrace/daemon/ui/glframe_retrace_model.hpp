@@ -115,6 +115,10 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
              NOTIFY onArgvZero)
   Q_PROPERTY(glretrace::QMetricsModel* metricTab READ metricTab CONSTANT)
+  Q_PROPERTY(QString generalError READ generalError
+             NOTIFY onGeneralError)
+  Q_PROPERTY(QString generalErrorDetails READ generalErrorDetails
+             NOTIFY onGeneralError)
 
  public:
   FrameRetraceModel();
@@ -171,6 +175,8 @@ class FrameRetraceModel : public QObject,
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
   QMetricsModel *metricTab() { return &m_metrics_table; }
+  QString generalError() { return m_general_error; }
+  QString generalErrorDetails() { return m_general_error_details; }
 
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
@@ -192,6 +198,7 @@ class FrameRetraceModel : public QObject,
   void onApiCalls();
   void onShaderCompileError();
   void onArgvZero();
+  void onGeneralError();
 
   // this signal transfers onMetricList to be handled in the UI
   // thread.  The handler generates QObjects which are passed to qml
@@ -227,6 +234,7 @@ class FrameRetraceModel : public QObject,
   std::vector<MetricId> m_active_metrics;
   float m_max_metric;
   bool m_clear_before_render, m_stop_at_render, m_highlight_render;
+  QString m_general_error, m_general_error_details;
 };
 
 }  // namespace glretrace
