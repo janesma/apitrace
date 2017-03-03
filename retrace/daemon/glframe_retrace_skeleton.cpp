@@ -76,9 +76,7 @@ writeResponse(Socket *s,
               const RetraceResponse &response,
               std::vector<unsigned char> *buf) {
   const uint32_t write_size = response.ByteSize();
-  // std::cout << "response: writing size: " << write_size << "\n";
   if (!s->Write(write_size)) {
-    std::cout << "no write: len\n";
     return;
   }
 
@@ -88,7 +86,6 @@ writeResponse(Socket *s,
   CodedOutputStream coded_out(&array_out);
   response.SerializeToCodedStream(&coded_out);
   if (!s->WriteVec(*buf)) {
-    std::cout << "no write: buf\n";
     return;
   }
 }
@@ -133,13 +130,10 @@ FrameRetraceSkeleton::Run() {
     // leading 4 bytes is the message length
     uint32_t msg_len;
     if (!m_socket->Read(&msg_len)) {
-      std::cout << "no read: len\n";
       return;
     }
-    // std::cout << "read len: " << msg_len << "\n";
     m_buf.resize(msg_len);
     if (!m_socket->ReadVec(&m_buf)) {
-      std::cout << "no read: buf\n";
       return;
     }
 

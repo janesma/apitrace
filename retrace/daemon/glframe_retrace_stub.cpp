@@ -71,22 +71,15 @@ class RetraceSocket {
   void request(const RetraceRequest &req) {
     // write message
     const uint32_t write_size = req.ByteSize();
-    // std::cout << "RetraceSocket: writing size: " << write_size << "\n";
     if (!m_sock.Write(write_size)) {
-      std::cout << "no write: len\n";
       return;
     }
     m_buf.clear();
     m_buf.resize(write_size);
-    // std::cout << "array\n";
     ArrayOutputStream array_out(m_buf.data(), write_size);
-    // std::cout << "coded\n";
     CodedOutputStream coded_out(&array_out);
-    // std::cout << "serial\n";
     req.SerializeToCodedStream(&coded_out);
-    // std::cout << "RetraceSocket: writing request\n";
     if (!m_sock.WriteVec(m_buf)) {
-      std::cout << "no write: buf\n";
       return;
     }
   }
@@ -94,10 +87,8 @@ class RetraceSocket {
     // read response
     uint32_t read_size;
     if (!m_sock.Read(&read_size)) {
-      std::cout << "no read: len\n";
       return;
     }
-    // std::cout << "RetraceSocket: read size: " << read_size << "\n";
     m_buf.clear();
     m_buf.resize(read_size);
     m_sock.ReadVec(&m_buf);
@@ -115,9 +106,7 @@ class RetraceSocket {
 
   void write(const std::vector<unsigned char> &buf) {
     const uint32_t write_size = buf.size();
-    // std::cout << "RetraceSocket: writing size: " << write_size << "\n";
     if (!m_sock.Write(write_size)) {
-      std::cout << "no write: len\n";
       return;
     }
     m_sock.WriteVec(buf);
