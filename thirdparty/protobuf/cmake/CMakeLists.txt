@@ -165,7 +165,8 @@ if (protobuf_BUILD_TESTS)
   include(tests.cmake)
 endif (protobuf_BUILD_TESTS)
 
-include(install.cmake)
+# do not install protobuf libraries: FrameRetrace links against them statically
+# include(install.cmake)
 
 if (protobuf_BUILD_EXAMPLES)
   include(examples.cmake)

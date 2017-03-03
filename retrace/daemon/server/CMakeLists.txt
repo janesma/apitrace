@@ -34,6 +34,8 @@ target_link_libraries(frame_retrace_server
   ${THREAD_LIB}
 )
 
+install (TARGETS frame_retrace_server RUNTIME DESTINATION bin) 
+
 if (NOT WIN32)
   Lint(SERVER_SRC)
 endif()
