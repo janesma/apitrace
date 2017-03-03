@@ -60,6 +60,6 @@ glretrace::check_gpu_speed(OnFrameRetrace *callback) {
       "To stabilize metrics, execute as root:" <<
       "  `cat /sys/class/drm/card0/gt_max_freq_mhz > " <<
       "/sys/class/drm/card0/gt_min_freq_mhz`";
-  callback->onError(msg.str());
+  callback->onError(RETRACE_WARN, msg.str());
 }
 

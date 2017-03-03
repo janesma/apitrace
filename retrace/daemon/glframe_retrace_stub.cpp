@@ -44,6 +44,7 @@
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
 using glretrace::RenderSelection;
+using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
 using glretrace::SelectionId;
 using glretrace::FrameRetraceStub;
@@ -53,6 +54,8 @@ using glretrace::OnFrameRetrace;
 using glretrace::RenderId;
 using glretrace::RenderOptions;
 using glretrace::RenderTargetType;
+using glretrace::RETRACE_FATAL;
+using glretrace::RETRACE_WARN;
 using glretrace::ScopedLock;
 using glretrace::Semaphore;
 using glretrace::ShaderAssembly;
@@ -173,7 +176,8 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
     RetraceResponse response;
     s->retrace(m_proto_msg, &response);
     if (response.has_error()) {
-      m_callback->onError(response.error().message());
+      m_callback->onError(ErrorSeverity(response.error().severity()),
+                          response.error().message());
       return;
     }
     assert(response.has_rendertarget());
@@ -284,8 +288,9 @@ class RetraceOpenFileRequest: public IRetraceRequest {
                          const std::vector<unsigned char> &md5,
                          uint64_t fileSize,
                          uint32_t frame,
-                         OnFrameRetrace *cb)
-      : m_filename(fn), m_callback(cb) {
+                         OnFrameRetrace *cb,
+                         FrameRetraceStub *stub)
+      : m_filename(fn), m_callback(cb), m_stub(stub) {
     m_proto_msg.set_requesttype(ApiTrace::OPEN_FILE_REQUEST);
     auto file_open = m_proto_msg.mutable_fileopen();
     file_open->set_filename(fn);
@@ -347,9 +352,16 @@ class RetraceOpenFileRequest: public IRetraceRequest {
         if (status.finished())
           break;
       } else if (response.has_error()) {
-        m_callback->onError(response.error().message());
-      } else {
-        assert(response.has_metricslist());
+        m_callback->onError(ErrorSeverity(response.error().severity()),
+                            response.error().message());
+        if (response.error().severity() == RETRACE_FATAL) {
+          // typically this means that the frame number is invalid.
+          // Future request/response pairs should not be written or
+          // read by the stub, because they will crash or hang.
+          m_stub->Stop();
+          return;
+        }
+      } else if (response.has_metricslist()) {
         std::vector<MetricId> ids;
         std::vector<std::string> names;
         std::vector<std::string> descriptions;
@@ -373,6 +385,9 @@ class RetraceOpenFileRequest: public IRetraceRequest {
   std::string m_filename;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
+  // needed to allow the command object to stop processing messages
+  // from the stub's queue
+  FrameRetraceStub *m_stub;
 };
 
 class RetraceMetricsRequest : public IRetraceRequest {
@@ -442,7 +457,8 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
     RetraceResponse response;
     s->retrace(m_proto_msg, &response);
     if (response.has_error()) {
-      m_callback->onError(response.error().message());
+      m_callback->onError(ErrorSeverity(response.error().severity()),
+                          response.error().message());
       return;
     }
     assert(response.has_metricsdata());
@@ -629,6 +645,7 @@ class ThreadedRetrace : public Thread {
     m_queue.push(new NullRequest());
     Join();
   }
+  void drop_requests() { m_running = false; }
   virtual void Run() {
     while (m_running) {
       IRetraceRequest *r = m_queue.pop();
@@ -661,13 +678,18 @@ FrameRetraceStub::Shutdown() {
 }
 
 void
+FrameRetraceStub::Stop() {
+  m_thread->drop_requests();
+}
+
+void
 FrameRetraceStub::openFile(const std::string &filename,
                            const std::vector<unsigned char> &md5,
                            uint64_t fileSize,
                            uint32_t frameNumber,
                            OnFrameRetrace *callback) {
   m_thread->push(new RetraceOpenFileRequest(filename, md5, fileSize,
-                                            frameNumber, callback));
+                                            frameNumber, callback, this));
 }
 
 void

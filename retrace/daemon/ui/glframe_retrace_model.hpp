@@ -119,6 +119,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onGeneralError)
   Q_PROPERTY(QString generalErrorDetails READ generalErrorDetails
              NOTIFY onGeneralError)
+  Q_PROPERTY(Severity errorSeverity READ errorSeverity
+             NOTIFY onGeneralError)
 
  public:
   FrameRetraceModel();
@@ -163,7 +165,7 @@ class FrameRetraceModel : public QObject,
   void onApi(SelectionId selectionCount,
              RenderId renderId,
              const std::vector<std::string> &api_calls);
-  void onError(const std::string &message);
+  void onError(ErrorSeverity s, const std::string &message);
   void onShadersChanged();
   QString renderTargetImage() const;
   int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
@@ -184,6 +186,12 @@ class FrameRetraceModel : public QObject,
   void setStopAtRender(bool v);
   bool highlightRender() const;
   void setHighlightRender(bool v);
+  enum Severity {
+        Warning,
+        Fatal
+    };
+  Q_ENUM(Severity);
+  Severity errorSeverity() const { return m_severity; }
  public slots:
   void onUpdateMetricList();
   void onSelect(QList<int> selection);
@@ -235,6 +243,7 @@ class FrameRetraceModel : public QObject,
   float m_max_metric;
   bool m_clear_before_render, m_stop_at_render, m_highlight_render;
   QString m_general_error, m_general_error_details;
+  Severity m_severity;
 };
 
 }  // namespace glretrace

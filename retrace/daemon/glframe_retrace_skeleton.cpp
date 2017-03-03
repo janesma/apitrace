@@ -42,6 +42,7 @@
 
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
+using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
 using glretrace::FrameRetraceSkeleton;
@@ -66,6 +67,7 @@ FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock,
       m_force_upload(false),
       m_socket(sock),
       m_frame(frameretrace),
+      m_fatal_error(false),
       m_multi_metrics_response(new RetraceResponse) {
   if (!m_frame)
     m_frame = new FrameRetrace();
@@ -136,6 +138,11 @@ FrameRetraceSkeleton::Run() {
     if (!m_socket->ReadVec(&m_buf)) {
       return;
     }
+
+    if (m_fatal_error)
+      // after fatal error is encountered, do not process subsequent
+      // requests.
+      continue;
 
     const size_t buf_size = m_buf.size();
     ArrayInputStream array_in(m_buf.data(), buf_size);
@@ -409,9 +416,12 @@ FrameRetraceSkeleton::onApi(SelectionId selectionCount,
 }
 
 void
-FrameRetraceSkeleton::onError(const std::string &message) {
+FrameRetraceSkeleton::onError(ErrorSeverity s, const std::string &message) {
   RetraceResponse proto_response;
   auto error = proto_response.mutable_error();
+  error->set_severity(s);
   error->set_message(message);
   writeResponse(m_socket, proto_response, &m_buf);
+  if (s == RETRACE_FATAL)
+    m_fatal_error = true;
 }

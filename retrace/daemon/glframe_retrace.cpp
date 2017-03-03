@@ -146,6 +146,14 @@ FrameRetrace::openFile(const std::string &filename,
     }
   }
 
+  if (current_frame < framenumber) {
+    std::stringstream msg;
+    msg << "Trace contains " << current_frame <<
+        " frames.  Please choose an earlier frame for analysis.";
+    callback->onError(RETRACE_FATAL, msg.str());
+    return;
+  }
+
   m_metrics = new PerfMetrics(callback);
   parser->getBookmark(frame_start.start);
   int current_render_buffer = currentRenderBuffer();
@@ -236,7 +244,7 @@ FrameRetrace::retraceRenderTarget(ExperimentId experimentCount,
     GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
            current_render_id());
     if (callback)
-      callback->onError("Failed to obtain draw buffer image");
+      callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
   } else {
     std::stringstream png;
     i->writePNG(png);

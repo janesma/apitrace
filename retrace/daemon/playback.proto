@@ -146,7 +146,8 @@ message ApiResponse {
 }
 
 message ErrorResponse {
-  required string message = 1;
+  required uint32 severity = 1;
+  required string message = 2;
 }
 
 message RetraceRequest {

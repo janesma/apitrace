@@ -73,7 +73,7 @@ class MetricsCallback : public OnFrameRetrace {
   void onApi(SelectionId selectionCount,
              RenderId renderId,
              const std::vector<std::string> &api_calls) {}
-  void onError(const std::string &message) {}
+  void onError(ErrorSeverity s, const std::string &message) {}
   std::vector<MetricId> ids;
   std::vector<std::string> names;
   std::vector<MetricSeries> data;

@@ -44,6 +44,7 @@
 
 using glretrace::DEBUG;
 using glretrace::ERR;
+using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
 using glretrace::FrameRetraceModel;
 using glretrace::FrameState;
@@ -66,7 +67,8 @@ FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_max_metric(0),
                                          m_clear_before_render(false),
                                          m_stop_at_render(false),
-                                         m_highlight_render(false) {
+                                         m_highlight_render(false),
+                                         m_severity(Warning) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
   filterMetrics("");
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
@@ -477,7 +479,7 @@ FrameRetraceModel::onApi(SelectionId selectionCount,
 }
 
 void
-FrameRetraceModel::onError(const std::string &message) {
+FrameRetraceModel::onError(ErrorSeverity s, const std::string &message) {
   GRLOG(ERR, message.c_str());
 
   // split on newline, to provide additional context behind the "show
@@ -488,6 +490,15 @@ FrameRetraceModel::onError(const std::string &message) {
   m_general_error_details = "";
   if (m_l.size() > 1)
     m_general_error_details = m_l[1];
+  // qml will check severity and quit if necessary
+  switch (s) {
+    case RETRACE_WARN:
+      m_severity = Warning;
+      break;
+    case RETRACE_FATAL:
+      m_severity = Fatal;
+      break;
+  }
   emit onGeneralError();
 }
 

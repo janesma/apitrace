@@ -38,6 +38,7 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
 
+using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
 using glretrace::GlFunctions;
@@ -94,7 +95,7 @@ class NullCallback : public OnFrameRetrace {
     last_selection = selectionCount;
     calls[renderId] = api_calls;
   }
-  void onError(const std::string &message) {}
+  void onError(ErrorSeverity s, const std::string &message) {}
   int renderTargetCount;
   SelectionId last_selection;
   std::string compile_error;
