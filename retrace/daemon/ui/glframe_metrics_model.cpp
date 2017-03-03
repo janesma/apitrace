@@ -51,7 +51,8 @@ QMetricValue::QMetricValue() : m_name(""), m_frame_value(0), m_value(0) {
   assert(false);
 }
 
-QMetricValue::QMetricValue(QObject *p) {
+QMetricValue::QMetricValue(QObject *p)
+    : m_name(""), m_frame_value(0), m_value(0) {
   moveToThread(p->thread());
 }
 
