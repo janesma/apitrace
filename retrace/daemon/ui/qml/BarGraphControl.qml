@@ -69,62 +69,11 @@ Item {
         anchors.fill: parent
         anchors.topMargin: 20
         Item {
-            Layout.alignment: Qt.AlignTop
-            Layout.preferredHeight: 40
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            id: comboBoxes
-            Text {
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                id: vertLabel
-                text: "Vertical Metric: "
-            }
-            ComboBox {
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.left: vertLabel.right
-                anchors.leftMargin: 5
-                width: (parent.width / 2) - vertLabel.width - 15
-                id: vertMetric
-                model: vert_metrics
-                onCurrentIndexChanged : {
-                    vert_metric = model[currentIndex]
-                    var currentId = metricId(vert_metric);
-                    if (currentId)
-                        metric_model.setMetric(0, currentId);
-                }
-            }
-            Text {
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.left: vertMetric.right
-                anchors.leftMargin: 10
-                id: horizLabel
-                text: "Horizontal Metric: "
-            }
-            ComboBox {
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.left: horizLabel.right
-                anchors.leftMargin: 5
-                width: (parent.width / 2) - horizLabel.width - 5
-                model: horiz_metrics
-                onCurrentIndexChanged : {
-                    horiz_metric = model[currentIndex]
-                    var currentId = metricId(horiz_metric);
-                    if (currentId)
-                        metric_model.setMetric(1, currentId);
-                }
-            }
-        }
-        Item {
+            id: bargraph_item
             Layout.alignment: Qt.AlignTop
             Layout.preferredHeight: 500
             Layout.fillWidth: true
             Layout.fillHeight: true
-            anchors.top: comboBoxes.bottom
             anchors.topMargin: 10
             anchors.bottomMargin: 10
 
@@ -283,6 +232,58 @@ Item {
                         }
                         anchors { fill: parent; }
                     }
+                }
+            }
+        }
+        Item {
+            Layout.alignment: Qt.AlignTop
+            Layout.preferredHeight: 40
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            anchors.top: bargraph_item.bottom
+            id: comboBoxes
+            Text {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                id: vertLabel
+                text: "Vertical Metric: "
+            }
+            ComboBox {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: vertLabel.right
+                anchors.leftMargin: 5
+                width: (parent.width / 2) - vertLabel.width - 15
+                id: vertMetric
+                model: vert_metrics
+                onCurrentIndexChanged : {
+                    vert_metric = model[currentIndex]
+                    var currentId = metricId(vert_metric);
+                    if (currentId)
+                        metric_model.setMetric(0, currentId);
+                }
+            }
+            Text {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: vertMetric.right
+                anchors.leftMargin: 10
+                id: horizLabel
+                text: "Horizontal Metric: "
+            }
+            ComboBox {
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: horizLabel.right
+                anchors.leftMargin: 5
+                width: (parent.width / 2) - horizLabel.width - 5
+                model: horiz_metrics
+                onCurrentIndexChanged : {
+                    horiz_metric = model[currentIndex]
+                    var currentId = metricId(horiz_metric);
+                    if (currentId)
+                        metric_model.setMetric(1, currentId);
                 }
             }
         }
