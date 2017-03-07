@@ -1,4 +1,4 @@
-
+INCLUDE (FindPkgConfig)
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
@@ -34,6 +34,7 @@ set (DAEMON_TEST_OS_LIBS
   Ws2_32
   )
 else()
+pkg_check_modules(Waffle REQUIRED waffle-1)
 set (DAEMON_TEST_OS_LIBS
   retrace_ui_test_utilities
   waffle-1
