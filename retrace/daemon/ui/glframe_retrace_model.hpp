@@ -100,7 +100,7 @@ class FrameRetraceModel : public QObject,
              READ selection WRITE setSelection);
   Q_PROPERTY(QString renderTargetImage READ renderTargetImage
              NOTIFY onRenderTarget)
-  Q_PROPERTY(int openPercent READ openPercent NOTIFY onOpenPercent)
+  Q_PROPERTY(int frameCount READ frameCount NOTIFY onFrameCount)
   Q_PROPERTY(float maxMetric READ maxMetric NOTIFY onMaxMetric)
   Q_PROPERTY(bool clearBeforeRender READ clearBeforeRender
              WRITE setClearBeforeRender)
@@ -140,7 +140,7 @@ class FrameRetraceModel : public QObject,
   void setSelection(QSelection *s);
 
   void onFileOpening(bool needUpload, bool finished,
-                     uint32_t percent_complete);
+                     uint32_t frame_count);
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
                         const ShaderAssembly &vertex,
@@ -168,7 +168,7 @@ class FrameRetraceModel : public QObject,
   void onError(ErrorSeverity s, const std::string &message);
   void onShadersChanged();
   QString renderTargetImage() const;
-  int openPercent() const { ScopedLock s(m_protect); return m_open_percent; }
+  int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
   QRenderShadersList *shaders() { return &m_shaders; }
@@ -201,7 +201,7 @@ class FrameRetraceModel : public QObject,
   void onQMetricData(QList<glretrace::BarMetrics> metrics);
   void onRenders();
   void onRenderTarget();
-  void onOpenPercent();
+  void onFrameCount();
   void onMaxMetric();
   void onApiCalls();
   void onShaderCompileError();
@@ -232,7 +232,7 @@ class FrameRetraceModel : public QObject,
   QString m_shader_compile_error;
   QString main_exe;  // for path to frame_retrace_server
 
-  int m_open_percent;
+  int m_target_frame_number, m_open_percent, m_frame_count;
 
   // thread-safe storage for member data updated from the retrace
   // socket thread.

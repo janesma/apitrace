@@ -19,9 +19,9 @@ ApplicationWindow {
         id : frameRetrace
         selection: selection
         argvZero: Qt.application.arguments[0]
-        onOpenPercentChanged: {
-            if (openPercent < 100) {
-                progressBar.percentComplete = openPercent;
+        onFrameCountChanged: {
+            if (frameCount < progressBar.targetFrame) {
+                progressBar.frameCount = frameCount;
                 return;
             }
             progressBar.visible = false;
@@ -219,8 +219,9 @@ ApplicationWindow {
             text: "OK"
             onClicked: {
                 if (frameRetrace.setFrame(textInput.text, frameInput.text, hostInput.text)) {
-                    openfile.visible = false
-                    progressBar.visible = true
+                    openfile.visible = false;
+                    progressBar.visible = true;
+                    progressBar.targetFrame = parseInt(frameInput.text, 10);
                 } else {
                     fileError.text = "File not found:\n\t" + textInput.text;
                     fileError.visible = true;
@@ -253,9 +254,10 @@ ApplicationWindow {
         id: progressBar
         visible: false
         anchors.fill: parent
-        property int percentComplete
-        onPercentCompleteChanged: {
-            blueBar.width = percentComplete / 100 * progressBackground.width
+        property int frameCount
+        property int targetFrame
+        onFrameCountChanged: {
+            blueBar.width = frameCount / targetFrame * progressBackground.width
         }
         Rectangle {
             id: progressBackground
@@ -272,6 +274,11 @@ ApplicationWindow {
             width: 0
             height: 20
             z:1
+        }
+        Text {
+            anchors.left: progressBackground.left
+            anchors.top: progressBackground.bottom
+            text: "Playing frame: " + progressBar.frameCount.toString()
         }
     }
     ColumnLayout {

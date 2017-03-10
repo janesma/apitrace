@@ -64,6 +64,7 @@ FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_selection(NULL),
                                          m_selection_count(0),
                                          m_open_percent(0),
+                                         m_frame_count(0),
                                          m_max_metric(0),
                                          m_clear_before_render(false),
                                          m_stop_at_render(false),
@@ -158,6 +159,7 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
   // conforms better to the interfaces, but blocks the UI.
   std::vector<unsigned char> md5;
 
+  m_target_frame_number = framenumber;
   m_retrace.openFile(filename.toStdString(), md5, 0,
                      framenumber, this);
 
@@ -279,16 +281,15 @@ FrameRetraceModel::retrace_api() {
 void
 FrameRetraceModel::onFileOpening(bool needUpload,
                                  bool finished,
-                                 uint32_t percent_complete) {
+                                 uint32_t frame_count) {
   ScopedLock s(m_protect);
   if (finished) {
+    m_open_percent = 101;
     const int rcount = m_state->getRenderCount();
     for (int i = 0; i < rcount; ++i) {
       m_renders_model.append(new QRenderBookmark(i));
     }
     emit onRenders();
-
-    m_open_percent = 101;
 
     // trace initial metrics (GPU Time Elapsed, if available)
     std::vector<MetricId> t_metrics(1);
@@ -296,10 +297,13 @@ FrameRetraceModel::onFileOpening(bool needUpload,
     m_retrace.retraceMetrics(t_metrics, ExperimentId(0),
                              this);
   }
-  if (m_open_percent == percent_complete)
+  int percent = frame_count * 100 / m_target_frame_number;
+  if (m_open_percent == percent)
+    // do not update the progress bar
     return;
-  m_open_percent = percent_complete;
-  emit onOpenPercent();
+  m_open_percent = percent;
+  m_frame_count = frame_count;
+  emit onFrameCount();
 }
 
 void

@@ -64,7 +64,7 @@ class FrameRetraceSkeleton : public Thread,
                                 const ShaderAssembly &comp_shader);
   virtual void onFileOpening(bool needs_upload,
                              bool finished,
-                             uint32_t percent_complete);
+                             uint32_t frame_count);
   virtual void onRenderTarget(SelectionId selectionCount,
                               ExperimentId experimentCount,
                               const uvec & pngImageData);

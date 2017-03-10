@@ -93,7 +93,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
             int render_count);
   void onFileOpening(bool needUpload,
                      bool finished,
-                     uint32_t percent_complete) { assert(false); }
+                     uint32_t frame_count) { assert(false); }
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
                         const ShaderAssembly &vertex,
