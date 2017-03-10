@@ -94,6 +94,8 @@ ApplicationWindow {
                 flickableDirection: Flickable.HorizontalFlick
                 clip: true
                 TextInput {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 4
                     anchors.verticalCenter: parent.verticalCenter
                     verticalAlignment: Text.AlignVCenter
                     height: textBox.height
@@ -169,6 +171,8 @@ ApplicationWindow {
             TextInput {
                 height: textHeight.height
                 anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                anchors.leftMargin: 4
                 verticalAlignment: Text.AlignVCenter
                 activeFocusOnPress : true
                 width: parent.width
@@ -203,6 +207,8 @@ ApplicationWindow {
             TextInput {
                 height: textHeight.height
                 anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                anchors.leftMargin: 4
                 verticalAlignment: Text.AlignVCenter
                 activeFocusOnPress : true
                 width: parent.width

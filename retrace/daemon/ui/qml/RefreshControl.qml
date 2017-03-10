@@ -17,6 +17,7 @@ Item {
         Text {
             anchors.left: parent.left
             anchors.top: parent.top
+            anchors.topMargin: 5
             id: filterText
             text: "Metrics Filter:"
         }
@@ -29,7 +30,11 @@ Item {
             width: metricsItem.width/2
             id: textRect
             TextInput {
-                anchors.fill: parent
+                height: filterText.height
+                width: parent.width
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 4
                 id: metricFilter
                 text: ""
                 onDisplayTextChanged: {
