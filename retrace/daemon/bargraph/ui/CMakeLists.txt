@@ -42,8 +42,6 @@ add_executable(bargraph
   ${RESOURCE_ADDED_BG} 
 )
 
-qt5_use_modules(bargraph Core Gui Concurrent Quick) 
-
 if (WIN32)
 set (GL_LIB opengl32)
 set (DL_LIB "")
@@ -55,6 +53,7 @@ endif ()
 target_link_libraries(bargraph
   retrace_bargraph
   retrace_gldispatch
+  Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Quick
   ${GL_LIB}
   ${X11_X11_LIB}
   ${DL_LIB}

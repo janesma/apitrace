@@ -30,6 +30,7 @@ find_package(Qt5Gui REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Quick REQUIRED)
 find_package(Qt5Widgets REQUIRED) 
+find_package(Qt5Concurrent REQUIRED) 
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -50,7 +51,9 @@ add_library(retrace_bargraph STATIC
   ${BARGRAPH_SOURCES}
   )
 
-qt5_use_modules(retrace_bargraph Core Gui OpenGL Concurrent Quick) 
+target_link_libraries(retrace_bargraph
+  Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Concurrent Qt5::Quick
+  )
 
 if (NOT WIN32)
     add_subdirectory(test)
