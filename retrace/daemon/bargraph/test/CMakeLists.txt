@@ -37,11 +37,10 @@ target_link_libraries(retrace_bargraph_test
   libprotobuf
   gtest
   waffle-1
+  Qt5::Core
   GL
   dl
   )
-
-qt5_use_modules(retrace_bargraph_test Core) 
 
 add_test (NAME bargraph_test COMMAND $<TARGET_FILE:retrace_bargraph_test>)
 
