@@ -304,12 +304,12 @@ FrameRetraceSkeleton::Run() {
 void
 FrameRetraceSkeleton::onFileOpening(bool needUpload,
                                     bool finished,
-                                    uint32_t percent_complete) {
+                                    uint32_t frame_count) {
   RetraceResponse proto_response;
   auto status = proto_response.mutable_filestatus();
   status->set_needs_upload(needUpload);
   status->set_finished(finished);
-  status->set_percent_complete(percent_complete);
+  status->set_frame_count(frame_count);
   writeResponse(m_socket, proto_response, &m_buf);
 }
 

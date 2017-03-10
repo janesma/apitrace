@@ -63,7 +63,7 @@ class FileTransfer : public IFrameRetrace {
                 uint64_t fileSize,
                 uint32_t frameNumber,
                 OnFrameRetrace *callback) {
-    callback->onFileOpening(false, true, 101);
+    callback->onFileOpening(false, true, frameNumber + 1);
   }
   void retraceRenderTarget(ExperimentId experimentCount,
                            const RenderSelection &selection,
@@ -96,7 +96,7 @@ class FileTransferCB : public OnFrameRetrace {
   FileTransferCB() : m_needUpload(false) {}
   void onFileOpening(bool needUpload,
                      bool finished,
-                     uint32_t percent_complete) {
+                     uint32_t frame_count) {
     m_needUpload |= needUpload;
   }
   void onShaderAssembly(RenderId renderId,

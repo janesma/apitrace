@@ -42,7 +42,7 @@ class MetricsCallback : public OnFrameRetrace {
  public:
   void onFileOpening(bool needUpload,
                      bool finished,
-                     uint32_t percent_complete) {}
+                     uint32_t frame_count) {}
   void onShaderAssembly(RenderId renderId,
                         SelectionId sc,
                         const ShaderAssembly &vertex,

@@ -26,7 +26,7 @@ message OpenFileRequest {
 message OpenFileStatus {
   required bool needs_upload = 1;
   required bool finished = 2;
-  required uint32 percent_complete = 3;
+  required uint32 frame_count = 3;
 }
 
 message MetricsList {

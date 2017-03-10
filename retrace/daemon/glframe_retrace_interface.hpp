@@ -211,7 +211,7 @@ class OnFrameRetrace {
   typedef std::vector<unsigned char> uvec;
   virtual void onFileOpening(bool needUpload,
                              bool finished,
-                             uint32_t percent_complete) = 0;
+                             uint32_t frame_count) = 0;
   virtual void onShaderAssembly(RenderId renderId,
                                 SelectionId selectionCount,
                                 const ShaderAssembly &vertex,
