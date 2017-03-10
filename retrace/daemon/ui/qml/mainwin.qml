@@ -109,6 +109,9 @@ ApplicationWindow {
                     }
                     KeyNavigation.tab: file_rect
                     KeyNavigation.backtab: cancelButton
+                    Keys.onReturnPressed: {
+                        okButton.clicked()
+                    }
                 }
             }
         }
@@ -178,6 +181,9 @@ ApplicationWindow {
                 }
                 KeyNavigation.tab: hostInput
                 KeyNavigation.backtab: file_rect
+                Keys.onReturnPressed: {
+                    okButton.clicked()
+                }
             }
         }
         Text {
@@ -209,6 +215,9 @@ ApplicationWindow {
                 }
                 KeyNavigation.tab: okButton
                 KeyNavigation.backtab: frameInput
+                Keys.onReturnPressed: {
+                    okButton.clicked()
+                }
             }
         }
         Button {
