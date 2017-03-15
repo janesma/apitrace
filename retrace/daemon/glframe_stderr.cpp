@@ -300,7 +300,7 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
 }
 
 StdErrRedirect::~StdErrRedirect() {
-  close(out_pipe[2]);
+  close(out_pipe[0]);
 }
 
 void
