@@ -46,7 +46,7 @@ class StdErrRedirect : public OutputPoller {
 class NoRedirect : public OutputPoller {
  public:
   NoRedirect() {}
-  void poll(int current_program, StateTrack *cb) {}
+  void poll(int, StateTrack *) {}
   ~NoRedirect() {}
   void init() {}
 };
