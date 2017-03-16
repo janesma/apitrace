@@ -38,6 +38,7 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
+#include "glframe_perf_enabled.hpp"
 #include "glframe_retrace_render.hpp"
 #include "glframe_stderr.hpp"
 #include "glretrace.hpp"
@@ -109,6 +110,16 @@ FrameRetrace::openFile(const std::string &filename,
                        uint32_t framenumber,
                        OnFrameRetrace *callback) {
   check_gpu_speed(callback);
+
+  if (perf_enabled() == false) {
+    std::stringstream msg;
+    msg << "Performance counters not enabled.\n"
+        "To enable counters, execute as root: "
+        "`/sbin/sysctl dev.i915.perf_stream_paranoid=0`";
+    callback->onError(RETRACE_FATAL, msg.str());
+    return;
+  }
+
   assemblyOutput.init();
   retrace::debug = 0;
   retracer.addCallbacks(glretrace::gl_callbacks);

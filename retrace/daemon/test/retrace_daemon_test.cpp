@@ -95,12 +95,15 @@ class NullCallback : public OnFrameRetrace {
     last_selection = selectionCount;
     calls[renderId] = api_calls;
   }
-  void onError(ErrorSeverity s, const std::string &message) {}
+  void onError(ErrorSeverity s, const std::string &message) {
+    file_error = true;
+  }
   int renderTargetCount;
   SelectionId last_selection;
   std::string compile_error;
   std::vector<std::string> fs;
   std::map<RenderId, std::vector<std::string>> calls;
+  bool file_error;
 };
 
 void
@@ -134,6 +137,8 @@ TEST_F(RetraceTest, LoadFile) {
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
+  if (cb.file_error)
+    return;
   int renderCount = rt.getRenderCount();
   EXPECT_EQ(renderCount, 2);  // 1 for clear, 1 for draw
   cb.renderTargetCount = 0;
@@ -164,6 +169,8 @@ TEST_F(RetraceTest, ReplaceShaders) {
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
+  if (cb.file_error)
+    return;
   rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "",
                     "", "", "", &cb);
   EXPECT_GT(cb.compile_error.size(), 0);
@@ -188,6 +195,8 @@ TEST_F(RetraceTest, ApiCalls) {
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
+  if (cb.file_error)
+    return;
   RenderSelection sel;
   sel.id = SelectionId(5);
 
@@ -228,6 +237,8 @@ TEST_F(RetraceTest, ShaderAssembly) {
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, &cb);
+  if (cb.file_error)
+    return;
   RenderSelection selection;
   std::string expected("uniform sampler2D texUnit;\n"
                        "varying vec2 v_TexCoordinate;\nvoid main(void) {\n"
