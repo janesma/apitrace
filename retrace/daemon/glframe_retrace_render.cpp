@@ -57,6 +57,20 @@ static const std::string simple_fs =
     "  gl_FragColor = vec4(1,0,1,1);\n"
     "}";
 
+bool
+RetraceRender::isRender(const trace::Call &call) {
+  return (call.flags & trace::CALL_FLAG_RENDER) ||
+      (strcmp("glDispatchCompute", call.name()) == 0) ||
+      (strcmp("glDispatchComputeIndirect",
+              call.name()) == 0);
+}
+
+bool
+isCompute(const trace::Call &call) {
+  return (RetraceRender::isRender(call) &&
+          (!(call.flags & trace::CALL_FLAG_RENDER)));
+}
+
 RetraceRender::RetraceRender(trace::AbstractParser *parser,
                              retrace::Retracer *retracer,
                              StateTrack *tracker) : m_parser(parser),
@@ -79,11 +93,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     m_retracer->retrace(*call);
     tracker->track(*call);
     m_end_of_frame = call->flags & trace::CALL_FLAG_END_FRAME;
-    const bool render = (call->flags & trace::CALL_FLAG_RENDER) ||
-                        (strcmp("glDispatchCompute", call->name()) == 0) ||
-                        (strcmp("glDispatchComputeIndirect",
-                                call->name()) == 0);
-    compute = render && (!(call->flags & trace::CALL_FLAG_RENDER));
+    const bool render = isRender(*call);
+    compute = isCompute(*call);
     assert(!changesContext(call));
     delete call;
 

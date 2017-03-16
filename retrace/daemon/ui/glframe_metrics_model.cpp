@@ -162,6 +162,7 @@ QMetricsModel::refresh() {
     // no metrics available
     return;
 
+  // retrace the metrics for the frame
   RenderSelection s;
   s.id = SelectionId(0);
   s.series.push_back(RenderSequence(RenderId(0), RenderId(m_render_count)));
