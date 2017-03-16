@@ -57,7 +57,6 @@ class Semaphore : NoCopy, NoAssign, NoMove {
   }
  private:
   unsigned m_count;
-  unsigned m_max_count;
   std::mutex m_mutex;
   std::condition_variable m_cv;
 };
