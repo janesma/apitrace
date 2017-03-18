@@ -143,6 +143,7 @@ class StateTrack {
   void trackGetUniformLocation(const trace::Call &);
   void trackGetUniformBlockIndex(const trace::Call &);
   void trackUniformBlockBinding(const trace::Call &);
+  void trackBindFragDataLocation(const trace::Call &);
 
   OutputPoller *m_poller;
   int current_program;
@@ -154,6 +155,7 @@ class StateTrack {
   std::map<int, std::map<int, std::string>> m_program_to_bound_attrib;
   std::map<int, std::map<int, std::string>> m_program_to_uniform_name;
   std::map<int, std::map<std::string, int>> m_program_to_uniform_block_index;
+  std::map<int, std::map<std::string, int>> m_program_to_frag_data_location;
   // key is program, internal key is index, value is binding
   std::map<int, std::map<int, int>> m_program_to_uniform_block_binding;
 

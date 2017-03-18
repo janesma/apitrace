@@ -59,7 +59,8 @@ StateTrack::TrackMap StateTrack::lookup;
 StateTrack::StateTrack(OutputPoller *p)
     : m_poller(p),
       current_program(0),
-      current_context(0) {
+      current_context(0),
+      empty_shader() {
 }
 
 StateTrack::TrackMap::TrackMap() {
@@ -74,6 +75,7 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glGetUniformLocation"] = &StateTrack::trackGetUniformLocation;
   lookup["glGetUniformBlockIndex"] = &StateTrack::trackGetUniformBlockIndex;
   lookup["glUniformBlockBinding"] = &StateTrack::trackUniformBlockBinding;
+  lookup["glBindFragDataLocation"] = &StateTrack::trackBindFragDataLocation;
 }
 
 bool
@@ -567,6 +569,11 @@ StateTrack::useProgram(int orig_retraced_program,
     GlFunctions::BindAttribLocation(pid, binding.first, binding.second.c_str());
   }
 
+  for (auto &binding : m_program_to_frag_data_location[orig_retraced_program]) {
+    GlFunctions::BindFragDataLocation(pid, binding.second,
+                                      binding.first.c_str());
+  }
+
   GlFunctions::LinkProgram(pid);
   GL_CHECK();
   if (message) {
@@ -732,6 +739,15 @@ StateTrack::trackUniformBlockBinding(const trace::Call &call) {
 
   const int binding = call.args[2].value->toDouble();
   m_program_to_uniform_block_binding[program][retraced_index] = binding;
+}
+
+void
+StateTrack::trackBindFragDataLocation(const trace::Call &call) {
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
+  const int call_location = call.args[1].value->toDouble();
+  const std::string name(call.args[2].value->toString());
+  m_program_to_frag_data_location[program][name] = call_location;
 }
 
 void
