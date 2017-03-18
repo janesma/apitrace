@@ -93,6 +93,7 @@ static void *pValidateProgram = NULL;
 static void *pIsEnabled = NULL;
 static void *pGetUniformBlockIndex = NULL;
 static void *pUniformBlockBinding = NULL;
+static void *pBindFragDataLocation = NULL;
 
 }  // namespace
 
@@ -249,6 +250,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetUniformBlockIndex);
   pUniformBlockBinding = _GetProcAddress("glUniformBlockBinding");
   assert(pUniformBlockBinding);
+  pBindFragDataLocation = _GetProcAddress("glBindFragDataLocation");
+  assert(pBindFragDataLocation);
 }
 
 GLuint
@@ -651,4 +654,15 @@ GlFunctions::UniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
   return ((UNIFORMBLOCKBINDING) pUniformBlockBinding)(program,
                                                       uniformBlockIndex,
                                                       uniformBlockBinding);
+}
+
+
+void
+GlFunctions::BindFragDataLocation(GLuint program, GLuint colorNumber,
+                                  const char * name) {
+  typedef void (*BINDFRAGDATALOCATION)(GLuint program, GLuint colorNumber,
+                                       const char * name);
+  return ((BINDFRAGDATALOCATION)pBindFragDataLocation)(program,
+                                                       colorNumber,
+                                                       name);
 }

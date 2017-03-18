@@ -133,6 +133,8 @@ class GlFunctions {
                                      const GLchar *uniformBlockName);
   static void UniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
                                   GLuint uniformBlockBinding);
+  static void BindFragDataLocation(GLuint program, GLuint colorNumber,
+                                   const char * name);
 
  private:
   GlFunctions();
