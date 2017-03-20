@@ -135,6 +135,42 @@ class GlFunctions {
                                   GLuint uniformBlockBinding);
   static void BindFragDataLocation(GLuint program, GLuint colorNumber,
                                    const char * name);
+  static void GetActiveUniform(GLuint program, GLuint index,
+                               GLsizei bufSize, GLsizei *length,
+                               GLint *size, GLenum *type,
+                               GLchar *name);
+  static void GetUniformfv(GLuint program, GLint location, GLfloat *params);
+  static void GetUniformiv(GLuint program, GLint location, GLint *params);
+  static void Uniform1fv(GLint location, GLsizei count, const GLfloat *value);
+  static void Uniform1iv(GLint location, GLsizei count, const GLint *value);
+  static void Uniform1uiv(GLint location, GLsizei count, const GLuint *value);
+  static void Uniform2fv(GLint location, GLsizei count, const GLfloat *value);
+  static void Uniform2iv(GLint location, GLsizei count, const GLint *value);
+  static void Uniform2uiv(GLint location, GLsizei count, const GLuint *value);
+  static void Uniform3fv(GLint location, GLsizei count, const GLfloat *value);
+  static void Uniform3iv(GLint location, GLsizei count, const GLint *value);
+  static void Uniform3uiv(GLint location, GLsizei count, const GLuint *value);
+  static void Uniform4fv(GLint location, GLsizei count, const GLfloat *value);
+  static void Uniform4iv(GLint location, GLsizei count, const GLint *value);
+  static void Uniform4uiv(GLint location, GLsizei count, const GLuint *value);
+  static void UniformMatrix2fv(GLint location, GLsizei count,
+                               GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix2x3fv(GLint location, GLsizei count,
+                                 GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix2x4fv(GLint location, GLsizei count,
+                                 GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix3fv(GLint location, GLsizei count,
+                               GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix3x2fv(GLint location, GLsizei count,
+                                 GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix3x4fv(GLint location, GLsizei count,
+                                 GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix4fv(GLint location, GLsizei count,
+                               GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix4x2fv(GLint location, GLsizei count,
+                                 GLboolean transpose, const GLfloat *value);
+  static void UniformMatrix4x3fv(GLint location, GLsizei count,
+                                 GLboolean transpose, const GLfloat *value);
 
  private:
   GlFunctions();

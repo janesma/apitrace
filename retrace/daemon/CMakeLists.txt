@@ -70,6 +70,8 @@ set (RETRACE_SOURCES
   glframe_stderr.hpp
   glframe_thread.hpp
   glframe_traits.hpp
+  glframe_uniforms.cpp
+  glframe_uniforms.hpp
   glretrace_globals.cpp
   )  
 

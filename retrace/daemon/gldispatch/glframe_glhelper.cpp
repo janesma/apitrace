@@ -94,6 +94,30 @@ static void *pIsEnabled = NULL;
 static void *pGetUniformBlockIndex = NULL;
 static void *pUniformBlockBinding = NULL;
 static void *pBindFragDataLocation = NULL;
+static void *pGetActiveUniform = NULL;
+static void *pGetUniformfv = NULL;
+static void *pGetUniformiv = NULL;
+static void *pUniform1fv = NULL;
+static void *pUniform1iv = NULL;
+static void *pUniform1uiv = NULL;
+static void *pUniform2fv = NULL;
+static void *pUniform2iv = NULL;
+static void *pUniform2uiv = NULL;
+static void *pUniform3fv = NULL;
+static void *pUniform3iv = NULL;
+static void *pUniform3uiv = NULL;
+static void *pUniform4fv = NULL;
+static void *pUniform4iv = NULL;
+static void *pUniform4uiv = NULL;
+static void *pUniformMatrix2fv = NULL;
+static void *pUniformMatrix2x3fv = NULL;
+static void *pUniformMatrix2x4fv = NULL;
+static void *pUniformMatrix3fv = NULL;
+static void *pUniformMatrix3x2fv = NULL;
+static void *pUniformMatrix3x4fv = NULL;
+static void *pUniformMatrix4fv = NULL;
+static void *pUniformMatrix4x2fv = NULL;
+static void *pUniformMatrix4x3fv = NULL;
 
 }  // namespace
 
@@ -252,6 +276,54 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pUniformBlockBinding);
   pBindFragDataLocation = _GetProcAddress("glBindFragDataLocation");
   assert(pBindFragDataLocation);
+  pGetActiveUniform = _GetProcAddress("glGetActiveUniform");
+  assert(pGetActiveUniform);
+  pGetUniformiv = _GetProcAddress("glGetUniformiv");
+  assert(pGetUniformiv);
+  pGetUniformfv = _GetProcAddress("glGetUniformfv");
+  assert(pGetUniformfv);
+  pUniform1fv = _GetProcAddress("glUniform1fv");
+  assert(pUniform1fv);
+  pUniform1iv = _GetProcAddress("glUniform1iv");
+  assert(pUniform1iv);
+  pUniform1uiv = _GetProcAddress("glUniform1uiv");
+  assert(pUniform1uiv);
+  pUniform2fv = _GetProcAddress("glUniform2fv");
+  assert(pUniform2fv);
+  pUniform2iv = _GetProcAddress("glUniform2iv");
+  assert(pUniform2iv);
+  pUniform2uiv = _GetProcAddress("glUniform2uiv");
+  assert(pUniform2uiv);
+  pUniform3fv = _GetProcAddress("glUniform3fv");
+  assert(pUniform3fv);
+  pUniform3iv = _GetProcAddress("glUniform3iv");
+  assert(pUniform3iv);
+  pUniform3uiv = _GetProcAddress("glUniform3uiv");
+  assert(pUniform3uiv);
+  pUniform4fv = _GetProcAddress("glUniform4fv");
+  assert(pUniform4fv);
+  pUniform4iv = _GetProcAddress("glUniform4iv");
+  assert(pUniform4iv);
+  pUniform4uiv = _GetProcAddress("glUniform4uiv");
+  assert(pUniform4uiv);
+  pUniformMatrix2fv = _GetProcAddress("glUniformMatrix2fv");
+  assert(pUniformMatrix2fv);
+  pUniformMatrix2x3fv = _GetProcAddress("glUniformMatrix2x3fv");
+  assert(pUniformMatrix2x3fv);
+  pUniformMatrix2x4fv = _GetProcAddress("glUniformMatrix2x4fv");
+  assert(pUniformMatrix2x4fv);
+  pUniformMatrix3fv = _GetProcAddress("glUniformMatrix3fv");
+  assert(pUniformMatrix3fv);
+  pUniformMatrix3x2fv = _GetProcAddress("glUniformMatrix3x2fv");
+  assert(pUniformMatrix3x2fv);
+  pUniformMatrix3x4fv = _GetProcAddress("glUniformMatrix3x4fv");
+  assert(pUniformMatrix3x4fv);
+  pUniformMatrix4fv = _GetProcAddress("glUniformMatrix4fv");
+  assert(pUniformMatrix4fv);
+  pUniformMatrix4x2fv = _GetProcAddress("glUniformMatrix4x2fv");
+  assert(pUniformMatrix4x2fv);
+  pUniformMatrix4x3fv = _GetProcAddress("glUniformMatrix4x3fv");
+  assert(pUniformMatrix4x3fv);
 }
 
 GLuint
@@ -656,13 +728,198 @@ GlFunctions::UniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
                                                       uniformBlockBinding);
 }
 
-
 void
 GlFunctions::BindFragDataLocation(GLuint program, GLuint colorNumber,
                                   const char * name) {
   typedef void (*BINDFRAGDATALOCATION)(GLuint program, GLuint colorNumber,
                                        const char * name);
-  return ((BINDFRAGDATALOCATION)pBindFragDataLocation)(program,
+  return ((BINDFRAGDATALOCATION) pBindFragDataLocation)(program,
                                                        colorNumber,
                                                        name);
+}
+
+void
+GlFunctions::GetActiveUniform(GLuint program, GLuint index,
+                              GLsizei bufSize, GLsizei *length,
+                              GLint *size, GLenum *type,
+                              GLchar *name) {
+  typedef void (*GETACTIVEUNIFORM)(GLuint program, GLuint index,
+                                   GLsizei bufSize, GLsizei *length,
+                                   GLint *size, GLenum *type, GLchar *name);
+  return ((GETACTIVEUNIFORM)pGetActiveUniform)(program, index, bufSize,
+                                               length, size, type, name);
+}
+
+void
+GlFunctions::GetUniformfv(GLuint program, GLint location, GLfloat *params) {
+  typedef void (*GETUNIFORMFV)(GLuint program, GLint location, GLfloat *params);
+  return ((GETUNIFORMFV) pGetUniformfv)(program, location, params);
+}
+
+void
+GlFunctions::GetUniformiv(GLuint program, GLint location, GLint *params) {
+  typedef void (*GETUNIFORMIV)(GLuint program, GLint location, GLint *params);
+  return ((GETUNIFORMIV) pGetUniformiv)(program, location, params);
+}
+
+void
+GlFunctions::Uniform1fv(GLint location, GLsizei count, const GLfloat *value) {
+  typedef void (*UNIFORM1FV)(GLint location, GLsizei count,
+                             const GLfloat *value);
+  return ((UNIFORM1FV)pUniform1fv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform1iv(GLint location, GLsizei count, const GLint *value) {
+  typedef void (*UNIFORM1IV)(GLint location, GLsizei count,
+                             const GLint *value);
+  return ((UNIFORM1IV)pUniform1iv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform1uiv(GLint location, GLsizei count, const GLuint *value) {
+  typedef void (*UNIFORM1UIV)(GLint location, GLsizei count,
+                              const GLuint *value);
+  return ((UNIFORM1UIV)pUniform1uiv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform2fv(GLint location, GLsizei count, const GLfloat *value) {
+  typedef void (*UNIFORM2FV)(GLint location, GLsizei count,
+                             const GLfloat *value);
+  return ((UNIFORM2FV)pUniform2fv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform2iv(GLint location, GLsizei count, const GLint *value) {
+  typedef void (*UNIFORM2IV)(GLint location, GLsizei count, const GLint *value);
+  return ((UNIFORM2IV)pUniform2iv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform2uiv(GLint location, GLsizei count, const GLuint *value) {
+  typedef void (*UNIFORM2UIV)(GLint location, GLsizei count,
+                              const GLuint *value);
+  return ((UNIFORM2UIV)pUniform2uiv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform3fv(GLint location, GLsizei count, const GLfloat *value) {
+  typedef void (*UNIFORM3FV)(GLint location, GLsizei count,
+                             const GLfloat *value);
+  return ((UNIFORM3FV)pUniform3fv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform3iv(GLint location, GLsizei count, const GLint *value) {
+  typedef void (*UNIFORM3IV)(GLint location, GLsizei count, const GLint *value);
+  return ((UNIFORM3IV)pUniform3iv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform3uiv(GLint location, GLsizei count, const GLuint *value) {
+  typedef void (*UNIFORM3UIV)(GLint location, GLsizei count,
+                              const GLuint *value);
+  return ((UNIFORM3UIV)pUniform3uiv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform4fv(GLint location, GLsizei count, const GLfloat *value) {
+  typedef void (*UNIFORM4FV)(GLint location, GLsizei count,
+                             const GLfloat *value);
+  return ((UNIFORM4FV)pUniform4fv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform4iv(GLint location, GLsizei count, const GLint *value) {
+  typedef void (*UNIFORM4IV)(GLint location, GLsizei count, const GLint *value);
+  return ((UNIFORM4IV)pUniform4iv)(location, count, value);
+}
+
+void
+GlFunctions::Uniform4uiv(GLint location, GLsizei count, const GLuint *value) {
+  typedef void (*UNIFORM4UIV)(GLint location, GLsizei count,
+                              const GLuint *value);
+  return ((UNIFORM4UIV)pUniform4uiv)(location, count, value);
+}
+
+void
+GlFunctions::UniformMatrix2fv(GLint location, GLsizei count,
+                              GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX2FV)(GLint location, GLsizei count,
+                                   GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX2FV)pUniformMatrix2fv)(location, count, transpose,
+                                               value);
+}
+
+void
+GlFunctions::UniformMatrix2x3fv(GLint location, GLsizei count,
+                                GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX2X3FV)(GLint location, GLsizei count,
+                                     GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX2X3FV)pUniformMatrix2x3fv)(location, count, transpose,
+                                                   value);
+}
+
+void
+GlFunctions::UniformMatrix2x4fv(GLint location, GLsizei count,
+                                GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX2X4FV)(GLint location, GLsizei count,
+                                     GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX2X4FV)pUniformMatrix2x4fv)(location, count, transpose,
+                                                   value);
+}
+
+void
+GlFunctions::UniformMatrix3fv(GLint location, GLsizei count,
+                              GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX3FV)(GLint location, GLsizei count,
+                                   GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX3FV)pUniformMatrix3fv)(location, count, transpose,
+                                               value);
+}
+
+void
+GlFunctions::UniformMatrix3x2fv(GLint location, GLsizei count,
+                                GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX3X2FV)(GLint location, GLsizei count,
+                                     GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX3X2FV)pUniformMatrix3x2fv)(location, count, transpose,
+                                                   value);
+}
+
+void
+GlFunctions::UniformMatrix3x4fv(GLint location, GLsizei count,
+                                GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX3X4FV)(GLint location, GLsizei count,
+                                     GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX3X4FV)pUniformMatrix3x4fv)(location, count, transpose,
+                                                   value);
+}
+
+void
+GlFunctions::UniformMatrix4fv(GLint location, GLsizei count,
+                              GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX4FV)(GLint location, GLsizei count,
+                                   GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX4FV)pUniformMatrix4fv)(location, count, transpose,
+                                               value);
+}
+
+void
+GlFunctions::UniformMatrix4x2fv(GLint location, GLsizei count,
+                                GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX4X2FV)(GLint location, GLsizei count,
+                                     GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX4X2FV)pUniformMatrix4x2fv)(location, count, transpose,
+                                                   value);
+}
+
+void
+GlFunctions::UniformMatrix4x3fv(GLint location, GLsizei count,
+                                GLboolean transpose, const GLfloat *value) {
+  typedef void (*UNIFORMMATRIX4X3FV)(GLint location, GLsizei count,
+                                     GLboolean transpose, const GLfloat *value);
+  return ((UNIFORMMATRIX4X3FV)pUniformMatrix4x3fv)(location, count, transpose,
+                                                   value);
 }
