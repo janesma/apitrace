@@ -63,6 +63,7 @@ using glretrace::ShaderAssembly;
 FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
                                          m_selection(NULL),
                                          m_selection_count(0),
+                                         m_shader_compile_error(""),
                                          m_open_percent(0),
                                          m_frame_count(0),
                                          m_max_metric(0),
