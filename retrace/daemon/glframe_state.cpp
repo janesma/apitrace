@@ -38,6 +38,7 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
 #include "glframe_retrace_interface.hpp"
+#include "glframe_uniforms.hpp"
 #include "glretrace.hpp"
 #include "retrace.hpp"
 #include "trace_model.hpp"
@@ -49,6 +50,7 @@ using glretrace::OnFrameRetrace;
 using glretrace::ShaderAssembly;
 using glretrace::ShaderType;
 using glretrace::AssemblyType;
+using glretrace::Uniforms;
 using trace::Call;
 using trace::Array;
 
@@ -609,6 +611,16 @@ StateTrack::useProgram(int orig_retraced_program,
     GlFunctions::UniformBlockBinding(pid, index,
                                      binding);
   }
+
+  // set initial uniform state for program, based on the original.
+  // Some game titles partially initialize uniforms at link time.
+  int cur_prog;
+  GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &cur_prog);
+  GlFunctions::UseProgram(orig_retraced_program);
+  Uniforms orig;
+  GlFunctions::UseProgram(pid);
+  orig.set();
+  GlFunctions::UseProgram(cur_prog);
 
   return pid;
 }
