@@ -6,6 +6,18 @@ import ApiTrace 1.0
 
 Item {
     property QRenderShadersList renderModel
+
+    MessageDialog {
+        id: compileError
+        title: "Shader Compilation Error"
+        icon: StandardIcon.Warning
+        text: frameRetrace.shaderCompileError
+        onTextChanged: {
+            if (Boolean(text))
+                visible = true;
+        }
+    }
+    
     RowLayout {
         id: compileRow
         anchors.top: parent.top
@@ -34,21 +46,6 @@ Item {
             }
             Component.onCompleted: { visible = false; }
         }
-        Text {
-            id: compileError
-            text: frameRetrace.shaderCompileError
-            visible: false
-            onTextChanged: {
-                if (text == "") {
-                    visible = false;
-                    compileRow.visible = false;
-                } else {
-                    visible = true;
-                    compileRow.visible = true;
-                }
-            }
-        }
-        Component.onCompleted: { visible = false; }
     }
     SplitView {
         anchors.top: compileRow.bottom
