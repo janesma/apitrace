@@ -48,7 +48,7 @@ int fork_execv(const char *path, const char *const argv[]) {
     exit(-1);
   }
   if (pid == 0) {
-    return ::execv(path, (char *const*) argv);
+    return ::execvp(path, (char *const*) argv);
   }
   return 0;
 }
