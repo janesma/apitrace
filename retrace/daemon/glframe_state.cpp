@@ -112,12 +112,19 @@ StateTrack::track(const Call &call) {
     trace::dump(const_cast<Call&>(call), call_stream,
                 trace::DUMP_FLAG_NO_COLOR);
     GRLOG(glretrace::DEBUG, call_stream.str().c_str());
+#ifdef WIN32
+    // windows parsing of shader assemblies is extremely slow
+    parse();
+#endif
   }
 
   if (changesContext(call))
     current_context = getContext(call);
 
+#ifndef WIN32
+  // on Linux we can parse for shader assembly data on every call.
   parse();
+#endif
 }
 
 void
