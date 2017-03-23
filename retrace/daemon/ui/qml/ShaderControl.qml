@@ -23,6 +23,7 @@ Item {
                     cursorVisible: true
                     persistentSelection: true
                     selectByMouse: true
+                    font.family: "Monospace"
                     onTextChanged: {
                         if (shader_type == "vs") {
                             compile_button.vsText = text;
@@ -54,6 +55,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: ir
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.ir
@@ -71,6 +73,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: nirSsa
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.nirSsa
@@ -88,6 +91,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: nirFinal
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.nirFinal
@@ -105,6 +109,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: simd8
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.simd8
@@ -122,6 +127,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: simd16
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.simd16
@@ -139,6 +145,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: simd32
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.simd32
@@ -156,6 +163,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: beforeUnification
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.beforeUnification
@@ -173,6 +181,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: afterUnification
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.afterUnification
@@ -190,6 +199,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: beforeOptimization
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.beforeOptimization
@@ -207,6 +217,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: constCoalescing
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.constCoalescing
@@ -224,6 +235,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: genIrLowering
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.genIrLowering
@@ -241,6 +253,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: layout
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.layout
@@ -258,6 +271,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: optimized
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.optimized
@@ -275,6 +289,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: pushAnalysis
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.pushAnalysis
@@ -292,6 +307,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: codeHoisting
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.codeHoisting
@@ -309,6 +325,7 @@ Item {
                 clip: true
                 TextEdit {
                     id: codeSinking
+                    font.family: "Monospace"
                     readOnly: true
                     selectByMouse: true
                     text: model.codeSinking
