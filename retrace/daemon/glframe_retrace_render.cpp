@@ -138,7 +138,7 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   assert(bm.offset == m_bookmark.start.offset);
 
   // play up to but not past the end of the render
-  for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+  for (uint calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
     tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
@@ -187,7 +187,7 @@ RetraceRender::retrace(StateTrack *tracker) const {
   tracker->flush();
 
   // play up to but not past the end of the render
-  for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+  for (uint calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
 
@@ -225,7 +225,7 @@ RetraceRender::retrace(const StateTrack &tracker) const {
   assert(bm.offset == m_bookmark.start.offset);
 
   // play up to but not past the end of the render
-  for (int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+  for (uint calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
 
