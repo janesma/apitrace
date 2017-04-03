@@ -239,21 +239,35 @@ Uniform::Uniform(int i) {
         is_float = true;
         m_data_size = 12 * sizeof(GLfloat);
         break;
+      case GL_INT_SAMPLER_2D:
+      case GL_INT_SAMPLER_2D_ARRAY:
+      case GL_INT_SAMPLER_3D:
+      case GL_INT_SAMPLER_CUBE:
       case GL_SAMPLER_2D:
-      case GL_SAMPLER_CUBE:
-      case GL_SAMPLER_2D_SHADOW:
       case GL_SAMPLER_2D_ARRAY:
       case GL_SAMPLER_2D_ARRAY_SHADOW:
-      case GL_SAMPLER_CUBE_SHADOW:
-      case GL_INT_SAMPLER_2D:
-      case GL_INT_SAMPLER_3D:
+      case GL_SAMPLER_2D_SHADOW:
       case GL_SAMPLER_3D:
-      case GL_INT_SAMPLER_CUBE:
-      case GL_INT_SAMPLER_2D_ARRAY:
+      case GL_SAMPLER_BUFFER:
+      case GL_SAMPLER_CUBE:
+      case GL_SAMPLER_CUBE_SHADOW:
       case GL_UNSIGNED_INT_SAMPLER_2D:
+      case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
       case GL_UNSIGNED_INT_SAMPLER_3D:
       case GL_UNSIGNED_INT_SAMPLER_CUBE:
-      case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+      case GL_SAMPLER_CUBE_MAP_ARRAY:
+      case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+      case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+      case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+      case GL_IMAGE_CUBE_MAP_ARRAY:
+      case GL_INT_IMAGE_CUBE_MAP_ARRAY:
+      case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY:
+      case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+      case GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY:
+      case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+      case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+      case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+      case GL_SAMPLER_2D_RECT_ARB:
         m_dataType = k_sampler;
         is_float = false;
         m_data_size = 1 * sizeof(GLint);
