@@ -36,9 +36,11 @@
 #include <vector>
 
 #include "glframe_glhelper.hpp"
+#include "glframe_gpu_speed.hpp"
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_perf_enabled.hpp"
+#include "glframe_retrace_context.hpp"
 #include "glframe_retrace_render.hpp"
 #include "glframe_stderr.hpp"
 #include "glretrace.hpp"
@@ -50,7 +52,6 @@
 #include "glstate.hpp"
 #include "glstate_internal.hpp"
 #include "trace_dump.hpp"
-#include "glframe_gpu_speed.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
@@ -84,29 +85,21 @@ static StdErrRedirect assemblyOutput;
 #endif
 
 FrameRetrace::FrameRetrace()
-    : m_tracker(&assemblyOutput) {
+    : m_tracker(&assemblyOutput),
+      m_metrics(NULL) {
 }
 
 FrameRetrace::~FrameRetrace() {
-  delete m_metrics;
+  if (m_metrics)
+    delete m_metrics;
   parser->close();
   retrace::cleanUp();
 }
 
-int currentRenderBuffer() {
-  glstate::Context context;
-  const GLenum framebuffer_binding = context.ES ?
-                                     GL_FRAMEBUFFER_BINDING :
-                                     GL_DRAW_FRAMEBUFFER_BINDING;
-  GLint draw_framebuffer = 0;
-  GlFunctions::GetIntegerv(framebuffer_binding, &draw_framebuffer);
-  return draw_framebuffer;
-}
-
 void
 FrameRetrace::openFile(const std::string &filename,
-                       const std::vector<unsigned char> &md5,
-                       uint64_t fileSize,
+                       const std::vector<unsigned char> &,
+                       uint64_t,
                        uint32_t framenumber,
                        OnFrameRetrace *callback) {
   check_gpu_speed(callback);
@@ -133,7 +126,7 @@ FrameRetrace::openFile(const std::string &filename,
 
   // play up to the requested frame
   trace::Call *call;
-  int current_frame = 0;
+  unsigned int current_frame = 0;
   while ((call = parser->parse_call()) && current_frame < framenumber) {
     std::stringstream call_stream;
     trace::dump(*call, call_stream,
@@ -165,36 +158,31 @@ FrameRetrace::openFile(const std::string &filename,
     return;
   }
 
+  // sends list of available metrics to ui
   m_metrics = new PerfMetrics(callback);
   parser->getBookmark(frame_start.start);
-  int current_render_buffer = currentRenderBuffer();
 
-  // play through the frame, recording renders and call counts
+  // play through the frame, recording each context
+  RenderId current_render(0);
   while (true) {
-    auto r = new RetraceRender(parser, &retracer, &m_tracker);
-    if (r->endsFrame()) {
-      delete r;
+    auto c = new RetraceContext(current_render, parser, &retracer, &m_tracker);
+    current_render = RenderId(current_render.index() + c->getRenderCount());
+    m_contexts.push_back(c);
+    if (c->endsFrame()) {
       break;
-    }
-    m_renders.push_back(r);
-
-    const int new_render_buffer = currentRenderBuffer();
-    if (new_render_buffer != current_render_buffer) {
-      if (m_renders.size() > 1)  // don't record the very first draw as
-                               // ending a render target
-        render_target_regions.push_back(RenderId(m_renders.size() - 1));
-      current_render_buffer = new_render_buffer;
     }
   }
 
-  // record the final render as ending a render target region
-  render_target_regions.push_back(RenderId(m_renders.size() - 1));
   callback->onFileOpening(false, true, current_frame);
 }
 
 int
 FrameRetrace::getRenderCount() const {
-  return m_renders.size();
+  int count = 0;
+  for (auto i : m_contexts) {
+    count += i->getRenderCount();
+  }
+  return count;
 }
 
 void
@@ -205,75 +193,9 @@ FrameRetrace::retraceRenderTarget(ExperimentId experimentCount,
                                   OnFrameRetrace *callback) const {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
-
-  bool clear_once = true;
-
-  // play up to the beginning of the render
-  RenderId current_render_id(0);
-  for (const auto &sequence : selection.series) {
-    while (current_render_id < sequence.begin) {
-      m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
-                                                                NORMAL_RENDER);
-      ++current_render_id;
-    }
-
-    while (current_render_id < sequence.end) {
-      if ((options & glretrace::CLEAR_BEFORE_RENDER) && clear_once) {
-        GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
-        GlFunctions::Clear(GL_DEPTH_BUFFER_BIT);
-        GlFunctions::Clear(GL_STENCIL_BUFFER_BIT);
-        GlFunctions::Clear(GL_ACCUM_BUFFER_BIT);
-        // ignore errors from unsupported clears
-        GlFunctions::GetError();
-
-        // don't clear the frame buffer before every sequence.  We
-        // want to clear everything before the first selection.
-        clear_once = false;
-      }
-
-      // play up to the end of the render
-      m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
-                                                                type);
-      ++current_render_id;
-    }
-
-    if (!(options & glretrace::STOP_AT_RENDER)) {
-      // play to the end of the render target
-
-      const RenderId last_render = lastRenderForRTRegion(current_render_id);
-      while (current_render_id < last_render) {
-        const int i = current_render_id.index();
-        m_renders[i]->retraceRenderTarget(m_tracker,
-                                          NORMAL_RENDER);
-        ++current_render_id;
-      }
-    }
-  }
-
-  Image *i = glstate::getDrawBufferImage(0);
-  if (!i) {
-    GRLOGF(WARN, "Failed to obtain draw buffer image for render id: %d",
-           current_render_id());
-    if (callback)
-      callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
-  } else {
-    std::stringstream png;
-    i->writePNG(png);
-
-    std::vector<unsigned char> d;
-    const int bytes = png.str().size();
-    d.resize(bytes);
-    memcpy(d.data(), png.str().c_str(), bytes);
-    if (callback)
-      callback->onRenderTarget(selection.id, experimentCount, d);
-  }
-
-  // play to the rest of the frame
-  while (current_render_id.index() < m_renders.size()) {
-    m_renders[current_render_id.index()]->retraceRenderTarget(m_tracker,
-                                                              NORMAL_RENDER);
-    ++current_render_id;
-  }
+  for (auto i : m_contexts)
+    i->retraceRenderTarget(experimentCount, selection, type, options,
+                           m_tracker, callback);
 }
 
 void
@@ -283,31 +205,8 @@ FrameRetrace::retraceShaderAssembly(const RenderSelection &selection,
   parser->setBookmark(frame_start.start);
   StateTrack tmp_tracker = m_tracker;
 
-  RenderId current_render_id(0);
-  for (const auto &sequence : selection.series) {
-    // play up to the end of the render
-    while (current_render_id < sequence.begin) {
-      m_renders[current_render_id.index()]->retrace(&tmp_tracker);
-      ++current_render_id;
-    }
-    while (current_render_id < sequence.end) {
-      m_renders[current_render_id.index()]->retrace(&tmp_tracker);
-      callback->onShaderAssembly(current_render_id,
-                                 selection.id,
-                                 tmp_tracker.currentVertexShader(),
-                                 tmp_tracker.currentFragmentShader(),
-                                 tmp_tracker.currentTessControlShader(),
-                                 tmp_tracker.currentTessEvalShader(),
-                                 tmp_tracker.currentGeomShader(),
-                                 tmp_tracker.currentCompShader());
-      ++current_render_id;
-    }
-  }
-  // play to the rest of the frame
-  while (current_render_id.index() < m_renders.size()) {
-    m_renders[current_render_id.index()]->retrace(&tmp_tracker);
-    ++current_render_id;
-  }
+  for (auto i : m_contexts)
+    i->retraceShaderAssembly(selection, &m_tracker, callback);
 }
 
 FrameState::FrameState(const std::string &filename,
@@ -347,9 +246,9 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
   // retrace the frame once to warm up the gpu, ensuring that the gpu
   // is not throttled
   parser->setBookmark(frame_start.start);
-  for (int i = 0; i < m_renders.size(); ++i) {
-    m_renders[i]->retrace(m_tracker);
-  }
+
+  for (auto i : m_contexts)
+    i->retraceMetrics(NULL, m_tracker);
 
   const int render_count = getRenderCount();
   for (const auto &id : ids) {
@@ -368,16 +267,12 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
                           SelectionId(0));
       continue;
     }
-
     m_metrics->selectMetric(id);
-    for (int i = 0; i < m_renders.size(); ++i) {
-      m_metrics->begin(RenderId(i));
-      m_renders[i]->retrace(m_tracker);
-      m_metrics->end();
-    }
+    for (auto i : m_contexts)
+      i->retraceMetrics(m_metrics, m_tracker);
     m_metrics->publish(experimentCount,
                        SelectionId(0),  // this use case is not based
-                                        // on render selection
+                       // on render selection
                        callback);
   }
 }
@@ -389,44 +284,19 @@ FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
   // retrace the frame once to warm up the gpu, ensuring that the gpu
   // is not throttled
   parser->setBookmark(frame_start.start);
-  for (int i = 0; i < m_renders.size(); ++i) {
-    m_renders[i]->retrace(m_tracker);
-  }
+  for (auto i : m_contexts)
+    i->retraceMetrics(NULL, m_tracker);
 
   for (int i = 0; i < m_metrics->groupCount(); ++i) {
-    bool query_active = false;
     m_metrics->selectGroup(i);
     parser->setBookmark(frame_start.start);
-    // iterate through the RenderSelection, and insert begin/end
-    // around each RenderSeries
-    auto currentRenderSequence = selection.series.begin();
-    for (int i = 0; i < m_renders.size(); ++i) {
-      if (currentRenderSequence != selection.series.end()) {
-        if (RenderId(i) == currentRenderSequence->end) {
-          m_metrics->end();
-          query_active = false;
-          ++currentRenderSequence;
-        }
-        if (currentRenderSequence != selection.series.end() &&
-            (RenderId(i) == currentRenderSequence->begin)) {
-          m_metrics->begin(RenderId(i));
-          query_active = true;
-        }
-      }
-      m_renders[i]->retrace(m_tracker);
-    }
-    if (query_active)
-      m_metrics->end();
-    m_metrics->publish(experimentCount, selection.id, callback);
-  }
-}
 
-RenderId
-FrameRetrace::lastRenderForRTRegion(RenderId render) const {
-  for (auto rt_render : render_target_regions)
-    if (rt_render > render)
-      return rt_render;
-  return render_target_regions.back();
+    for (auto i : m_contexts)
+      i->retraceAllMetrics(selection, m_metrics, m_tracker);
+  }
+  m_metrics->publish(experimentCount,
+                     selection.id,
+                     callback);
 }
 
 void
@@ -440,41 +310,16 @@ FrameRetrace::replaceShaders(RenderId renderId,
                              const std::string &comp,
                              OnFrameRetrace *callback) {
   GRLOGF(DEBUG, "%s\n%s", vs.c_str(), fs.c_str());
-  std::string message;
-  const bool result = m_renders[renderId.index()]->replaceShaders(&m_tracker,
-                                                                  vs, fs,
-                                                                  tessControl,
-                                                                  tessEval,
-                                                                  geom,
-                                                                  comp,
-                                                                  &message);
-  if (!result)
-    GRLOGF(WARN, "compile failed: %s", message.c_str());
-  callback->onShaderCompile(renderId, experimentCount,
-                            result, message);
+  for (auto i : m_contexts)
+    if (i->replaceShaders(renderId, experimentCount, &m_tracker,
+                          vs, fs, tessControl, tessEval,
+                          geom, comp, callback))
+      return;
 }
 
 void
 FrameRetrace::retraceApi(const RenderSelection &selection,
                          OnFrameRetrace *callback) {
-  if (selection.series.empty()) {
-    // empty selection: display the full api log
-    for (RenderId currentRender(0);
-         currentRender.index() < m_renders.size();
-         ++currentRender) {
-      m_renders[currentRender.index()]->onApi(selection.id,
-                                              currentRender,
-                                              callback);
-    }
-    return;
-  }
-  for (auto sequence : selection.series) {
-    auto currentRender = sequence.begin;
-    while (currentRender < sequence.end) {
-      m_renders[currentRender.index()]->onApi(selection.id,
-                                              currentRender,
-                                              callback);
-      ++currentRender;
-    }
-  }
+  for (auto i : m_contexts)
+    i->retraceApi(selection, callback);
 }

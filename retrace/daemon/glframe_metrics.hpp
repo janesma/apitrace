@@ -36,7 +36,8 @@
 
 namespace glretrace {
 
-class PerfMetricGroup;
+class PerfMetricsContext;
+struct Context;
 
 class PerfMetrics : public NoCopy, NoAssign {
  public:
@@ -50,14 +51,16 @@ class PerfMetrics : public NoCopy, NoAssign {
   void publish(ExperimentId experimentCount,
                SelectionId selectionCount,
                OnFrameRetrace *callback);
+  // call before changing to another context
+  void endContext();
+  void beginContext();
+  typedef std::map<MetricId, std::map<RenderId, float>> MetricMap;
  private:
-  std::vector<PerfMetricGroup *> groups;
-  // indicates offset in groups of PerfMetricGroup reporting MetricId
-  std::map<MetricId, int> metric_map;
-  // indicates the group that will handle subsequent begin/end calls
-  PerfMetricGroup *current_group;
-  MetricId current_metric;
-  RenderId current_render;
+  PerfMetricsContext* m_current_context;
+  std::map<Context*, PerfMetricsContext*> m_contexts;
+  MetricMap m_data;
+  int m_current_group;
+  MetricId m_current_metric;
 };
 
 }  // namespace glretrace

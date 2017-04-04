@@ -47,6 +47,7 @@ class StateTrack;
 class OnFrameRetrace;
 class ExperimentId;
 class MetricId;
+class PerfMetrics;
 
 class RetraceRender {
  public:
@@ -75,6 +76,8 @@ class RetraceRender {
              RenderId renderId,
              OnFrameRetrace *callback);
   static bool isRender(const trace::Call &c);
+  static bool changesContext(const trace::Call &c);
+  static int currentRenderBuffer();
 
  private:
   trace::AbstractParser *m_parser;
@@ -88,7 +91,7 @@ class RetraceRender {
     m_modified_tess_eval, m_modified_tess_control,
     m_modified_geom, m_modified_comp;
   int m_rt_program, m_retrace_program, m_original_program;
-  bool m_end_of_frame, m_highlight_rt;
+  bool m_end_of_frame, m_highlight_rt, m_changes_context;
   std::vector<std::string> m_api_calls;
 };
 

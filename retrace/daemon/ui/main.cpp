@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
   GlFunctions::Init();
   Logger::Create();
-  Logger::SetSeverity(glretrace::WARN);
+  Logger::SetSeverity(glretrace::DEBUG);
   Socket::Init();
   Logger::Begin();
 

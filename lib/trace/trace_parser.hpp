@@ -34,7 +34,6 @@
 #include "trace_model.hpp"
 #include "trace_api.hpp"
 
-
 namespace trace {
 
 

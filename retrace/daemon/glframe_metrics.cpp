@@ -36,6 +36,7 @@
 
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
+#include "glretrace.hpp"
 
 using glretrace::ExperimentId;
 using glretrace::GlFunctions;
@@ -43,10 +44,13 @@ using glretrace::MetricId;
 using glretrace::NoAssign;
 using glretrace::NoCopy;
 using glretrace::OnFrameRetrace;
-using glretrace::PerfMetricGroup;
 using glretrace::PerfMetrics;
+using glretrace::PerfMetricsContext;
 using glretrace::RenderId;
 using glretrace::SelectionId;
+using glretrace::GL;
+using glretrace::glretrace_delay;
+using glretrace::ID_PREFIX_MASK;
 
 namespace {
 
@@ -75,7 +79,6 @@ class PerfMetric : public NoCopy, NoAssign {
   std::string m_name, m_description;
 };
 
-}  // namespace
 
 class PerfMetricGroup : public NoCopy, NoAssign {
  public:
@@ -85,17 +88,12 @@ class PerfMetricGroup : public NoCopy, NoAssign {
   void metrics(std::vector<MetricDescription> *m) const;
   void begin(RenderId render);
   void end(RenderId render);
-  void publish(MetricId metric,
-               ExperimentId experimentCount,
-               SelectionId selectionCount,
-               OnFrameRetrace *callback);
+  void publish(MetricId metric, PerfMetrics::MetricMap *m);
 
  private:
   std::string m_query_name;
   const int m_query_id;
   unsigned int m_data_size;
-  unsigned int m_number_counters;
-  unsigned int m_capabilities_mask;
   std::vector<unsigned char> m_data_buf;
 
   std::map<MetricId, PerfMetric *> m_metrics;
@@ -107,7 +105,34 @@ class PerfMetricGroup : public NoCopy, NoAssign {
   std::vector<unsigned int> m_free_query_handles;
 };
 
-PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
+}  // namespace
+
+namespace glretrace {
+
+class PerfMetricsContext : public NoCopy, NoAssign {
+ public:
+  explicit PerfMetricsContext(OnFrameRetrace *cb);
+  ~PerfMetricsContext();
+  int groupCount() const;
+  void selectMetric(MetricId metric);
+  void selectGroup(int index);
+  void begin(RenderId render);
+  void end();
+  void publish(PerfMetrics::MetricMap *metrics);
+ private:
+  std::vector<PerfMetricGroup *> groups;
+  // indicates offset in groups of PerfMetricGroup reporting MetricId
+  std::map<MetricId, int> metric_map;
+  // indicates the group that will handle subsequent begin/end calls
+  PerfMetricGroup *current_group;
+  MetricId current_metric;
+  RenderId current_render;
+};
+
+}  // namespace glretrace
+
+PerfMetricsContext::PerfMetricsContext(OnFrameRetrace *cb)
+    : current_group(NULL) {
   GLuint query_id;
   GLint count;
   bool has_metrics = false;
@@ -121,7 +146,7 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
     return;
 
   GlFunctions::GetFirstPerfQueryIdINTEL(&query_id);
-  if (query_id == -1)
+  if (query_id == GLuint(-1))
     return;
 
   if (query_id == 0)
@@ -167,10 +192,12 @@ PerfMetrics::PerfMetrics(OnFrameRetrace *cb) : current_group(NULL) {
     ids.push_back(i.second.id);
     descriptions.push_back(i.second.description);
   }
-  cb->onMetricList(ids, names, descriptions);
+  if (cb)
+    // only send metrics list on first context
+    cb->onMetricList(ids, names, descriptions);
 }
 
-PerfMetrics::~PerfMetrics() {
+PerfMetricsContext::~PerfMetricsContext() {
   for (auto g : groups)
     delete g;
   groups.clear();
@@ -246,25 +273,12 @@ PerfMetricGroup::begin(RenderId render) {
   m_extant_query_handles[render] = query_handle;
 }
 
+static const MetricId ALL_METRICS_IN_GROUP = MetricId(~ID_PREFIX_MASK);
+
 void
 PerfMetricGroup::publish(MetricId metric,
-                         ExperimentId experimentCount,
-                         SelectionId selectionCount,
-                         OnFrameRetrace *callback) {
-  const bool publish_all = ((metric() | ID_PREFIX_MASK) == -1);
-  const int publish_count = m_extant_query_handles.size();
-  std::map<MetricId, MetricSeries> out_data;
-  if (publish_all) {
-    for (auto i : m_metrics) {
-      out_data[i.first].data.reserve(publish_count);
-      out_data[i.first].metric = i.first;
-    }
-  } else {
-    assert(m_metrics.find(metric) != m_metrics.end());
-    out_data[metric].data.reserve(publish_count);
-    out_data[metric].metric = metric;
-  }
-
+                         PerfMetrics::MetricMap *out_metrics) {
+  const bool publish_all = (metric == ALL_METRICS_IN_GROUP);
   for (auto extant_query : m_extant_query_handles) {
     memset(m_data_buf.data(), 0, m_data_buf.size());
     GLuint bytes_written;
@@ -274,22 +288,19 @@ PerfMetricGroup::publish(MetricId metric,
                                        &bytes_written);
     assert(bytes_written == m_data_size);
 
-    // TODO(majanes) verify order of m_extant_query_handles is by
-    // RenderId
-    for (auto desired_metric : out_data) {
-      MetricId m = desired_metric.first;
-      out_data[m].data.push_back(m_metrics[m]->getMetric(m_data_buf));
+    if (publish_all) {
+      for (auto desired_metric : m_metrics) {
+        MetricId met_id = desired_metric.first;
+        (*out_metrics)[met_id][extant_query.first] =
+            desired_metric.second->getMetric(m_data_buf);
+      }
+    } else {
+        (*out_metrics)[metric][extant_query.first] =
+            m_metrics[metric]->getMetric(m_data_buf);
     }
     m_free_query_handles.push_back(extant_query.second);
   }
   m_extant_query_handles.clear();
-  if (callback) {
-    for (auto desired_metric : out_data) {
-      callback->onMetrics(desired_metric.second,
-                          experimentCount,
-                          selectionCount);
-    }
-  }
   for (auto free_query : m_free_query_handles) {
     GlFunctions::DeletePerfQueryINTEL(free_query);
   }
@@ -298,7 +309,8 @@ PerfMetricGroup::publish(MetricId metric,
 
 void
 PerfMetricGroup::end(RenderId render) {
-  GlFunctions::EndPerfQueryINTEL(m_extant_query_handles[render]);
+  if (m_extant_query_handles.find(render) != m_extant_query_handles.end())
+    GlFunctions::EndPerfQueryINTEL(m_extant_query_handles[render]);
 }
 
 
@@ -381,40 +393,130 @@ PerfMetric::getMetric(const std::vector<unsigned char> &data) const {
 }
 
 void
-PerfMetrics::selectMetric(MetricId metric) {
+PerfMetricsContext::selectMetric(MetricId metric) {
   assert(metric_map.find(metric) != metric_map.end());
   current_metric = metric;
   current_group = groups[metric_map[metric]];
 }
 
 void
-PerfMetrics::publish(ExperimentId experimentCount,
-                     SelectionId selectionCount,
-                     OnFrameRetrace *callback) {
-  current_group->publish(current_metric, experimentCount,
-                         selectionCount, callback);
+PerfMetricsContext::publish(PerfMetrics::MetricMap *metrics)  {
+  current_group->publish(current_metric, metrics);
 }
 
 void
-PerfMetrics::begin(RenderId render) {
+PerfMetricsContext::begin(RenderId render) {
   current_group->begin(render);
   current_render = render;
 }
 
 void
-PerfMetrics::end() {
+PerfMetricsContext::end() {
   current_group->end(current_render);
 }
 
 int
-PerfMetrics::groupCount() const {
+PerfMetricsContext::groupCount() const {
   return groups.size();
 }
 
 void
-PerfMetrics::selectGroup(int index) {
+PerfMetricsContext::selectGroup(int index) {
   current_group = groups[index];
-  // choose an invalid metric to represent "all metrics"
-  current_metric = MetricId(~ID_PREFIX_MASK);
+  current_metric = ALL_METRICS_IN_GROUP;
 }
 
+PerfMetrics::PerfMetrics(OnFrameRetrace *cb)
+    : m_current_group(0) {
+  Context *c = getCurrentContext();
+  m_current_context = new PerfMetricsContext(cb);
+  m_contexts[c] = m_current_context;
+}
+
+PerfMetrics::~PerfMetrics() {
+  for (auto i : m_contexts) {
+    delete i.second;
+  }
+  m_contexts.clear();
+}
+
+int
+PerfMetrics::groupCount() const {
+  assert(!m_contexts.empty());
+  return m_contexts.begin()->second->groupCount();
+}
+
+void
+PerfMetrics::selectMetric(MetricId metric) {
+  m_data.clear();
+  m_current_metric = metric;
+  for (auto i : m_contexts)
+    i.second->selectMetric(metric);
+}
+
+void
+PerfMetrics::selectGroup(int index) {
+  m_current_group = index;
+  m_current_metric = ALL_METRICS_IN_GROUP;
+  for (auto i : m_contexts)
+    i.second->selectGroup(index);
+}
+
+void
+PerfMetrics::begin(RenderId render) {
+  if (!m_current_context) {
+    beginContext();
+  }
+  m_current_context->begin(render);
+}
+
+void
+PerfMetrics::end() {
+  if (m_current_context)
+    m_current_context->end();
+}
+
+void
+PerfMetrics::publish(ExperimentId experimentCount,
+                     SelectionId selectionCount,
+                     OnFrameRetrace *callback) {
+  for (auto i : m_contexts)
+    i.second->publish(&m_data);
+
+  for (auto i : m_data) {
+    MetricSeries s;
+    s.metric = i.first;
+    s.data.resize(i.second.rbegin()->first.index() + 1);
+    for (auto datapoint : i.second)
+      s.data[datapoint.first.index()] = datapoint.second;
+    callback->onMetrics(s, experimentCount, selectionCount);
+  }
+  m_data.clear();
+}
+
+void
+PerfMetrics::beginContext() {
+  Context *c = getCurrentContext();
+  auto entry = m_contexts.find(c);
+  if (entry != m_contexts.end()) {
+    m_current_context = entry->second;
+  } else {
+    // create a new metrics context
+    GRLOG(glretrace::WARN, "new context in frame");
+    m_current_context = new PerfMetricsContext(NULL);
+    m_contexts[c] = m_current_context;
+  }
+  m_current_context->selectGroup(m_current_group);
+  if (m_current_metric() &&
+      (m_current_metric != ALL_METRICS_IN_GROUP))
+    m_current_context->selectMetric(m_current_metric);
+}
+
+void
+PerfMetrics::endContext() {
+  if (m_current_context) {
+    m_current_context->end();
+    m_current_context->publish(&m_data);
+  }
+  m_current_context = NULL;
+}

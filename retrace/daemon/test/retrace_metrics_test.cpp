@@ -117,10 +117,10 @@ TEST_F(RetraceTest, SingleMetricData) {
 
   FrameRetrace rt;
   rt.openFile(test_file, md5, fileSize, 7, &cb);
-  p.begin(RenderId(1));
+  p.begin(RenderId(0));
   RenderSelection s;
   s.id = SelectionId(0);
-  s.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
+  s.series.push_back(RenderSequence(RenderId(0), RenderId(1)));
   rt.retraceRenderTarget(ExperimentId(0), s,
                          glretrace::NORMAL_RENDER,
                          glretrace::STOP_AT_RENDER, &cb);

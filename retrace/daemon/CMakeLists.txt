@@ -56,6 +56,8 @@ set (RETRACE_SOURCES
   glframe_perf_enabled.hpp
   glframe_retrace.cpp
   glframe_retrace.hpp
+  glframe_retrace_context.cpp
+  glframe_retrace_context.hpp
   glframe_retrace_interface.hpp
   glframe_retrace_render.cpp
   glframe_retrace_render.hpp
