@@ -90,6 +90,8 @@ class RenderId {
   uint32_t index() const { return value & (~ID_PREFIX_MASK); }
   bool operator<(const RenderId &o) const { return value < o.value; }
   bool operator>(const RenderId &o) const { return value > o.value; }
+  bool operator>=(const RenderId &o) const { return value >= o.value; }
+  bool operator<=(const RenderId &o) const { return value <= o.value; }
   bool operator==(const RenderId &o) const { return value == o.value; }
  private:
   uint32_t value;
@@ -114,6 +116,7 @@ class MetricId {
   uint32_t counter() const { return (value & 0x0FFFF); }
   bool operator<(const MetricId &o) const { return value < o.value; }
   bool operator==(const MetricId &o) const { return value == o.value; }
+  bool operator!=(const MetricId &o) const { return value != o.value; }
  private:
   // low 16 bits are the counter number
   // middle 32 bits are the group

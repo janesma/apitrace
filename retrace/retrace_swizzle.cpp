@@ -122,7 +122,7 @@ addRegion(trace::Call &call, unsigned long long address, void *buffer, unsigned 
 #ifdef NDEBUG
         false
 #else
-        true
+        false
 #endif
     ;
     if (debug) {

@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2015 Intel Corporation
+ * Copyright 2017 Intel Corporation
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,64 +25,56 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
-#ifndef _GLFRAME_RETRACE_HPP_
-#define _GLFRAME_RETRACE_HPP_
+#ifndef _GLFRAME_RETRACE_CONTEXT_HPP_
+#define _GLFRAME_RETRACE_CONTEXT_HPP_
 
 #include <map>
 #include <string>
 #include <vector>
 
-#include "image.hpp"
-#include "trace_parser.hpp"
-#include "retrace.hpp"
 #include "glframe_retrace_interface.hpp"
-#include "glframe_state.hpp"
+#include "glframe_retrace.hpp"
+#include "trace_parser.hpp"
+
+namespace trace {
+class AbstractParser;
+class Call;
+}
+namespace retrace {
+class Retracer;
+}
 
 namespace glretrace {
 
-struct RenderBookmark {
-  RenderBookmark()
-      : numberOfCalls(0)
-  {}
-  explicit RenderBookmark(const trace::ParseBookmark &s)
-      : start(s),
-        numberOfCalls(0)
-  {}
-  trace::ParseBookmark start;
-  unsigned numberOfCalls;
-};
+struct Context;
 
+class StateTrack;
+class OnFrameRetrace;
+class ExperimentId;
+class MetricId;
 class PerfMetrics;
 class RetraceRender;
-class RetraceContext;
-class FrameRetrace : public IFrameRetrace {
- public:
-  FrameRetrace();
-  ~FrameRetrace();
-  void openFile(const std::string &filename,
-                const std::vector<unsigned char> &md5,
-                uint64_t fileSize,
-                uint32_t frameNumber,
-                OnFrameRetrace *callback);
 
-  // TODO(majanes) move to frame state tracker
-  int getRenderCount() const;
-  // std::vector<int> renderTargets() const;
+class RetraceContext {
+ public:
+  RetraceContext(RenderId current_render,
+                 trace::AbstractParser *parser,
+                 retrace::Retracer *retracer,
+                 StateTrack *tracker);
   void retraceRenderTarget(ExperimentId experimentCount,
                            const RenderSelection &selection,
                            RenderTargetType type,
                            RenderOptions options,
+                           const StateTrack &tracker,
                            OnFrameRetrace *callback) const;
-  void retraceShaderAssembly(const RenderSelection &selection,
-                             OnFrameRetrace *callback);
-  void retraceMetrics(const std::vector<MetricId> &ids,
-                      ExperimentId experimentCount,
-                      OnFrameRetrace *callback) const;
+  void retraceMetrics(PerfMetrics *perf, const StateTrack &tracker) const;
   void retraceAllMetrics(const RenderSelection &selection,
-                         ExperimentId experimentCount,
-                         OnFrameRetrace *callback) const;
-  void replaceShaders(RenderId renderId,
+                         PerfMetrics *perf,
+                         const StateTrack &tracker) const;
+  bool endsFrame() const;
+  bool replaceShaders(RenderId renderId,
                       ExperimentId experimentCount,
+                      StateTrack *tracker,
                       const std::string &vs,
                       const std::string &fs,
                       const std::string &tessControl,
@@ -90,31 +82,27 @@ class FrameRetrace : public IFrameRetrace {
                       const std::string &geom,
                       const std::string &comp,
                       OnFrameRetrace *callback);
-  // this is going to be ugly to serialize
-  // void insertCall(const trace::Call &call,
-  //                 uint32_t renderId,);
-  // void setShaders(const std::string &vs,
-  //                 const std::string &fs,
-  //                 OnFrameRetrace *callback);
-  // void revertModifications();
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback);
+  void retraceShaderAssembly(const RenderSelection &selection,
+                             StateTrack *tracker,
+                             OnFrameRetrace *callback);
+  int getRenderCount() const;
 
  private:
-  // these are global
-  // trace::Parser parser;
-  // retrace::Retracer retracer;
+  trace::AbstractParser *m_parser;
+  retrace::Retracer *m_retracer;
+  trace::ParseBookmark m_start_bookmark, m_end_bookmark;
+  trace::Call *m_context_switch;
+  RenderBookmark m_context_start;
+  std::map<RenderId, RetraceRender*> m_renders;
+  std::vector<RenderId> end_render_target_regions;
+  bool m_ends_frame;
 
-  RenderBookmark frame_start;
-  std::vector<RetraceContext*> m_contexts;
-  StateTrack m_tracker;
-  PerfMetrics * m_metrics;
-
-  // each entry is the last render in an RT region
-  std::vector<RenderId> render_target_regions;
+  RenderId lastRenderForRTRegion(RenderId render) const;
 };
 
-} /* namespace glretrace */
+}  // namespace glretrace
 
+#endif  // _GLFRAME_RETRACE_CONTEXT_HPP_
 
-#endif /* _GLFRAME_RETRACE_HPP_ */

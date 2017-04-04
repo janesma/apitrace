@@ -98,7 +98,6 @@ class StateTrack {
   const ShaderAssembly &currentGeomShader() const;
   const ShaderAssembly &currentCompShader() const;
   void onAssembly(ShaderType st, AssemblyType at, const std::string &assembly);
-  uint64_t currentContext() const { return current_context; }
   int useProgram(int orig_program,
                  const std::string &vs, const std::string &fs,
                  const std::string &tessControl, const std::string &tessEval,
@@ -147,7 +146,6 @@ class StateTrack {
 
   OutputPoller *m_poller;
   int current_program;
-  uint64_t current_context;
   std::map<int, std::string> shader_to_source;
   std::map<int, int> shader_to_type;
   std::map<std::string, int> source_to_shader;

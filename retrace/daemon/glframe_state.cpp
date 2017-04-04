@@ -61,7 +61,6 @@ StateTrack::TrackMap StateTrack::lookup;
 StateTrack::StateTrack(OutputPoller *p)
     : m_poller(p),
       current_program(0),
-      current_context(0),
       empty_shader() {
 }
 
@@ -90,20 +89,6 @@ StateTrack::TrackMap::track(StateTrack *tracker, const Call &call) {
   return true;
 }
 
-bool
-changesContext(const trace::Call &call) {
-  if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
-    return true;
-  return false;
-}
-
-uint64_t
-getContext(const trace::Call &call) {
-  assert(changesContext(call));
-  // there ought to be a const variant for this
-  return const_cast<trace::Call &>(call).arg(2).toUIntPtr();
-}
-
 // TODO(majanes): use a lookup table
 void
 StateTrack::track(const Call &call) {
@@ -117,9 +102,6 @@ StateTrack::track(const Call &call) {
     parse();
 #endif
   }
-
-  if (changesContext(call))
-    current_context = getContext(call);
 
 #ifndef WIN32
   // on Linux we can parse for shader assembly data on every call.

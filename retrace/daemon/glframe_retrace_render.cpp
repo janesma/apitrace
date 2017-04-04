@@ -33,12 +33,15 @@
 
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_metrics.hpp"
 #include "glframe_state.hpp"
 #include "retrace.hpp"
+#include "glstate_internal.hpp"
 #include "trace_parser.hpp"
 
 using glretrace::DEBUG;
 using glretrace::GlFunctions;
+using glretrace::PerfMetrics;
 using glretrace::RetraceRender;
 using glretrace::SelectionId;
 using glretrace::StateTrack;
@@ -46,29 +49,39 @@ using glretrace::RenderTargetType;
 using glretrace::RenderId;
 using glretrace::OnFrameRetrace;
 
-bool changesContext(const trace::Call * const call) {
-  if (strncmp(call->name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
-    return true;
-  return false;
-}
-
 static const std::string simple_fs =
     "void main(void) {\n"
     "  gl_FragColor = vec4(1,0,1,1);\n"
     "}";
 
 bool
-RetraceRender::isRender(const trace::Call &call) {
-  return (call.flags & trace::CALL_FLAG_RENDER) ||
-      (strcmp("glDispatchCompute", call.name()) == 0) ||
-      (strcmp("glDispatchComputeIndirect",
-              call.name()) == 0);
+isCompute(const trace::Call &call) {
+  return ((strcmp("glDispatchCompute", call.name()) == 0) ||
+          (strcmp("glDispatchComputeIndirect",
+                  call.name()) == 0));
 }
 
 bool
-isCompute(const trace::Call &call) {
-  return (RetraceRender::isRender(call) &&
-          (!(call.flags & trace::CALL_FLAG_RENDER)));
+RetraceRender::changesContext(const trace::Call &call) {
+  if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
+    return true;
+  return false;
+}
+
+bool
+RetraceRender::isRender(const trace::Call &call) {
+  return ((call.flags & trace::CALL_FLAG_RENDER) || isCompute(call));
+}
+
+int
+RetraceRender::currentRenderBuffer() {
+  glstate::Context context;
+  const GLenum framebuffer_binding = context.ES ?
+                                     GL_FRAMEBUFFER_BINDING :
+                                     GL_DRAW_FRAMEBUFFER_BINDING;
+  GLint draw_framebuffer = 0;
+  GlFunctions::GetIntegerv(framebuffer_binding, &draw_framebuffer);
+  return draw_framebuffer;
 }
 
 RetraceRender::RetraceRender(trace::AbstractParser *parser,
@@ -78,29 +91,39 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
                                                     m_rt_program(-1),
                                                     m_retrace_program(-1),
                                                     m_end_of_frame(false),
-                                                    m_highlight_rt(false) {
+                                                    m_highlight_rt(false),
+                                                    m_changes_context(false) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   std::stringstream call_stream;
   bool compute = false;
+  trace::ParseBookmark call_start;
   while ((call = parser->parse_call())) {
-    trace::dump(*call, call_stream,
-                trace::DUMP_FLAG_NO_COLOR);
-    m_api_calls.push_back(call_stream.str());
-    call_stream.str("");
-
     tracker->flush();
     m_retracer->retrace(*call);
     tracker->track(*call);
     m_end_of_frame = call->flags & trace::CALL_FLAG_END_FRAME;
     const bool render = isRender(*call);
     compute = isCompute(*call);
-    assert(!changesContext(call));
+    if (changesContext(*call)) {
+      m_changes_context = true;
+      if (m_api_calls.size() > 0) {
+        // this ought to be in the next context
+        m_parser->setBookmark(call_start);
+        delete call;
+        break;
+      }
+    }
+    trace::dump(*call, call_stream,
+                trace::DUMP_FLAG_NO_COLOR);
+    m_api_calls.push_back(call_stream.str());
+    call_stream.str("");
     delete call;
 
     ++(m_bookmark.numberOfCalls);
     if (render || m_end_of_frame)
       break;
+    m_parser->getBookmark(call_start);
   }
   m_original_program = tracker->CurrentProgram();
   m_original_vs = tracker->currentVertexShader().shader;
@@ -138,7 +161,7 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   assert(bm.offset == m_bookmark.start.offset);
 
   // play up to but not past the end of the render
-  for (uint calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+  for (unsigned int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
     tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
@@ -187,7 +210,7 @@ RetraceRender::retrace(StateTrack *tracker) const {
   tracker->flush();
 
   // play up to but not past the end of the render
-  for (uint calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+  for (unsigned int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
 
@@ -225,12 +248,14 @@ RetraceRender::retrace(const StateTrack &tracker) const {
   assert(bm.offset == m_bookmark.start.offset);
 
   // play up to but not past the end of the render
-  for (uint calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
+  for (unsigned int calls = 0; calls < m_bookmark.numberOfCalls - 1; ++calls) {
     trace::Call *call = m_parser->parse_call();
     assert(call);
 
     tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
 
+    // context change must be on the first call of the render
+    assert((!changesContext(*call)) || calls == 0);
     m_retracer->retrace(*call);
 
     delete(call);
