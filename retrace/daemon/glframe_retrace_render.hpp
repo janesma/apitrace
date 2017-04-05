@@ -67,10 +67,6 @@ class RetraceRender {
                       const std::string &geom,
                       const std::string &comp,
                       std::string *message);
-  void overrideVertexShader(StateTrack *tracker, bool enable,
-                            const std::string &vs);
-  void overrideFragmentShader(StateTrack *tracker, bool enable,
-                              const std::string &fs);
   void revertShaders();
   void onApi(SelectionId selId,
              RenderId renderId,
