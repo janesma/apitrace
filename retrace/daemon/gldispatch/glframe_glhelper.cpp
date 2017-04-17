@@ -118,6 +118,7 @@ static void *pUniformMatrix3x4fv = NULL;
 static void *pUniformMatrix4fv = NULL;
 static void *pUniformMatrix4x2fv = NULL;
 static void *pUniformMatrix4x3fv = NULL;
+static void *pFinish = NULL;
 
 }  // namespace
 
@@ -324,6 +325,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pUniformMatrix4x2fv);
   pUniformMatrix4x3fv = _GetProcAddress("glUniformMatrix4x3fv");
   assert(pUniformMatrix4x3fv);
+  pFinish = _GetProcAddress("glFinish");
+  assert(pFinish);
 }
 
 GLuint
@@ -922,4 +925,10 @@ GlFunctions::UniformMatrix4x3fv(GLint location, GLsizei count,
                                      GLboolean transpose, const GLfloat *value);
   return ((UNIFORMMATRIX4X3FV)pUniformMatrix4x3fv)(location, count, transpose,
                                                    value);
+}
+
+void
+GlFunctions::Finish() {
+  typedef void (*FINISH)();
+  return ((FINISH)pFinish)();
 }

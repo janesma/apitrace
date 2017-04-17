@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 
+#include "glframe_glhelper.hpp"
 #include "glframe_loop.hpp"
 
 using glretrace::FrameLoop;
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
     printf("%s", usage);
     return -1;
   }
-
+  glretrace::GlFunctions::Init();
   FrameLoop loop(frame_file, out_file, loop_count);
   for (auto f : frames) {
     loop.advanceToFrame(f);

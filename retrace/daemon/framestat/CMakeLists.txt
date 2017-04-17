@@ -26,6 +26,7 @@ else()
 endif()
 
 target_link_libraries(framestat
+  retrace_gldispatch
   glretrace_common
   glhelpers
   glproc_gl

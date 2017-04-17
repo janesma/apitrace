@@ -171,6 +171,7 @@ class GlFunctions {
                                  GLboolean transpose, const GLfloat *value);
   static void UniformMatrix4x3fv(GLint location, GLsizei count,
                                  GLboolean transpose, const GLfloat *value);
+  static void Finish();
 
  private:
   GlFunctions();

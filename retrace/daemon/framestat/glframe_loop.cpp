@@ -33,6 +33,7 @@
 #include <string>
 #include <vector>
 
+#include "glframe_glhelper.hpp"
 #include "glretrace.hpp"
 #include "retrace.hpp"
 
@@ -138,11 +139,13 @@ FrameLoop::loop() {
       retracer.retrace(*c);
     }
   }
+  GlFunctions::Finish();
   unsigned int begin = get_ms_time();
   for (int i = 0; i < m_loop_count; ++i) {
     for (auto c : m_calls) {
       retracer.retrace(*c);
     }
+    GlFunctions::Finish();
     const unsigned int end = get_ms_time();
     *m_out << "\t" << end - begin;
     begin = end;
