@@ -47,39 +47,73 @@ QApiModel::~QApiModel() {
 
 QString
 QApiModel::apiCalls() {
+  ScopedLock s(m_protect);
   if (m_index < 0)
     return QString("");
-  return m_api_calls[m_renders[m_index]];
+  if (m_index >= m_filtered_renders.size())
+    return QString("");
+  return m_api_calls[m_filtered_renders[m_index]];
 }
 
 void
 QApiModel::onApi(SelectionId selectionCount,
                  RenderId renderId,
                  const std::vector<std::string> &api_calls) {
-  if (m_sel_count != selectionCount) {
-    m_api_calls.clear();
-    m_renders.clear();
-    m_sel_count = selectionCount;
-  }
+  {
+    ScopedLock s(m_protect);
+    if (m_sel_count != selectionCount) {
+      m_api_calls.clear();
+      m_renders.clear();
+      m_sel_count = selectionCount;
+    }
 
-  m_renders.push_back(QString("%1").arg(renderId.index()));
-  QString &api = m_api_calls[m_renders.back()];
-  for (auto i : api_calls) {
-    api.append(QString::fromStdString(i));
+    m_renders.push_back(QString("%1").arg(renderId.index()));
+    QString &api = m_api_calls[m_renders.back()];
+    for (auto i : api_calls) {
+      api.append(QString::fromStdString(i));
+    }
+    m_api_calls[m_renders.back()] = api;
+    filter();
   }
-  m_api_calls[m_renders.back()] = api;
-  if (m_api_calls.size() == 1)
-    setIndex(0);
+  setIndex(0);
   emit onRenders();
 }
 
 void
 QApiModel::setIndex(int index) {
-  m_index = index;
+  {
+    ScopedLock s(m_protect);
+    m_index = index;
+  }
   emit onApiCalls();
 }
 
 QStringList
 QApiModel::renders() const {
-  return m_renders;
+  ScopedLock s(m_protect);
+  return m_filtered_renders;
+}
+
+void
+QApiModel::filter(QString substring) {
+  {
+    ScopedLock s(m_protect);
+    m_filter = substring;
+    filter();
+  }
+  emit onRenders();
+  setIndex(0);
+}
+
+void
+QApiModel::filter() {
+  m_filtered_renders.clear();
+  if (m_filter.length() == 0) {
+    m_filtered_renders = m_renders;
+  } else {
+    for (auto i : m_renders) {
+      if (m_api_calls[i].contains(m_filter, Qt::CaseInsensitive))
+        m_filtered_renders.append(i);
+    }
+  }
 }

@@ -6,8 +6,49 @@ import ApiTrace 1.0
 
 Item {
     property QApiModel apiModel
+    Item {
+        id: apiItem
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        width: 400
+        height: textRect.height
+        
+        Text {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.topMargin: 5
+            id: filterText
+            text: "Api Filter:"
+        }
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: filterText.right
+            anchors.leftMargin: 20
+            height: filterText.height * 1.5
+            border.width: 1
+            width: apiItem.width/2
+            id: textRect
+            TextInput {
+                height: filterText.height
+                width: parent.width
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 4
+                id: metricFilter
+                text: ""
+                onDisplayTextChanged: {
+                    apiModel.filter(displayText)
+                }
+            }
+        }
+    }
+    
     SplitView {
-        anchors.fill: parent
+        anchors.top: apiItem.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
         ScrollView {
             Layout.preferredWidth: 100
