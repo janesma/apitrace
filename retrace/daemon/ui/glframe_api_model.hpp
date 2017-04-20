@@ -55,16 +55,22 @@ class QApiModel : public QObject,
              RenderId renderId,
              const std::vector<std::string> &api_calls);
   Q_INVOKABLE void setIndex(int index);
+  Q_INVOKABLE void filter(QString substring);
 
  signals:
   void onApiCalls();
   void onRenders();
 
  private:
+  void filter();
+
   std::map<QString, QString> m_api_calls;
   QStringList m_renders;
+  QStringList m_filtered_renders;
   SelectionId m_sel_count;
   int m_index;
+  QString m_filter;
+  mutable std::mutex m_protect;
 };
 
 }  // namespace glretrace
