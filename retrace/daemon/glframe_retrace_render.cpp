@@ -62,6 +62,11 @@ isCompute(const trace::Call &call) {
 }
 
 bool
+isClear(const trace::Call &call) {
+  return (strncmp("glClearBuffer", call.name(), strlen("glClearBuffer")) == 0);
+}
+
+bool
 RetraceRender::changesContext(const trace::Call &call) {
   if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
     return true;
@@ -70,7 +75,8 @@ RetraceRender::changesContext(const trace::Call &call) {
 
 bool
 RetraceRender::isRender(const trace::Call &call) {
-  return ((call.flags & trace::CALL_FLAG_RENDER) || isCompute(call));
+  return ((call.flags & trace::CALL_FLAG_RENDER) || isCompute(call)
+          || isClear(call));
 }
 
 int
