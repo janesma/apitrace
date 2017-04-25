@@ -108,6 +108,8 @@ int main(int argc, char *argv[]) {
                                                  "QRenderShadersList");
   qmlRegisterType<glretrace::QApiModel>("ApiTrace", 1, 0,
                                         "QApiModel");
+  qmlRegisterType<glretrace::QBatchModel>("ApiTrace", 1, 0,
+                                        "QBatchModel");
 
   glretrace::FrameImages::Create();
 

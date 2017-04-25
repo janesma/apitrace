@@ -9,5 +9,6 @@
         <file>qml/images/no_render_target.png</file>
         <file>qml/RenderShadersControl.qml</file>
         <file>qml/ApiControl.qml</file>
+        <file>qml/BatchControl.qml</file>
     </qresource>
 </RCC>

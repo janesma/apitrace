@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 
+#include "glframe_batch.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_gpu_speed.hpp"
 #include "glframe_logger.hpp"
@@ -57,6 +58,7 @@ using glretrace::ExperimentId;
 using glretrace::FrameRetrace;
 using glretrace::FrameState;
 using glretrace::GlFunctions;
+using glretrace::MesaBatch;
 using glretrace::MetricId;
 using glretrace::MetricSeries;
 using glretrace::NoRedirect;
@@ -71,6 +73,7 @@ using glretrace::ShaderAssembly;
 using glretrace::StateTrack;
 using glretrace::StdErrRedirect;
 using glretrace::WARN;
+using glretrace::WinBatch;
 using image::Image;
 using retrace::parser;
 using trace::Call;
@@ -80,8 +83,10 @@ extern retrace::Retracer retracer;
 
 #ifdef WIN32
 static WinShaders assemblyOutput;
+static WinBatch batchControl;
 #else
 static StdErrRedirect assemblyOutput;
+static MesaBatch batchControl;
 #endif
 
 FrameRetrace::FrameRetrace()
@@ -320,6 +325,21 @@ FrameRetrace::replaceShaders(RenderId renderId,
 void
 FrameRetrace::retraceApi(const RenderSelection &selection,
                          OnFrameRetrace *callback) {
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
   for (auto i : m_contexts)
     i->retraceApi(selection, callback);
+}
+
+void
+FrameRetrace::retraceBatch(const RenderSelection &selection,
+                           OnFrameRetrace *callback) {
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
+  if (!batchControl.batchSupported())
+    return;
+  for (auto i : m_contexts)
+    i->retraceBatch(selection, m_tracker, &batchControl,
+                    &assemblyOutput, callback);
+  batchControl.batchOff();
 }

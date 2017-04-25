@@ -100,6 +100,9 @@ class FrameRetrace : public IFrameRetrace {
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback);
 
+  void retraceBatch(const RenderSelection &selection,
+                            OnFrameRetrace *callback);
+
  private:
   // these are global
   // trace::Parser parser;

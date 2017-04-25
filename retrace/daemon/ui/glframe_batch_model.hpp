@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2015 Intel Corporation
+ * Copyright 2017 Intel Corporation
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,50 +25,53 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
+#ifndef _GLFRAME_BATCH_MODEL_HPP_
+#define _GLFRAME_BATCH_MODEL_HPP_
+
+#include <QObject>
+#include <QString>
+
+#include <mutex>
 #include <string>
+#include <map>
 #include <vector>
-#include "glframe_state.hpp"
+
+#include "glframe_retrace_interface.hpp"
+#include "glframe_traits.hpp"
 
 namespace glretrace {
 
-class StdErrRedirect : public OutputPoller {
+// This class is highly similar to QApiModel.  Consider merging them
+// and making the filter functionality optional.  For now, it should
+// remain separate, as the feature is a proof-of-concept that may soon
+// be deleted.
+class QBatchModel : public QObject,
+                  NoCopy, NoAssign, NoMove{
+  Q_OBJECT
+  Q_PROPERTY(QString batch READ batch NOTIFY onBatchChanged)
+  Q_PROPERTY(QStringList renders READ renders NOTIFY onRenders)
  public:
-  StdErrRedirect();
-  void poll(int current_program, StateTrack *cb);
-  void pollBatch(SelectionId selectionCount,
-                 RenderId id,
-                 OnFrameRetrace *cb);
-  ~StdErrRedirect();
-  void init();
+  QBatchModel();
+  ~QBatchModel();
+  QString batch();
+  QStringList renders() const;
+  void onBatch(SelectionId selectionCount,
+                 RenderId renderId,
+                 const std::string &batch);
+  Q_INVOKABLE void setIndex(int index);
+
+ signals:
+  void onBatchChanged();
+  void onRenders();
 
  private:
-  int out_pipe[2];
-  std::vector<char> buf;
-};
-
-class NoRedirect : public OutputPoller {
- public:
-  NoRedirect() {}
-  void poll(int, StateTrack *) {}
-  void pollBatch(SelectionId,
-                 RenderId,
-                 OnFrameRetrace *) {}
-  ~NoRedirect() {}
-  void init() {}
-};
-
-class WinShaders : public OutputPoller {
- public:
-  WinShaders() {}
-  void poll(int current_program, StateTrack *cb);
-  void pollBatch(SelectionId,
-                 RenderId,
-                 OnFrameRetrace *) {}
-  ~WinShaders() {}
-  void init();
- private:
-  std::string m_dump_dir;
-  std::string m_dump_pattern;
+  std::map<QString, QString> m_batch;
+  QStringList m_renders;
+  SelectionId m_sel_count;
+  int m_index;
+  mutable std::mutex m_protect;
 };
 
 }  // namespace glretrace
+
+#endif  // _GLFRAME_BATCH_MODEL_HPP_

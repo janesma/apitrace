@@ -313,3 +313,19 @@ StdErrRedirect::init() {
   close(out_pipe[1]);
   buf.resize(1024);
 }
+
+void
+StdErrRedirect::pollBatch(SelectionId selectionCount,
+                          RenderId id,
+                          OnFrameRetrace *cb) {
+  fflush(stdout);
+  std::string batch_output;
+  int bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+  while (0 < bytes) {
+    buf[bytes] = '\0';
+    batch_output.append(buf.data());
+    bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+  }
+
+  cb->onBatch(selectionCount, id, batch_output);
+}

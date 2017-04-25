@@ -48,10 +48,12 @@ namespace glretrace {
 
 struct Context;
 
+class BatchControl;
 class StateTrack;
 class OnFrameRetrace;
 class ExperimentId;
 class MetricId;
+class OutputPoller;
 class PerfMetrics;
 class RetraceRender;
 
@@ -88,6 +90,11 @@ class RetraceContext {
                              StateTrack *tracker,
                              OnFrameRetrace *callback);
   int getRenderCount() const;
+  void retraceBatch(const RenderSelection &selection,
+                    const StateTrack &tracker,
+                    BatchControl *control,
+                    OutputPoller *poller,
+                    OnFrameRetrace *callback);
 
  private:
   trace::AbstractParser *m_parser;

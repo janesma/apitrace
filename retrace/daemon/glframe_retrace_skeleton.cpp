@@ -297,6 +297,23 @@ FrameRetraceSkeleton::Run() {
           writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
+      case ApiTrace::BATCH_REQUEST:
+        {
+          assert(request.has_batch());
+          auto batch = request.batch();
+          RenderSelection selection;
+          makeRenderSelection(batch.selection(), &selection);
+          m_frame->retraceBatch(selection,
+                                this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto batch_resp = proto_response.mutable_batch();
+          batch_resp->set_render_id(-1);
+          batch_resp->set_selection_count(-1);
+          batch_resp->set_batch("");
+          writeResponse(m_socket, proto_response, &m_buf);
+          break;
+        }
     }
   }
 }
@@ -424,4 +441,16 @@ FrameRetraceSkeleton::onError(ErrorSeverity s, const std::string &message) {
   writeResponse(m_socket, proto_response, &m_buf);
   if (s == RETRACE_FATAL)
     m_fatal_error = true;
+}
+
+void
+FrameRetraceSkeleton::onBatch(SelectionId selectionCount,
+                              RenderId renderId,
+                              const std::string &batch) {
+  RetraceResponse proto_response;
+  auto response = proto_response.mutable_batch();
+  response->set_render_id(renderId());
+  response->set_selection_count(selectionCount());
+  response->set_batch(batch);
+  writeResponse(m_socket, proto_response, &m_buf);
 }

@@ -98,6 +98,9 @@ class NullCallback : public OnFrameRetrace {
   void onError(ErrorSeverity s, const std::string &message) {
     file_error = true;
   }
+  void onBatch(SelectionId selectionCount,
+               RenderId renderId,
+               const std::string &batch) {}
   int renderTargetCount;
   SelectionId last_selection;
   std::string compile_error;

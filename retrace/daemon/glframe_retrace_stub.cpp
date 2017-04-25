@@ -588,6 +588,63 @@ class ApiRequest : public IRetraceRequest {
   OnFrameRetrace *m_callback;
 };
 
+class BatchRequest : public IRetraceRequest {
+ public:
+  BatchRequest(SelectionId *current_selection,
+             std::mutex *protect,
+             const RenderSelection &selection,
+             OnFrameRetrace *cb)
+      : m_sel_count(current_selection),
+        m_protect(protect),
+        m_callback(cb) {
+    auto batchRequest = m_proto_msg.mutable_batch();
+    auto selectionRequest = batchRequest->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    m_proto_msg.set_requesttype(ApiTrace::BATCH_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &sel = m_proto_msg.batch().selection();
+      const SelectionId id(sel.selection_count());
+      if (*m_sel_count != id)
+        // more recent selection was made while this was enqueued
+        return;
+    }
+    RetraceResponse response;
+    // sends single request, read multiple responses
+    s->request(m_proto_msg);
+    while (true) {
+      response.Clear();
+      s->response(&response);
+      assert(response.has_batch());
+      const auto &batch_response = response.batch();
+      if (batch_response.render_id() == -1)
+        // all responses sent
+        break;
+
+      const auto selection = batch_response.selection_count();
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_sel_count != SelectionId(selection))
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
+
+      const RenderId rid(batch_response.render_id());
+      m_callback->onBatch(SelectionId(selection),
+                          rid, batch_response.batch());
+    }
+  }
+
+ private:
+  const SelectionId * const m_sel_count;
+  std::mutex *m_protect;
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -777,4 +834,16 @@ FrameRetraceStub::Flush() {
   Semaphore sem;
   m_thread->push(new FlushRequest(&sem));
   sem.wait();
+}
+
+void
+FrameRetraceStub::retraceBatch(const RenderSelection &selection,
+                               OnFrameRetrace *callback) {
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_render_selection = selection.id;
+  }
+  m_thread->push(new BatchRequest(&m_current_render_selection,
+                                  &m_mutex,
+                                  selection, callback));
 }
