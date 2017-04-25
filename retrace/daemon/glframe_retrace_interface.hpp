@@ -240,6 +240,9 @@ class OnFrameRetrace {
                      RenderId renderId,
                      const std::vector<std::string> &api_calls) = 0;
   virtual void onError(ErrorSeverity s, const std::string &message) = 0;
+  virtual void onBatch(SelectionId selectionCount,
+                       RenderId renderId,
+                       const std::string &batch) = 0;
 };
 
 class IFrameRetrace {
@@ -279,6 +282,8 @@ class IFrameRetrace {
                               OnFrameRetrace *callback) = 0;
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback) = 0;
+  virtual void retraceBatch(const RenderSelection &selection,
+                            OnFrameRetrace *callback) = 0;
 };
 
 class FrameState {

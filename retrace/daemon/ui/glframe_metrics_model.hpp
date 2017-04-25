@@ -119,6 +119,9 @@ class QMetricsModel : public QObject, OnFrameRetrace,
              RenderId renderId,
              const std::vector<std::string> &api_calls) { assert(false); }
   void onError(ErrorSeverity s, const std::string &message) { assert(false); }
+  void onBatch(SelectionId selectionCount,
+               RenderId renderId,
+               const std::string &batch) { assert(false); }
   void filter(const QString& f);
 
   QQmlListProperty<QMetricValue> metrics();

@@ -44,6 +44,7 @@
 #include "glframe_retrace_stub.hpp"
 #include "glframe_api_model.hpp"
 #include "glframe_bargraph.hpp"
+#include "glframe_batch_model.hpp"
 #include "glframe_os.hpp"
 #include "glframe_qselection.hpp"
 #include "glframe_shader_model.hpp"
@@ -110,6 +111,7 @@ class FrameRetraceModel : public QObject,
              WRITE setHighlightRender)
   Q_PROPERTY(glretrace::QRenderShadersList* shaders READ shaders CONSTANT)
   Q_PROPERTY(glretrace::QApiModel* api READ api CONSTANT)
+  Q_PROPERTY(glretrace::QBatchModel* batch READ batch CONSTANT)
   Q_PROPERTY(QString shaderCompileError READ shaderCompileError
              NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
@@ -166,6 +168,9 @@ class FrameRetraceModel : public QObject,
              RenderId renderId,
              const std::vector<std::string> &api_calls);
   void onError(ErrorSeverity s, const std::string &message);
+  void onBatch(SelectionId selectionCount,
+               RenderId renderId,
+               const std::string &batch);
   void onShadersChanged();
   QString renderTargetImage() const;
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
@@ -173,6 +178,7 @@ class FrameRetraceModel : public QObject,
   QString apiCalls();
   QRenderShadersList *shaders() { return &m_shaders; }
   QApiModel *api() { return &m_api; }
+  QBatchModel *batch() { return &m_batch; }
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
@@ -203,7 +209,6 @@ class FrameRetraceModel : public QObject,
   void onRenderTarget();
   void onFrameCount();
   void onMaxMetric();
-  void onApiCalls();
   void onShaderCompileError();
   void onArgvZero();
   void onGeneralError();
@@ -215,11 +220,13 @@ class FrameRetraceModel : public QObject,
   void retrace_rendertarget();
   void retrace_shader_assemblies();
   void retrace_api();
+  void retrace_batch();
 
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   QMetricsModel m_metrics_table;
   QApiModel m_api;
+  QBatchModel m_batch;
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;

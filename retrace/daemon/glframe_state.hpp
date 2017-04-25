@@ -48,6 +48,9 @@ class StateTrack;
 class OutputPoller {
  public:
   virtual void poll(int current_program, StateTrack *cb) = 0;
+  virtual void pollBatch(SelectionId selectionCount,
+                         RenderId id,
+                         OnFrameRetrace *cb) = 0;
   virtual ~OutputPoller() {}
   virtual void init() = 0;
 };

@@ -26,11 +26,12 @@ include_directories (
   )
 
 set (RETRACE_LINUX_SOURCE
-  glframe_perf_enabled_linux.cpp
+  glframe_batch.cpp
+  glframe_gpu_speed_linux.cpp
   glframe_os_linux.cpp
+  glframe_perf_enabled_linux.cpp
   glframe_stderr.cpp
   glframe_thread_linux.cpp
-  glframe_gpu_speed_linux.cpp
   )
 
 set (RETRACE_WIN_SOURCE
@@ -47,6 +48,7 @@ endif()
 
 set (RETRACE_SOURCES
   ${RETRACE_OS_SOURCE}
+  glframe_batch.hpp
   glframe_gpu_speed.hpp
   glframe_metrics.cpp
   glframe_metrics.hpp

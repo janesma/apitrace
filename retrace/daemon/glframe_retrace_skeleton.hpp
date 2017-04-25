@@ -83,6 +83,10 @@ class FrameRetraceSkeleton : public Thread,
                      const std::vector<std::string> &api_calls);
   virtual void onError(ErrorSeverity s, const std::string &message);
 
+  virtual void onBatch(SelectionId selectionCount,
+                       RenderId renderId,
+                       const std::string &batch);
+
  protected:
   bool m_force_upload;  // for unit test
 

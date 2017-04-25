@@ -89,6 +89,8 @@ class FileTransfer : public IFrameRetrace {
                       OnFrameRetrace *callback) {}
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback) {}
+  void retraceBatch(const RenderSelection &selection,
+                    OnFrameRetrace *callback) {}
 };
 
 class FileTransferCB : public OnFrameRetrace {
@@ -124,6 +126,9 @@ class FileTransferCB : public OnFrameRetrace {
              RenderId renderId,
              const std::vector<std::string> &api_calls) {}
   void onError(ErrorSeverity s, const std::string &message) {}
+  void onBatch(SelectionId selectionCount,
+               RenderId renderId,
+               const std::string &batch) {}
   bool m_needUpload;
 };
 

@@ -280,6 +280,15 @@ FrameRetraceModel::retrace_api() {
 }
 
 void
+FrameRetraceModel::retrace_batch() {
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &sel);
+  m_retrace.retraceBatch(sel, this);
+}
+
+void
 FrameRetraceModel::onFileOpening(bool needUpload,
                                  bool finished,
                                  uint32_t frame_count) {
@@ -415,6 +424,7 @@ FrameRetraceModel::onSelect(QList<int> selection) {
   retrace_rendertarget();
   retrace_shader_assemblies();
   retrace_api();
+  retrace_batch();
 }
 
 bool
@@ -536,4 +546,11 @@ FrameRetraceModel::onShadersChanged() {
   retrace_shader_assemblies();
   m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
                            this);
+}
+
+void
+FrameRetraceModel::onBatch(SelectionId selectionCount,
+                           RenderId renderId,
+                           const std::string &batch) {
+  m_batch.onBatch(selectionCount, renderId, batch);
 }

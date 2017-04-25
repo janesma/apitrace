@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "trace_model.hpp"
+#include "glframe_batch.hpp"
 #include "glframe_glhelper.hpp"
 #include "glretrace.hpp"
 #include "glframe_logger.hpp"
@@ -39,6 +40,7 @@
 #include "glframe_retrace_render.hpp"
 #include "glstate.hpp"
 
+using glretrace::OutputPoller;
 using glretrace::RenderId;
 using glretrace::RenderSelection;
 using glretrace::RetraceContext;
@@ -394,4 +396,30 @@ RetraceContext::retraceShaderAssembly(const RenderSelection &selection,
                                  tracker->currentCompShader());
     }
   }
+}
+
+void
+RetraceContext::retraceBatch(const RenderSelection &selection,
+                             const StateTrack &tracker,
+                             BatchControl *control,
+                             OutputPoller *poller,
+                             OnFrameRetrace *callback) {
+  trace::ParseBookmark bm;
+  m_parser->getBookmark(bm);
+  assert(bm.offset == m_start_bookmark.offset);
+
+  for (auto r : m_renders) {
+    if (isSelected(r.first, selection)) {
+      GlFunctions::Finish();
+      control->batchOn();
+    } else {
+      control->batchOff();
+    }
+    r.second->retrace(tracker);
+    if (isSelected(r.first, selection)) {
+      GlFunctions::Finish();
+      poller->pollBatch(selection.id, r.first, callback);
+    }
+  }
+  control->batchOff();
 }

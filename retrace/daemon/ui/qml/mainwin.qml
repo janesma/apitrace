@@ -380,6 +380,15 @@ ApplicationWindow {
                 }
             }
             Tab {
+                title: "Batch"
+                clip: true
+                anchors.fill: parent
+                BatchControl {
+                    anchors.fill: parent
+                    batchModel: frameRetrace.batch
+                }
+            }
+            Tab {
                 title: "Metrics"
                 id: metricTab
                 anchors.fill: parent

@@ -78,6 +78,8 @@ class FrameRetraceStub : public IFrameRetrace {
                               OnFrameRetrace *callback);
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback);
+  virtual void retraceBatch(const RenderSelection &selection,
+                            OnFrameRetrace *callback);
 
  private:
   mutable std::mutex m_mutex;
