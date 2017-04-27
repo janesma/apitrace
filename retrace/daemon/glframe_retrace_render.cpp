@@ -98,7 +98,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
                                                     m_retrace_program(-1),
                                                     m_end_of_frame(false),
                                                     m_highlight_rt(false),
-                                                    m_changes_context(false) {
+                                                    m_changes_context(false),
+                                                    m_disabled(false) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   std::stringstream call_stream;
@@ -196,7 +197,8 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
-  m_retracer->retrace(*call);
+  if (!m_disabled)
+    m_retracer->retrace(*call);
   delete(call);
   if (type == HIGHLIGHT_RENDER || m_retrace_program > -1) {
     if (blend_enabled)
@@ -238,7 +240,8 @@ RetraceRender::retrace(StateTrack *tracker) const {
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
-  m_retracer->retrace(*call);
+  if (!m_disabled)
+    m_retracer->retrace(*call);
   if (tracker)
     tracker->track(*call);
   delete(call);
@@ -275,7 +278,8 @@ RetraceRender::retrace(const StateTrack &tracker) const {
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
-  m_retracer->retrace(*call);
+  if (!m_disabled)
+    m_retracer->retrace(*call);
   delete(call);
   if (m_retrace_program)
     GlFunctions::UseProgram(m_original_program);
@@ -322,4 +326,9 @@ RetraceRender::onApi(SelectionId selId,
                      RenderId renderId,
                      OnFrameRetrace *callback) {
   callback->onApi(selId, renderId, m_api_calls);
+}
+
+void
+RetraceRender::disableDraw(bool disable) {
+  m_disabled = disable;
 }

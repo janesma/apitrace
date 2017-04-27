@@ -15,6 +15,7 @@ enum RequestType {
   REPLACE_SHADERS_REQUEST = 6;
   API_REQUEST = 7;
   BATCH_REQUEST = 8;
+  DISABLE_REQUEST = 9;
 };
 
 message OpenFileRequest {
@@ -54,6 +55,7 @@ message RenderTargetResponse {
 
 message ShaderAssemblyRequest {
   required RenderSelection render_selection = 1;
+  required uint32 experiment_count = 2;
 }
 
 message MetricsRequest {
@@ -99,6 +101,7 @@ message ShaderAssembly {
 message ShaderAssemblyResponse {
   required uint32 render_id = 1;
   required uint32 selection_id = 2;
+  required uint32 experiment_count = 9;
   required ShaderAssembly vertex = 3;
   required ShaderAssembly fragment = 4;
   required ShaderAssembly tess_control = 5;
@@ -153,12 +156,19 @@ message ErrorResponse {
 
 message BatchRequest {
   required RenderSelection selection = 1;
+  required uint32 experiment_count = 2;
 }
 
 message BatchResponse {
   required uint32 render_id = 1;
   required uint32 selection_count = 2;
-  required string batch = 3;
+  required uint32 experiment_count = 3;
+  required string batch = 4;
+}
+
+message DisableRequest {
+  required RenderSelection selection = 1;
+  required bool disable = 2;
 }
 
 message RetraceRequest {
@@ -171,6 +181,7 @@ message RetraceRequest {
   optional ReplaceShadersRequest shaders = 7;
   optional ApiRequest api = 8;
   optional BatchRequest batch = 9;
+  optional DisableRequest disable = 10;
 }
 
 message RetraceResponse {

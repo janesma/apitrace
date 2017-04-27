@@ -191,8 +191,11 @@ class QRenderShadersList : public QObject,
                                    const QString &tess_control,
                                    const QString &tess_eval,
                                    const QString &geom, const QString &comp);
+ public slots:
+  void onExperiment(glretrace::ExperimentId id);
  signals:
   void onRendersChanged();
+  void shadersChanged();
  private:
   void setIndexDirect(int index);
 
@@ -202,6 +205,7 @@ class QRenderShadersList : public QObject,
   std::vector<std::vector<RenderId>> m_renders;
   std::vector<std::vector<ShaderAssembly>> m_shader_assemblies;
   SelectionId m_current_selection;
+  ExperimentId m_experiment_count;
   IFrameRetrace *m_retracer;
   FrameRetraceModel *m_retraceModel;
 };

@@ -84,13 +84,16 @@ class RetraceContext {
                       const std::string &geom,
                       const std::string &comp,
                       OnFrameRetrace *callback);
+  void disableDraw(RenderId render, bool disable);
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback);
   void retraceShaderAssembly(const RenderSelection &selection,
+                             ExperimentId experimentCount,
                              StateTrack *tracker,
                              OnFrameRetrace *callback);
   int getRenderCount() const;
   void retraceBatch(const RenderSelection &selection,
+                    ExperimentId experimentCount,
                     const StateTrack &tracker,
                     BatchControl *control,
                     OutputPoller *poller,

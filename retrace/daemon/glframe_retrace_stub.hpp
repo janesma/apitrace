@@ -60,6 +60,7 @@ class FrameRetraceStub : public IFrameRetrace {
                                    RenderOptions options,
                                    OnFrameRetrace *callback) const;
   virtual void retraceShaderAssembly(const RenderSelection &selection,
+                                     ExperimentId experimentCount,
                                      OnFrameRetrace *callback);
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
@@ -76,16 +77,19 @@ class FrameRetraceStub : public IFrameRetrace {
                               const std::string &geom,
                               const std::string &comp,
                               OnFrameRetrace *callback);
+  virtual void disableDraw(const RenderSelection &selection,
+                           bool disable);
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback);
   virtual void retraceBatch(const RenderSelection &selection,
+                            ExperimentId experimentCount,
                             OnFrameRetrace *callback);
 
  private:
   mutable std::mutex m_mutex;
   mutable SelectionId m_current_rt_selection, m_current_met_selection,
     m_current_render_selection;
-  mutable ExperimentId m_current_rt_experiment;
+  mutable ExperimentId m_current_experiment;
   ThreadedRetrace *m_thread = NULL;
 };
 }  // namespace glretrace

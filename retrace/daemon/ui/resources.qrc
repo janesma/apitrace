@@ -10,5 +10,6 @@
         <file>qml/RenderShadersControl.qml</file>
         <file>qml/ApiControl.qml</file>
         <file>qml/BatchControl.qml</file>
+        <file>qml/ExperimentControl.qml</file>
     </qresource>
 </RCC>

@@ -316,6 +316,7 @@ StdErrRedirect::init() {
 
 void
 StdErrRedirect::pollBatch(SelectionId selectionCount,
+                          ExperimentId experimentCount,
                           RenderId id,
                           OnFrameRetrace *cb) {
   fflush(stdout);
@@ -327,5 +328,5 @@ StdErrRedirect::pollBatch(SelectionId selectionCount,
     bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
   }
 
-  cb->onBatch(selectionCount, id, batch_output);
+  cb->onBatch(selectionCount, experimentCount, id, batch_output);
 }

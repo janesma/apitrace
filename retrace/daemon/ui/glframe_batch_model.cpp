@@ -59,15 +59,18 @@ QBatchModel::batch() {
 }
 
 void
-QBatchModel::onBatch(SelectionId selectionCount,
-                 RenderId renderId,
-                 const std::string &batch) {
+QBatchModel::onBatch(SelectionId selection_count,
+                     ExperimentId experiment_count,
+                     RenderId renderId,
+                     const std::string &batch) {
   {
     ScopedLock s(m_protect);
-    if (m_sel_count != selectionCount) {
+    if ((m_sel_count != selection_count) ||
+        (m_exp_count != experiment_count)) {
       m_batch.clear();
       m_renders.clear();
-      m_sel_count = selectionCount;
+      m_sel_count = selection_count;
+      m_exp_count = experiment_count;
     }
 
     m_renders.push_back(QString("%1").arg(renderId.index()));

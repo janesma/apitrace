@@ -45,6 +45,7 @@ class MetricsCallback : public OnFrameRetrace {
                      uint32_t frame_count) {}
   void onShaderAssembly(RenderId renderId,
                         SelectionId sc,
+                        ExperimentId experimentCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
@@ -75,6 +76,7 @@ class MetricsCallback : public OnFrameRetrace {
              const std::vector<std::string> &api_calls) {}
   void onError(ErrorSeverity s, const std::string &message) {}
   void onBatch(SelectionId selectionCount,
+               ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) {}
   std::vector<MetricId> ids;

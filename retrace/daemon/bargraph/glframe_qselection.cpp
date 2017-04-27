@@ -29,7 +29,8 @@
 
 using glretrace::QSelection;
 
-QSelection::QSelection() {}
+QSelection::QSelection() : m_selection_count(0),
+                           m_experiment_count(0) {}
 
 QSelection::~QSelection() {}
 
@@ -39,6 +40,12 @@ QSelection::select(QList<int> selection) {
   if (selection == _selection)
     return;
   _selection = selection;
-  emit onSelect(_selection);
+  ++m_selection_count;
+  emit onSelect(m_selection_count, _selection);
 }
 
+void
+QSelection::experiment() {
+  ++m_experiment_count;
+  emit onExperiment(m_experiment_count);
+}

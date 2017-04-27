@@ -36,6 +36,7 @@
 #include "glframe_retrace_model.hpp"
 
 using glretrace::DEBUG;
+using glretrace::ExperimentId;
 using glretrace::IFrameRetrace;
 using glretrace::FrameRetraceModel;
 using glretrace::RenderId;
@@ -153,6 +154,8 @@ QRenderShadersList::overrideShaders(int index,
                                     const QString &geom,
                                     const QString &comp) {
   ScopedLock s(m_protect);
+  ++m_experiment_count;
+
   const std::string &vss = vs.toStdString(),
                     &fss = fs.toStdString(),
          &tess_control_s = tess_control.toStdString(),
@@ -166,13 +169,23 @@ QRenderShadersList::overrideShaders(int index,
          tess_control_s.c_str(), tess_eval_s.c_str(), geom_s.c_str(),
          comp_s.c_str());
   for (auto i : m_renders[index]) {
-    m_retracer->replaceShaders(i, ExperimentId(0), vss, fss,
+    m_retracer->replaceShaders(i, m_experiment_count, vss, fss,
                                tess_control_s, tess_eval_s, geom_s, comp_s,
                                m_retraceModel);
   }
   m_renders.clear();
   m_shader_assemblies.clear();
   m_render_strings.clear();
-  m_retraceModel->onShadersChanged();
+  emit shadersChanged();
 }
 
+void
+QRenderShadersList::onExperiment(ExperimentId id) {
+  if (m_experiment_count < id) {
+    ScopedLock s(m_protect);
+    m_experiment_count = id;
+    m_renders.clear();
+    m_shader_assemblies.clear();
+    m_render_strings.clear();
+  }
+}

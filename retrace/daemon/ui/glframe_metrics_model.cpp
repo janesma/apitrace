@@ -81,7 +81,8 @@ QMetricValue::setFrameValue(float v) {
 }
 
 QMetricsModel::QMetricsModel()
-    : m_retrace(NULL), m_current_selection_count(SelectionId(0)) {
+    : m_retrace(NULL), m_current_selection_count(SelectionId(0)),
+      m_experiment_count(ExperimentId(0)) {
 }
 
 void
@@ -103,11 +104,13 @@ QMetricsModel::init(IFrameRetrace *r,
   m_filtered_metric_list = m_metric_list;
   RenderSelection s;
   // request frame and initial metrics
-  s.id = SelectionId(0);
+  s.id = m_current_selection_count;
   s.series.push_back(RenderSequence(RenderId(0), RenderId(render_count)));
-  m_retrace->retraceAllMetrics(s, ExperimentId(0), this);
+  m_retrace->retraceAllMetrics(s, m_experiment_count, this);
   connect(qs, &QSelection::onSelect,
           this, &QMetricsModel::onSelect);
+  connect(qs, &QSelection::onExperiment,
+          this, &QMetricsModel::onExperiment);
   emit onMetricsChanged();
 }
 
@@ -141,18 +144,17 @@ QMetricsModel::onMetrics(const MetricSeries &metricData,
 }
 
 void
-QMetricsModel::onSelect(QList<int> selection) {
+QMetricsModel::onSelect(SelectionId id, QList<int> selection) {
+  m_current_selection_count = id;
   m_render_selection.clear();
   if (selection.empty()) {
     for (auto m : m_metric_list)
       m->setValue(0.0);
     return;
   }
-  renderSelectionFromList(++m_current_selection_count, selection,
+  renderSelectionFromList(m_current_selection_count, selection,
                           &m_render_selection);
-  // TODO(majanes) track ExperimentId, request new metrics on
-  // experiments
-  m_retrace->retraceAllMetrics(m_render_selection, ExperimentId(0), this);
+  m_retrace->retraceAllMetrics(m_render_selection, m_experiment_count, this);
 }
 
 void
@@ -166,12 +168,12 @@ QMetricsModel::refresh() {
   RenderSelection s;
   s.id = SelectionId(0);
   s.series.push_back(RenderSequence(RenderId(0), RenderId(m_render_count)));
-  m_retrace->retraceAllMetrics(s, ExperimentId(0), this);
+  m_retrace->retraceAllMetrics(s, m_experiment_count, this);
 
   // retrace the metrics for the current selection
   if (!m_render_selection.series.empty())
     m_retrace->retraceAllMetrics(m_render_selection,
-                                 ExperimentId(0), this);
+                                 m_experiment_count, this);
 }
 
 QMetricsModel::~QMetricsModel() {
@@ -241,4 +243,10 @@ QMetricValue::frameValue() const {
   if (fabs(m_frame_value - round(m_frame_value)) < 0.00001)
     precision = 0;
   return QLocale().toString(m_frame_value, 'f', precision);
+}
+
+void
+QMetricsModel::onExperiment(ExperimentId id) {
+  m_experiment_count = id;
+  refresh();
 }

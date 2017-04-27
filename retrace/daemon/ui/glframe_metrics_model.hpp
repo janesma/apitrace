@@ -96,6 +96,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                      uint32_t frame_count) { assert(false); }
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
+                        ExperimentId experimentCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
@@ -120,6 +121,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
              const std::vector<std::string> &api_calls) { assert(false); }
   void onError(ErrorSeverity s, const std::string &message) { assert(false); }
   void onBatch(SelectionId selectionCount,
+               ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) { assert(false); }
   void filter(const QString& f);
@@ -128,7 +130,8 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   void refresh();
 
  public slots:
-  void onSelect(QList<int> selection);
+  void onSelect(glretrace::SelectionId id, QList<int> selection);
+  void onExperiment(glretrace::ExperimentId id);
 
  signals:
   void onMetricsChanged();
@@ -137,6 +140,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   IFrameRetrace *m_retrace;
   int m_render_count;
   SelectionId m_current_selection_count;
+  ExperimentId m_experiment_count;
   RenderSelection m_render_selection;
   std::map<MetricId, QMetricValue*> m_metrics;
   QList<QMetricValue *> m_metric_list, m_filtered_metric_list;

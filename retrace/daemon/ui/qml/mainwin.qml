@@ -397,6 +397,15 @@ ApplicationWindow {
                     metricsModel: frameRetrace.metricTab
                 }
             }
+            Tab {
+                title: "Experiments"
+                id: experimentTab
+                anchors.fill: parent
+                clip: true
+                ExperimentControl {
+                    experimentModel: frameRetrace.experimentModel
+                }
+            }
         }
     }
 }

@@ -65,6 +65,7 @@ class NullCallback : public OnFrameRetrace {
                      uint32_t frame_count) {}
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
+                        ExperimentId experimentCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
@@ -99,6 +100,7 @@ class NullCallback : public OnFrameRetrace {
     file_error = true;
   }
   void onBatch(SelectionId selectionCount,
+               ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) {}
   int renderTargetCount;
@@ -180,7 +182,7 @@ TEST_F(RetraceTest, ReplaceShaders) {
   RenderSelection rs;
   rs.id = SelectionId(1);
   rs.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
-  rt.retraceShaderAssembly(rs, &cb);
+  rt.retraceShaderAssembly(rs, ExperimentId(0), &cb);
   EXPECT_GT(cb.fs.back().size(), 0);
   std::string vs("attribute vec2 coord2d;\n"
                  "varying vec2 v_TexCoordinate;\n"
@@ -188,7 +190,7 @@ TEST_F(RetraceTest, ReplaceShaders) {
                  "  gl_Position = vec4(coord2d.x, -1.0 * coord2d.y, 0, 1);\n"
                  "  v_TexCoordinate = vec2(coord2d.x, coord2d.y);\n"
                  "}\n");
-  rt.replaceShaders(RenderId(1), ExperimentId(0), vs, cb.fs.back(),
+  rt.replaceShaders(RenderId(1), ExperimentId(1), vs, cb.fs.back(),
                     "", "", "", "", &cb);
   EXPECT_EQ(cb.compile_error.size(), 0);
 }
@@ -249,7 +251,7 @@ TEST_F(RetraceTest, ShaderAssembly) {
                        "}");
   // retrace shaders for render 0
   selection.series.push_back(RenderSequence(RenderId(0), RenderId(1)));
-  rt.retraceShaderAssembly(selection, &cb);
+  rt.retraceShaderAssembly(selection, ExperimentId(0), &cb);
   EXPECT_EQ(cb.fs.size(), 1);
   EXPECT_EQ(cb.fs[0], expected);
 
@@ -257,7 +259,7 @@ TEST_F(RetraceTest, ShaderAssembly) {
   cb.fs.clear();
   selection.series.clear();
   selection.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
-  rt.retraceShaderAssembly(selection, &cb);
+  rt.retraceShaderAssembly(selection, ExperimentId(0), &cb);
   EXPECT_EQ(cb.fs.size(), 1);
   EXPECT_EQ(cb.fs[0], expected);
 
@@ -265,7 +267,7 @@ TEST_F(RetraceTest, ShaderAssembly) {
   cb.fs.clear();
   selection.series.clear();
   selection.series.push_back(RenderSequence(RenderId(0), RenderId(2)));
-  rt.retraceShaderAssembly(selection, &cb);
+  rt.retraceShaderAssembly(selection, ExperimentId(0), &cb);
   EXPECT_EQ(cb.fs.size(), 2);
   EXPECT_EQ(cb.fs[0], expected);
   EXPECT_EQ(cb.fs[1], expected);
@@ -275,7 +277,7 @@ TEST_F(RetraceTest, ShaderAssembly) {
   selection.series.clear();
   selection.series.push_back(RenderSequence(RenderId(0), RenderId(1)));
   selection.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
-  rt.retraceShaderAssembly(selection, &cb);
+  rt.retraceShaderAssembly(selection, ExperimentId(0), &cb);
   EXPECT_EQ(cb.fs.size(), 2);
   EXPECT_EQ(cb.fs[0], expected);
   EXPECT_EQ(cb.fs[1], expected);

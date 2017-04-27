@@ -55,9 +55,10 @@ class QBatchModel : public QObject,
   ~QBatchModel();
   QString batch();
   QStringList renders() const;
-  void onBatch(SelectionId selectionCount,
-                 RenderId renderId,
-                 const std::string &batch);
+  void onBatch(SelectionId selection_count,
+               ExperimentId experiment_count,
+               RenderId renderId,
+               const std::string &batch);
   Q_INVOKABLE void setIndex(int index);
 
  signals:
@@ -68,6 +69,7 @@ class QBatchModel : public QObject,
   std::map<QString, QString> m_batch;
   QStringList m_renders;
   SelectionId m_sel_count;
+  ExperimentId m_exp_count;
   int m_index;
   mutable std::mutex m_protect;
 };

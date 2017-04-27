@@ -42,6 +42,7 @@ using glretrace::BarMetrics;
 using glretrace::FrameRetraceModel;
 using glretrace::QBarGraphRenderer;
 using glretrace::QSelection;
+using glretrace::SelectionId;
 
 QBarGraphRenderer::QBarGraphRenderer() : m_graph(true),
                                          selection(NULL),
@@ -108,7 +109,7 @@ QBarGraphRenderer::onBarSelect(const std::vector<int> selection) {
 }
 
 void
-QBarGraphRenderer::onSelect(QList<int> selection) {
+QBarGraphRenderer::onSelect(SelectionId, QList<int> selection) {
   std::set<int> s;
   for (auto i : selection)
     s.insert(i);

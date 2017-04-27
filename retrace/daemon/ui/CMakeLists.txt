@@ -25,6 +25,8 @@ set (UI_SRC
   glframe_api_model.cpp
   glframe_batch_model.hpp
   glframe_batch_model.cpp
+  glframe_experiment_model.cpp
+  glframe_experiment_model.hpp
   glframe_metrics_model.hpp
   glframe_metrics_model.cpp
   glframe_qutil.hpp

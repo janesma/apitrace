@@ -60,9 +60,11 @@ using glretrace::SelectionId;
 using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
 
-FrameRetraceModel::FrameRetraceModel() : m_state(NULL),
+FrameRetraceModel::FrameRetraceModel() : m_experiment(&m_retrace),
+                                         m_state(NULL),
                                          m_selection(NULL),
                                          m_selection_count(0),
+                                         m_experiment_count(0),
                                          m_shader_compile_error(""),
                                          m_open_percent(0),
                                          m_frame_count(0),
@@ -186,6 +188,7 @@ FrameRetraceModel::metricList() {
 void
 FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     SelectionId selectionCount,
+                                    ExperimentId experimentCount,
                                     const ShaderAssembly &vertex,
                                     const ShaderAssembly &fragment,
                                     const ShaderAssembly &tess_control,
@@ -194,6 +197,10 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const ShaderAssembly &comp) {
   ScopedLock s(m_protect);
   if (m_selection_count != selectionCount)
+    // retrace is out of date
+    return;
+  assert(experimentCount <= m_experiment_count);
+  if (m_experiment_count != experimentCount)
     // retrace is out of date
     return;
   // do not emit onShaders().  The QShader model (reference) is
@@ -242,7 +249,7 @@ FrameRetraceModel::retrace_rendertarget() {
   glretrace::renderSelectionFromList(m_selection_count,
                                      m_cached_selection,
                                      &rs);
-  m_retrace.retraceRenderTarget(ExperimentId(0),
+  m_retrace.retraceRenderTarget(m_experiment_count,
                                 rs,
                                 rt_type,
                                 opt, this);
@@ -257,7 +264,7 @@ FrameRetraceModel::retrace_shader_assemblies() {
   glretrace::renderSelectionFromList(m_selection_count,
                                      m_cached_selection,
                                      &rs);
-  m_retrace.retraceShaderAssembly(rs, this);
+  m_retrace.retraceShaderAssembly(rs, m_experiment_count, this);
 }
 
 
@@ -285,7 +292,7 @@ FrameRetraceModel::retrace_batch() {
   glretrace::renderSelectionFromList(m_selection_count,
                                      m_cached_selection,
                                      &sel);
-  m_retrace.retraceBatch(sel, this);
+  m_retrace.retraceBatch(sel, m_experiment_count, this);
 }
 
 void
@@ -304,7 +311,7 @@ FrameRetraceModel::onFileOpening(bool needUpload,
     // trace initial metrics (GPU Time Elapsed, if available)
     std::vector<MetricId> t_metrics(1);
     t_metrics[0] = m_active_metrics[0];
-    m_retrace.retraceMetrics(t_metrics, ExperimentId(0),
+    m_retrace.retraceMetrics(t_metrics, m_experiment_count,
                              this);
   }
   int percent = frame_count * 100 / m_target_frame_number;
@@ -391,7 +398,7 @@ FrameRetraceModel::setMetric(int index, int id) {
     // don't replay a null metric for the widths, it makes the bars contiguous.
     t_metrics.resize(1);
 
-  m_retrace.retraceMetrics(t_metrics, ExperimentId(0),
+  m_retrace.retraceMetrics(t_metrics, m_experiment_count,
                            this);
 }
 
@@ -414,13 +421,23 @@ FrameRetraceModel::setSelection(QSelection *s) {
   m_selection = s;
   connect(s, &QSelection::onSelect,
           this, &FrameRetraceModel::onSelect);
+  connect(s, &QSelection::onExperiment,
+          this, &FrameRetraceModel::onExperiment);
+  connect(s, &QSelection::onSelect,
+          &m_experiment, &QExperimentModel::onSelect);
+  connect(&m_experiment, &QExperimentModel::onExperiment,
+          s, &QSelection::experiment);
+  connect(&m_shaders, &QRenderShadersList::shadersChanged,
+          s, &QSelection::experiment);
+  connect(s, &QSelection::onExperiment,
+          &m_shaders, &QRenderShadersList::onExperiment);
 }
 
 void
-FrameRetraceModel::onSelect(QList<int> selection) {
+FrameRetraceModel::onSelect(SelectionId id, QList<int> selection) {
   ScopedLock s(m_protect);
   m_cached_selection = selection;
-  ++m_selection_count;
+  m_selection_count = id;
   retrace_rendertarget();
   retrace_shader_assemblies();
   retrace_api();
@@ -467,7 +484,7 @@ FrameRetraceModel::setHighlightRender(bool v) {
 }
 
 void
-FrameRetraceModel::refreshMetrics() {
+FrameRetraceModel::refreshBarMetrics() {
   // sending a second null metric to be retraced will result in two
   // data axis being returned.  Instead, we want a single metric, and
   // the bar graph to show separated bars.
@@ -475,8 +492,14 @@ FrameRetraceModel::refreshMetrics() {
   if (drop_second_null_metric.back() == MetricId(0))
     drop_second_null_metric.pop_back();
 
-  m_retrace.retraceMetrics(drop_second_null_metric, ExperimentId(0),
+  m_retrace.retraceMetrics(drop_second_null_metric, m_experiment_count,
                            this);
+}
+
+void
+FrameRetraceModel::refreshMetrics() {
+  // "Refresh" button invoke this.
+  refreshBarMetrics();
   m_metrics_table.refresh();
 }
 
@@ -541,16 +564,27 @@ FrameRetraceModel::urlToFilePath(const QUrl &url) {
 }
 
 void
-FrameRetraceModel::onShadersChanged() {
-  retrace_rendertarget();
-  retrace_shader_assemblies();
-  m_retrace.retraceMetrics(m_active_metrics, ExperimentId(0),
-                           this);
+FrameRetraceModel::onBatch(SelectionId selectionCount,
+                           ExperimentId experimentCount,
+                           RenderId renderId,
+                           const std::string &batch) {
+  assert(selectionCount <= m_selection_count);
+  if (m_selection_count != selectionCount)
+    // retrace is out of date
+    return;
+  assert(experimentCount <= m_experiment_count);
+  if (m_experiment_count != experimentCount)
+    // retrace is out of date
+    return;
+  m_batch.onBatch(selectionCount, experimentCount, renderId, batch);
 }
 
 void
-FrameRetraceModel::onBatch(SelectionId selectionCount,
-                           RenderId renderId,
-                           const std::string &batch) {
-  m_batch.onBatch(selectionCount, renderId, batch);
+FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
+  ScopedLock s(m_protect);
+  m_experiment_count = experiment_count;
+  retrace_rendertarget();
+  refreshBarMetrics();
+  retrace_shader_assemblies();
+  retrace_batch();
 }

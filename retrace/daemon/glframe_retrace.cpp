@@ -205,13 +205,14 @@ FrameRetrace::retraceRenderTarget(ExperimentId experimentCount,
 
 void
 FrameRetrace::retraceShaderAssembly(const RenderSelection &selection,
+                                    ExperimentId experimentCount,
                                     OnFrameRetrace *callback) {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
   StateTrack tmp_tracker = m_tracker;
 
   for (auto i : m_contexts)
-    i->retraceShaderAssembly(selection, &m_tracker, callback);
+    i->retraceShaderAssembly(selection, experimentCount, &m_tracker, callback);
 }
 
 FrameState::FrameState(const std::string &filename,
@@ -323,6 +324,16 @@ FrameRetrace::replaceShaders(RenderId renderId,
 }
 
 void
+FrameRetrace::disableDraw(const RenderSelection &selection, bool disable) {
+  for (auto sequence : selection.series) {
+    for (auto render = sequence.begin; render < sequence.end; ++render) {
+      for (auto context : m_contexts)
+        context->disableDraw(render, disable);
+    }
+  }
+}
+
+void
 FrameRetrace::retraceApi(const RenderSelection &selection,
                          OnFrameRetrace *callback) {
   // reset to beginning of frame
@@ -333,13 +344,14 @@ FrameRetrace::retraceApi(const RenderSelection &selection,
 
 void
 FrameRetrace::retraceBatch(const RenderSelection &selection,
+                           ExperimentId experimentCount,
                            OnFrameRetrace *callback) {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
   if (!batchControl.batchSupported())
     return;
   for (auto i : m_contexts)
-    i->retraceBatch(selection, m_tracker, &batchControl,
+    i->retraceBatch(selection, experimentCount, m_tracker, &batchControl,
                     &assemblyOutput, callback);
   batchControl.batchOff();
 }

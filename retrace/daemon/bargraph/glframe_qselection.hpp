@@ -30,6 +30,7 @@
 #include <QList>
 
 #include "glframe_traits.hpp"
+#include "glframe_retrace_interface.hpp"
 
 namespace glretrace {
 
@@ -41,10 +42,14 @@ class QSelection : public QObject,
   virtual ~QSelection();
  public slots:
   void select(QList<int> selection);
+  void experiment();
  signals:
-  void onSelect(QList<int> selection);
+  void onSelect(glretrace::SelectionId selection_count, QList<int> selection);
+  void onExperiment(glretrace::ExperimentId experiment_count);
  private:
   QList<int> _selection;
+  SelectionId m_selection_count;
+  ExperimentId m_experiment_count;
 };
 
 }  // namespace glretrace

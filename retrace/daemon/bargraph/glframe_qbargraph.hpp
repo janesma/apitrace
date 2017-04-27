@@ -53,7 +53,7 @@ class QBarGraphRenderer : public QObject,
   // to ensure that we get a multisample fbo
   QOpenGLFramebufferObject * createFramebufferObject(const QSize & size);
  public slots:
-  void onSelect(QList<int> selection);
+  void onSelect(glretrace::SelectionId id, QList<int> selection);
   void onMetrics(QList<BarMetrics> metrics);
  signals:
   void barSelect(QList<int> selection);
