@@ -68,6 +68,7 @@ class RetraceRender {
                       const std::string &comp,
                       std::string *message);
   void revertShaders();
+  void disableDraw(bool disable);
   void onApi(SelectionId selId,
              RenderId renderId,
              OnFrameRetrace *callback);
@@ -89,6 +90,7 @@ class RetraceRender {
   int m_rt_program, m_retrace_program, m_original_program;
   bool m_end_of_frame, m_highlight_rt, m_changes_context;
   std::vector<std::string> m_api_calls;
+  bool m_disabled;
 };
 
 }  // namespace glretrace

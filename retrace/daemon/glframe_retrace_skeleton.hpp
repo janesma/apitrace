@@ -56,6 +56,7 @@ class FrameRetraceSkeleton : public Thread,
   // callback responses, to be sent through the socket to the caller
   virtual void onShaderAssembly(RenderId renderId,
                                 SelectionId selectionCount,
+                                ExperimentId experimentCount,
                                 const ShaderAssembly &vertex_shader,
                                 const ShaderAssembly &fragment_shader,
                                 const ShaderAssembly &tess_control_shader,
@@ -84,6 +85,7 @@ class FrameRetraceSkeleton : public Thread,
   virtual void onError(ErrorSeverity s, const std::string &message);
 
   virtual void onBatch(SelectionId selectionCount,
+                       ExperimentId experimentCount,
                        RenderId renderId,
                        const std::string &batch);
 

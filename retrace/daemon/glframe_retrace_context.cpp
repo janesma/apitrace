@@ -40,10 +40,17 @@
 #include "glframe_retrace_render.hpp"
 #include "glstate.hpp"
 
+using glretrace::BatchControl;
+using glretrace::ExperimentId;
 using glretrace::OutputPoller;
+using glretrace::OnFrameRetrace;
+using glretrace::PerfMetrics;
 using glretrace::RenderId;
+using glretrace::RenderOptions;
 using glretrace::RenderSelection;
+using glretrace::RenderTargetType;
 using glretrace::RetraceContext;
+using glretrace::StateTrack;
 using glretrace::WARN;
 using image::Image;
 
@@ -353,6 +360,14 @@ RetraceContext::replaceShaders(RenderId renderId,
 }
 
 void
+RetraceContext::disableDraw(RenderId render, bool disable) {
+  auto render_iterator = m_renders.find(render);
+  if (render_iterator == m_renders.end())
+    return;
+  render_iterator->second->disableDraw(disable);
+}
+
+void
 RetraceContext::retraceApi(const RenderSelection &selection,
                            OnFrameRetrace *callback) {
   if (selection.series.empty()) {
@@ -377,6 +392,7 @@ RetraceContext::retraceApi(const RenderSelection &selection,
 
 void
 RetraceContext::retraceShaderAssembly(const RenderSelection &selection,
+                                      ExperimentId experimentCount,
                                       StateTrack *tracker,
                                       OnFrameRetrace *callback) {
   trace::ParseBookmark bm;
@@ -388,6 +404,7 @@ RetraceContext::retraceShaderAssembly(const RenderSelection &selection,
     if (isSelected(r.first, selection)) {
       callback->onShaderAssembly(r.first,
                                  selection.id,
+                                 experimentCount,
                                  tracker->currentVertexShader(),
                                  tracker->currentFragmentShader(),
                                  tracker->currentTessControlShader(),
@@ -400,6 +417,7 @@ RetraceContext::retraceShaderAssembly(const RenderSelection &selection,
 
 void
 RetraceContext::retraceBatch(const RenderSelection &selection,
+                             ExperimentId experimentCount,
                              const StateTrack &tracker,
                              BatchControl *control,
                              OutputPoller *poller,
@@ -418,7 +436,7 @@ RetraceContext::retraceBatch(const RenderSelection &selection,
     r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
       GlFunctions::Finish();
-      poller->pollBatch(selection.id, r.first, callback);
+      poller->pollBatch(selection.id, experimentCount, r.first, callback);
     }
   }
   control->batchOff();

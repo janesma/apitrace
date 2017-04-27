@@ -138,6 +138,7 @@ class SelectionId {
   uint32_t operator()() const { return value; }
   SelectionId &operator++() { ++value; return *this; }
   uint32_t count() const { return value & (~ID_PREFIX_MASK); }
+  bool operator<=(const SelectionId &o) const { return value <= o.value; }
   bool operator==(const SelectionId &o) const { return value == o.value; }
   bool operator!=(const SelectionId &o) const { return value != o.value; }
  private:
@@ -157,6 +158,10 @@ class ExperimentId {
 
   uint32_t operator()() const { return value; }
   uint32_t count() const { return value & (~ID_PREFIX_MASK); }
+  ExperimentId &operator++() { ++value; return *this; }
+  bool operator<(const ExperimentId &o) const { return value < o.value; }
+  bool operator>(const ExperimentId &o) const { return value > o.value; }
+  bool operator<=(const ExperimentId &o) const { return value <= o.value; }
   bool operator!=(const ExperimentId &o) const { return value != o.value; }
  private:
   uint32_t value;
@@ -217,6 +222,7 @@ class OnFrameRetrace {
                              uint32_t frame_count) = 0;
   virtual void onShaderAssembly(RenderId renderId,
                                 SelectionId selectionCount,
+                                ExperimentId experimentCount,
                                 const ShaderAssembly &vertex,
                                 const ShaderAssembly &fragment,
                                 const ShaderAssembly &tess_control,
@@ -241,6 +247,7 @@ class OnFrameRetrace {
                      const std::vector<std::string> &api_calls) = 0;
   virtual void onError(ErrorSeverity s, const std::string &message) = 0;
   virtual void onBatch(SelectionId selectionCount,
+                       ExperimentId experimentCount,
                        RenderId renderId,
                        const std::string &batch) = 0;
 };
@@ -264,6 +271,7 @@ class IFrameRetrace {
                                    RenderOptions options,
                                    OnFrameRetrace *callback) const = 0;
   virtual void retraceShaderAssembly(const RenderSelection &selection,
+                                     ExperimentId experimentCount,
                                      OnFrameRetrace *callback) = 0;
   virtual void retraceMetrics(const std::vector<MetricId> &ids,
                               ExperimentId experimentCount,
@@ -280,9 +288,12 @@ class IFrameRetrace {
                               const std::string &geom,
                               const std::string &comp,
                               OnFrameRetrace *callback) = 0;
+  virtual void disableDraw(const RenderSelection &selection,
+                           bool disable) = 0;
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback) = 0;
   virtual void retraceBatch(const RenderSelection &selection,
+                            ExperimentId experimentCount,
                             OnFrameRetrace *callback) = 0;
 };
 

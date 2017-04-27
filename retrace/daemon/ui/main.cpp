@@ -40,17 +40,18 @@
 #include <sstream>
 #include <string>
 
+#include "glframe_api_model.hpp"
+#include "glframe_experiment_model.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
 #include "glframe_os.hpp"
-#include "glframe_api_model.hpp"
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
 #include "glframe_retrace_skeleton.hpp"
 #include "glframe_retrace_stub.hpp"
-#include "glframe_socket.hpp"
 #include "glframe_shader_model.hpp"
+#include "glframe_socket.hpp"
 #include "glretrace.hpp"
 
 using glretrace::FrameRetraceModel;
@@ -67,6 +68,9 @@ using glretrace::Socket;
 
 
 Q_DECLARE_METATYPE(QList<glretrace::BarMetrics>)
+Q_DECLARE_METATYPE(QList<glretrace::SelectionId>)
+Q_DECLARE_METATYPE(glretrace::ExperimentId)
+Q_DECLARE_METATYPE(glretrace::SelectionId)
 
 int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -86,6 +90,8 @@ int main(int argc, char *argv[]) {
   app.setOrganizationDomain("intel.com");
   app.setApplicationName("frame_retrace");
 
+  qRegisterMetaType<glretrace::ExperimentId>();
+  qRegisterMetaType<glretrace::SelectionId>();
   qRegisterMetaType<QList<glretrace::BarMetrics> >();
   qRegisterMetaType<QList<int> >();
   qmlRegisterType<glretrace::QRenderBookmark>("ApiTrace", 1, 0,
@@ -110,6 +116,8 @@ int main(int argc, char *argv[]) {
                                         "QApiModel");
   qmlRegisterType<glretrace::QBatchModel>("ApiTrace", 1, 0,
                                         "QBatchModel");
+  qmlRegisterType<glretrace::QExperimentModel>("ApiTrace", 1, 0,
+                                               "QExperimentModel");
 
   glretrace::FrameImages::Create();
 

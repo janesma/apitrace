@@ -74,6 +74,7 @@ class FrameRetrace : public IFrameRetrace {
                            RenderOptions options,
                            OnFrameRetrace *callback) const;
   void retraceShaderAssembly(const RenderSelection &selection,
+                             ExperimentId experimentCount,
                              OnFrameRetrace *callback);
   void retraceMetrics(const std::vector<MetricId> &ids,
                       ExperimentId experimentCount,
@@ -90,6 +91,7 @@ class FrameRetrace : public IFrameRetrace {
                       const std::string &geom,
                       const std::string &comp,
                       OnFrameRetrace *callback);
+  void disableDraw(const RenderSelection &selection, bool disable);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);
@@ -101,7 +103,8 @@ class FrameRetrace : public IFrameRetrace {
                   OnFrameRetrace *callback);
 
   void retraceBatch(const RenderSelection &selection,
-                            OnFrameRetrace *callback);
+                    ExperimentId experimentCount,
+                    OnFrameRetrace *callback);
 
  private:
   // these are global

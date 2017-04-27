@@ -71,6 +71,7 @@ class FileTransfer : public IFrameRetrace {
                            RenderOptions options,
                            OnFrameRetrace *callback) const {}
   void retraceShaderAssembly(const RenderSelection &rs,
+                             ExperimentId experimentCount,
                              OnFrameRetrace *callback) {}
   void retraceMetrics(const std::vector<MetricId> &ids,
                       ExperimentId experimentCount,
@@ -87,9 +88,12 @@ class FileTransfer : public IFrameRetrace {
                       const std::string &geom,
                       const std::string &comp,
                       OnFrameRetrace *callback) {}
+  void disableDraw(const RenderSelection &selection,
+                   bool disable) {}
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback) {}
   void retraceBatch(const RenderSelection &selection,
+                    ExperimentId experimentCount,
                     OnFrameRetrace *callback) {}
 };
 
@@ -103,6 +107,7 @@ class FileTransferCB : public OnFrameRetrace {
   }
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
+                        ExperimentId experimentCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
@@ -127,6 +132,7 @@ class FileTransferCB : public OnFrameRetrace {
              const std::vector<std::string> &api_calls) {}
   void onError(ErrorSeverity s, const std::string &message) {}
   void onBatch(SelectionId selectionCount,
+               ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) {}
   bool m_needUpload;

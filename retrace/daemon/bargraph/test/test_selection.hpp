@@ -44,9 +44,11 @@ class SelectionObserver : public QObject {
   }
   virtual ~SelectionObserver() {}
   QList<int> selection_state;
+  SelectionId selection_count;
   bool notified;
  public slots:
-  void onSelect(QList<int> selection) {
+  void onSelect(glretrace::SelectionId id, QList<int> selection) {
+    selection_count = id;
     selection_state = selection;
     notified = true;
   }

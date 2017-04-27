@@ -45,6 +45,7 @@
 #include "glframe_api_model.hpp"
 #include "glframe_bargraph.hpp"
 #include "glframe_batch_model.hpp"
+#include "glframe_experiment_model.hpp"
 #include "glframe_os.hpp"
 #include "glframe_qselection.hpp"
 #include "glframe_shader_model.hpp"
@@ -123,6 +124,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onGeneralError)
   Q_PROPERTY(Severity errorSeverity READ errorSeverity
              NOTIFY onGeneralError)
+  Q_PROPERTY(glretrace::QExperimentModel* experimentModel
+             READ experiments CONSTANT)
 
  public:
   FrameRetraceModel();
@@ -145,6 +148,7 @@ class FrameRetraceModel : public QObject,
                      uint32_t frame_count);
   void onShaderAssembly(RenderId renderId,
                         SelectionId selectionCount,
+                        ExperimentId experimentCount,
                         const ShaderAssembly &vertex,
                         const ShaderAssembly &fragment,
                         const ShaderAssembly &tess_control,
@@ -169,14 +173,15 @@ class FrameRetraceModel : public QObject,
              const std::vector<std::string> &api_calls);
   void onError(ErrorSeverity s, const std::string &message);
   void onBatch(SelectionId selectionCount,
+               ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch);
-  void onShadersChanged();
   QString renderTargetImage() const;
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
   QRenderShadersList *shaders() { return &m_shaders; }
+  QExperimentModel *experiments() { return &m_experiment; }
   QApiModel *api() { return &m_api; }
   QBatchModel *batch() { return &m_batch; }
   QString shaderCompileError() { return m_shader_compile_error; }
@@ -200,8 +205,8 @@ class FrameRetraceModel : public QObject,
   Severity errorSeverity() const { return m_severity; }
  public slots:
   void onUpdateMetricList();
-  void onSelect(QList<int> selection);
-
+  void onSelect(glretrace::SelectionId id, QList<int> selection);
+  void onExperiment(glretrace::ExperimentId experiment_count);
  signals:
   void onQMetricList();
   void onQMetricData(QList<glretrace::BarMetrics> metrics);
@@ -221,15 +226,18 @@ class FrameRetraceModel : public QObject,
   void retrace_shader_assemblies();
   void retrace_api();
   void retrace_batch();
+  void refreshBarMetrics();
 
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   QMetricsModel m_metrics_table;
   QApiModel m_api;
   QBatchModel m_batch;
+  QExperimentModel m_experiment;
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;
+  ExperimentId m_experiment_count;
   QList<int> m_cached_selection;
   QList<QRenderBookmark *> m_renders_model;
   QList<QMetric *> m_metrics_model, m_filtered_metric_list;

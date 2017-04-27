@@ -247,15 +247,18 @@ FrameRetraceSkeleton::Run() {
         {
           assert(request.has_shaderassembly());
           auto shader = request.shaderassembly();
+          const ExperimentId exp(shader.experiment_count());
           RenderSelection selection;
           makeRenderSelection(shader.render_selection(), &selection);
           m_frame->retraceShaderAssembly(selection,
+                                         exp,
                                          this);
           // send empty message to signal the last response
           RetraceResponse proto_response;
           auto shader_resp = proto_response.mutable_shaderassembly();
           shader_resp->set_render_id(-1);
           shader_resp->set_selection_id(-1);
+          shader_resp->set_experiment_count(-1);
           ShaderAssembly s;
           set_shader_assembly(s, shader_resp->mutable_vertex());
           set_shader_assembly(s, shader_resp->mutable_fragment());
@@ -304,14 +307,25 @@ FrameRetraceSkeleton::Run() {
           RenderSelection selection;
           makeRenderSelection(batch.selection(), &selection);
           m_frame->retraceBatch(selection,
+                                ExperimentId(batch.experiment_count()),
                                 this);
           // send empty message to signal the last response
           RetraceResponse proto_response;
           auto batch_resp = proto_response.mutable_batch();
           batch_resp->set_render_id(-1);
           batch_resp->set_selection_count(-1);
+          batch_resp->set_experiment_count(-1);
           batch_resp->set_batch("");
           writeResponse(m_socket, proto_response, &m_buf);
+          break;
+        }
+      case ApiTrace::DISABLE_REQUEST:
+        {
+          assert(request.has_disable());
+          auto disable = request.disable();
+          RenderSelection selection;
+          makeRenderSelection(disable.selection(), &selection);
+          m_frame->disableDraw(selection, disable.disable());
           break;
         }
     }
@@ -334,6 +348,7 @@ void
 FrameRetraceSkeleton::onShaderAssembly(
     RenderId renderId,
     SelectionId selectionCount,
+    ExperimentId experimentCount,
     const ShaderAssembly &vertex,
     const ShaderAssembly &fragment,
     const ShaderAssembly &tess_control,
@@ -344,6 +359,7 @@ FrameRetraceSkeleton::onShaderAssembly(
   auto shader = proto_response.mutable_shaderassembly();
   shader->set_render_id(renderId());
   shader->set_selection_id(selectionCount());
+  shader->set_experiment_count(experimentCount.count());
   auto vertex_response = shader->mutable_vertex();
   set_shader_assembly(vertex, vertex_response);
   auto fragment_response = shader->mutable_fragment();
@@ -445,12 +461,14 @@ FrameRetraceSkeleton::onError(ErrorSeverity s, const std::string &message) {
 
 void
 FrameRetraceSkeleton::onBatch(SelectionId selectionCount,
+                              ExperimentId experimentCount,
                               RenderId renderId,
                               const std::string &batch) {
   RetraceResponse proto_response;
   auto response = proto_response.mutable_batch();
   response->set_render_id(renderId());
   response->set_selection_count(selectionCount());
+  response->set_experiment_count(experimentCount.count());
   response->set_batch(batch);
   writeResponse(m_socket, proto_response, &m_buf);
 }
