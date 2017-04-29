@@ -328,6 +328,15 @@ FrameRetraceSkeleton::Run() {
           m_frame->disableDraw(selection, disable.disable());
           break;
         }
+      case ApiTrace::SIMPLE_SHADER_REQUEST:
+        {
+          assert(request.has_simpleshader());
+          auto simple = request.simpleshader();
+          RenderSelection selection;
+          makeRenderSelection(simple.selection(), &selection);
+          m_frame->simpleShader(selection, simple.simple_shader());
+          break;
+        }
     }
   }
 }

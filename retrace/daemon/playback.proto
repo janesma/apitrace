@@ -16,6 +16,7 @@ enum RequestType {
   API_REQUEST = 7;
   BATCH_REQUEST = 8;
   DISABLE_REQUEST = 9;
+  SIMPLE_SHADER_REQUEST = 10;
 };
 
 message OpenFileRequest {
@@ -171,6 +172,11 @@ message DisableRequest {
   required bool disable = 2;
 }
 
+message SimpleRequest {
+  required RenderSelection selection = 1;
+  required bool simple_shader = 2;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
@@ -182,6 +188,7 @@ message RetraceRequest {
   optional ApiRequest api = 8;
   optional BatchRequest batch = 9;
   optional DisableRequest disable = 10;
+  optional SimpleRequest simpleShader = 11;
 }
 
 message RetraceResponse {

@@ -368,6 +368,14 @@ RetraceContext::disableDraw(RenderId render, bool disable) {
 }
 
 void
+RetraceContext::simpleShader(RenderId render, bool simple) {
+  auto render_iterator = m_renders.find(render);
+  if (render_iterator == m_renders.end())
+    return;
+  render_iterator->second->simpleShader(simple);
+}
+
+void
 RetraceContext::retraceApi(const RenderSelection &selection,
                            OnFrameRetrace *callback) {
   if (selection.series.empty()) {

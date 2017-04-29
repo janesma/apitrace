@@ -27,61 +27,98 @@
 
 #include "glframe_experiment_model.hpp"
 
+#include <map>
+
 #include "glframe_qutil.hpp"
 
 using glretrace::IFrameRetrace;
 using glretrace::QExperimentModel;
+using glretrace::RenderId;
 using glretrace::SelectionId;
+using Qt::Checked;
+using Qt::Unchecked;
+using Qt::PartiallyChecked;
+using Qt::CheckState;
 
 QExperimentModel::QExperimentModel()
-    : m_retrace(NULL), m_checkbox(Qt::Unchecked) {
+    : m_retrace(NULL), m_disabled_checkbox(Qt::Unchecked),
+      m_simple_checkbox(Unchecked) {
   assert(false);
 }
 
 QExperimentModel::QExperimentModel(IFrameRetrace *retrace)
     : m_retrace(retrace),
-      m_checkbox(Qt::Unchecked) {}
+      m_disabled_checkbox(Unchecked),
+      m_simple_checkbox(Unchecked) {}
 
-void
-QExperimentModel::onSelect(SelectionId count, QList<int> selection) {
-  m_selection = selection;
-  m_count = count;
-  Qt::CheckState new_value = Qt::CheckState(-1);
+CheckState
+isChecked(std::map<RenderId, bool> *_renders,
+          const QList<int> &selection) {
+  // if selection has both checked and unchecked experiments, return
+  // PartiallyChecked.
+  auto renders = *_renders;
+  CheckState new_value = CheckState(-1);
   for (auto sel : selection) {
-    const bool disabled = m_disabled[RenderId(sel)];
-    if (disabled) {
-      if (new_value == Qt::Unchecked) {
-        new_value = Qt::PartiallyChecked;
-        break;
+    const bool checked = renders[RenderId(sel)];
+    if (checked) {
+      if (new_value == Unchecked) {
+        return PartiallyChecked;
       } else {
-        new_value = Qt::Checked;
+        new_value = Checked;
       }
-    } else {  // not disabled
-      if (new_value == Qt::Checked) {
-        new_value = Qt::PartiallyChecked;
-        break;
+    } else {  // not checked
+      if (new_value == Checked) {
+        return PartiallyChecked;
       } else {
-        new_value = Qt::Unchecked;
+        new_value = Unchecked;
       }
     }
   }
-  m_checkbox = new_value;
-  emit onDisabled();
+  return new_value;
 }
 
 void
-QExperimentModel::disableDraw(Qt::CheckState disable) {
-  if (disable != Qt::Unchecked)
-    m_checkbox = Qt::Checked;
-  else
-    m_checkbox = Qt::Unchecked;
+QExperimentModel::onSelect(SelectionId count, const QList<int> &selection) {
+  m_selection = selection;
+  m_count = count;
+  m_disabled_checkbox = isChecked(&m_disabled, selection);
+  m_simple_checkbox = isChecked(&m_simple, selection);
+  emit onDisabled();
+  emit onSimpleShader();
+}
+
+CheckState uncheckPartials(CheckState c) {
+  assert(c != PartiallyChecked);
+  // treat PartiallyChecked as Unchecked
+  if (c == Checked)
+    return Checked;
+  return Unchecked;
+}
+
+void
+QExperimentModel::disableDraw(CheckState disable) {
+  m_disabled_checkbox = uncheckPartials(disable);
   for (auto render : m_selection)
-    m_disabled[RenderId(render)] = (disable == Qt::Checked);
+    m_disabled[RenderId(render)] = m_disabled_checkbox;
   RenderSelection sel;
   glretrace::renderSelectionFromList(m_count,
                                      m_selection,
                                      &sel);
-  m_retrace->disableDraw(sel, (m_checkbox == Qt::Checked));
+  m_retrace->disableDraw(sel, (m_disabled_checkbox == Checked));
   emit onDisabled();
+  emit onExperiment();
+}
+
+void
+QExperimentModel::simpleShader(CheckState simple) {
+  m_simple_checkbox = uncheckPartials(simple);
+  for (auto render : m_selection)
+    m_simple[RenderId(render)] = m_simple_checkbox;
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_count,
+                                     m_selection,
+                                     &sel);
+  m_retrace->simpleShader(sel, (m_simple_checkbox == Checked));
+  emit onSimpleShader();
   emit onExperiment();
 }

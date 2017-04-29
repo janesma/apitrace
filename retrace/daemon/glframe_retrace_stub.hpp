@@ -79,6 +79,8 @@ class FrameRetraceStub : public IFrameRetrace {
                               OnFrameRetrace *callback);
   virtual void disableDraw(const RenderSelection &selection,
                            bool disable);
+  virtual void simpleShader(const RenderSelection &selection,
+                            bool simple);
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback);
   virtual void retraceBatch(const RenderSelection &selection,

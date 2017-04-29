@@ -92,6 +92,7 @@ class FrameRetrace : public IFrameRetrace {
                       const std::string &comp,
                       OnFrameRetrace *callback);
   void disableDraw(const RenderSelection &selection, bool disable);
+  void simpleShader(const RenderSelection &selection, bool simple);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);

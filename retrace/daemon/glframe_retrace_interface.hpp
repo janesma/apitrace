@@ -290,6 +290,8 @@ class IFrameRetrace {
                               OnFrameRetrace *callback) = 0;
   virtual void disableDraw(const RenderSelection &selection,
                            bool disable) = 0;
+  virtual void simpleShader(const RenderSelection &selection,
+                            bool simple) = 0;
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback) = 0;
   virtual void retraceBatch(const RenderSelection &selection,
