@@ -562,6 +562,23 @@ class DisableDrawRequest : public IRetraceRequest {
   RetraceRequest m_proto_msg;
 };
 
+class SimpleShaderRequest : public IRetraceRequest {
+ public:
+  SimpleShaderRequest(const RenderSelection &selection,
+                      bool simple_shader) {
+    auto simpleRequest = m_proto_msg.mutable_simpleshader();
+    auto selectionRequest = simpleRequest->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    simpleRequest->set_simple_shader(simple_shader);
+    m_proto_msg.set_requesttype(ApiTrace::SIMPLE_SHADER_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    s->request(m_proto_msg);
+  }
+ private:
+  RetraceRequest m_proto_msg;
+};
+
 class ApiRequest : public IRetraceRequest {
  public:
   ApiRequest(SelectionId *current_selection,
@@ -886,6 +903,12 @@ void
 FrameRetraceStub::disableDraw(const RenderSelection &selection,
                               bool disable) {
   m_thread->push(new DisableDrawRequest(selection, disable));
+}
+
+void
+FrameRetraceStub::simpleShader(const RenderSelection &selection,
+                               bool simple) {
+  m_thread->push(new SimpleShaderRequest(selection, simple));
 }
 
 void

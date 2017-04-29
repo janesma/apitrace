@@ -110,6 +110,7 @@ class StateTrack {
   void useProgram(int program);
   void retraceProgramSideEffects(int orig_program, trace::Call *c,
                                  retrace::Retracer *retracer) const;
+  static void useProgramGL(int program);
 
  private:
   class TrackMap {

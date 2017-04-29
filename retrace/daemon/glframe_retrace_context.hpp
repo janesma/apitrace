@@ -85,6 +85,7 @@ class RetraceContext {
                       const std::string &comp,
                       OnFrameRetrace *callback);
   void disableDraw(RenderId render, bool disable);
+  void simpleShader(RenderId render, bool simple);
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback);
   void retraceShaderAssembly(const RenderSelection &selection,

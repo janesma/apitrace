@@ -334,6 +334,16 @@ FrameRetrace::disableDraw(const RenderSelection &selection, bool disable) {
 }
 
 void
+FrameRetrace::simpleShader(const RenderSelection &selection, bool simple) {
+  for (auto sequence : selection.series) {
+    for (auto render = sequence.begin; render < sequence.end; ++render) {
+      for (auto context : m_contexts)
+        context->simpleShader(render, simple);
+    }
+  }
+}
+
+void
 FrameRetrace::retraceApi(const RenderSelection &selection,
                          OnFrameRetrace *callback) {
   // reset to beginning of frame

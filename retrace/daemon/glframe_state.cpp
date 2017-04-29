@@ -621,6 +621,15 @@ StateTrack::useProgram(int program) {
 }
 
 void
+StateTrack::useProgramGL(int program) {
+  // glretrace keeps tabs on the current program and asserts if you
+  // don't correct its accounting.
+  glretrace::Context *currentContext = glretrace::getCurrentContext();
+  GlFunctions::UseProgram(program);
+  currentContext->currentProgram = program;
+}
+
+void
 StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
                                       retrace::Retracer *retracer) const {
   if (strncmp("glProgramUniform", c->sig->name,
@@ -654,7 +663,6 @@ StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
     return;
   }
   if (strncmp("glUniform", c->sig->name, strlen("glUniform")) == 0) {
-    glretrace::Context *currentContext = glretrace::getCurrentContext();
     const int retraced_program = orig_program;
     assert(retraced_program == orig_program);
     auto replacements = program_to_replacements.find(retraced_program);
@@ -662,8 +670,7 @@ StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
       trace::Value * call_loc = c->args[0].value;
       const int call_loc_val = call_loc->toSInt();
       for (auto replacement : replacements->second) {
-        GlFunctions::UseProgram(replacement);
-        currentContext->currentProgram = replacement;
+        useProgramGL(replacement);
         auto name_map = m_program_to_uniform_name.find(retraced_program);
         assert(name_map != m_program_to_uniform_name.end());
         auto name_it = name_map->second.find(call_loc_val);
@@ -678,8 +685,7 @@ StateTrack::retraceProgramSideEffects(int orig_program, trace::Call *c,
         retracer->retrace(*c);
       }
       c->args[0].value = call_loc;
-      GlFunctions::UseProgram(orig_program);
-      currentContext->currentProgram = orig_program;
+      useProgramGL(orig_program);
     }
     return;
   }

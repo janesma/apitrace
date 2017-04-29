@@ -99,7 +99,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
                                                     m_end_of_frame(false),
                                                     m_highlight_rt(false),
                                                     m_changes_context(false),
-                                                    m_disabled(false) {
+                                                    m_disabled(false),
+                                                    m_simple_shader(false) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   std::stringstream call_stream;
@@ -177,10 +178,10 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   }
 
   bool blend_enabled = false;
-  if ((type == HIGHLIGHT_RENDER) && (m_rt_program > -1)) {
+  if ((m_simple_shader || (type == HIGHLIGHT_RENDER)) && (m_rt_program > -1)) {
     blend_enabled = GlFunctions::IsEnabled(GL_BLEND);
     GlFunctions::Disable(GL_BLEND);
-    GlFunctions::UseProgram(m_rt_program);
+    StateTrack::useProgramGL(m_rt_program);
     GlFunctions::ValidateProgram(m_rt_program);
     GLint result;
     GlFunctions::GetProgramiv(m_rt_program, GL_VALIDATE_STATUS, &result);
@@ -191,7 +192,7 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
       GRLOGF(ERR, "Highlight program not validated: %s", buf.data());
     }
   } else if (m_retrace_program > -1) {
-    GlFunctions::UseProgram(m_retrace_program);
+    StateTrack::useProgramGL(m_retrace_program);
   }
 
   // retrace the final render
@@ -200,11 +201,9 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   if (!m_disabled)
     m_retracer->retrace(*call);
   delete(call);
-  if (type == HIGHLIGHT_RENDER || m_retrace_program > -1) {
-    if (blend_enabled)
-      GlFunctions::Enable(GL_BLEND);
-    GlFunctions::UseProgram(m_original_program);
-  }
+  if (blend_enabled)
+    GlFunctions::Enable(GL_BLEND);
+  StateTrack::useProgramGL(m_original_program);
 }
 
 
@@ -230,8 +229,11 @@ RetraceRender::retrace(StateTrack *tracker) const {
   }
 
   // select the shader override if necessary
-  if (m_retrace_program > -1) {
-    GlFunctions::UseProgram(m_retrace_program);
+  if (m_simple_shader) {
+    StateTrack::useProgramGL(m_rt_program);
+    tracker->useProgram(m_rt_program);
+  } else if (m_retrace_program > -1) {
+    StateTrack::useProgramGL(m_retrace_program);
     if (tracker) {
       tracker->useProgram(m_retrace_program);
     }
@@ -245,8 +247,7 @@ RetraceRender::retrace(StateTrack *tracker) const {
   if (tracker)
     tracker->track(*call);
   delete(call);
-  if (m_retrace_program)
-    GlFunctions::UseProgram(m_original_program);
+  StateTrack::useProgramGL(m_original_program);
 }
 
 void
@@ -271,8 +272,10 @@ RetraceRender::retrace(const StateTrack &tracker) const {
   }
 
   // select the shader override if necessary
-  if (m_retrace_program > -1) {
-    GlFunctions::UseProgram(m_retrace_program);
+  if (m_simple_shader) {
+    StateTrack::useProgramGL(m_rt_program);
+  } else if (m_retrace_program > -1) {
+    StateTrack::useProgramGL(m_retrace_program);
   }
 
   // retrace the final render
@@ -281,8 +284,7 @@ RetraceRender::retrace(const StateTrack &tracker) const {
   if (!m_disabled)
     m_retracer->retrace(*call);
   delete(call);
-  if (m_retrace_program)
-    GlFunctions::UseProgram(m_original_program);
+  StateTrack::useProgramGL(m_original_program);
 }
 
 
@@ -331,4 +333,9 @@ RetraceRender::onApi(SelectionId selId,
 void
 RetraceRender::disableDraw(bool disable) {
   m_disabled = disable;
+}
+
+void
+RetraceRender::simpleShader(bool simple) {
+  m_simple_shader = simple;
 }
