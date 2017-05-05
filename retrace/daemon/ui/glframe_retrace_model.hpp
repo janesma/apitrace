@@ -29,7 +29,6 @@
 #ifndef _GLFRAME_RETRACE_MODEL_HPP_
 #define _GLFRAME_RETRACE_MODEL_HPP_
 
-#include <QQuickImageProvider>   // NOLINT
 #include <QtConcurrentRun>   // NOLINT
 
 #include <QObject>
@@ -55,6 +54,7 @@ namespace glretrace {
 
 class FrameRetrace;
 class QSelection;
+class QRenderTargetModel;
 
 class QRenderBookmark : public QObject {
   Q_OBJECT
@@ -100,16 +100,8 @@ class FrameRetraceModel : public QObject,
              READ metricList NOTIFY onQMetricList);
   Q_PROPERTY(glretrace::QSelection* selection
              READ selection WRITE setSelection);
-  Q_PROPERTY(QString renderTargetImage READ renderTargetImage
-             NOTIFY onRenderTarget)
   Q_PROPERTY(int frameCount READ frameCount NOTIFY onFrameCount)
   Q_PROPERTY(float maxMetric READ maxMetric NOTIFY onMaxMetric)
-  Q_PROPERTY(bool clearBeforeRender READ clearBeforeRender
-             WRITE setClearBeforeRender)
-  Q_PROPERTY(bool stopAtRender READ stopAtRender
-             WRITE setStopAtRender)
-  Q_PROPERTY(bool highlightRender READ highlightRender
-             WRITE setHighlightRender)
   Q_PROPERTY(glretrace::QRenderShadersList* shaders READ shaders CONSTANT)
   Q_PROPERTY(glretrace::QApiModel* api READ api CONSTANT)
   Q_PROPERTY(glretrace::QBatchModel* batch READ batch CONSTANT)
@@ -126,6 +118,8 @@ class FrameRetraceModel : public QObject,
              NOTIFY onGeneralError)
   Q_PROPERTY(glretrace::QExperimentModel* experimentModel
              READ experiments CONSTANT)
+  Q_PROPERTY(glretrace::QRenderTargetModel* rendertarget
+             READ rendertarget CONSTANT)
 
  public:
   FrameRetraceModel();
@@ -176,7 +170,6 @@ class FrameRetraceModel : public QObject,
                ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch);
-  QString renderTargetImage() const;
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
@@ -184,6 +177,7 @@ class FrameRetraceModel : public QObject,
   QExperimentModel *experiments() { return &m_experiment; }
   QApiModel *api() { return &m_api; }
   QBatchModel *batch() { return &m_batch; }
+  QRenderTargetModel *rendertarget() { return m_rendertarget; }
   QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
@@ -191,18 +185,13 @@ class FrameRetraceModel : public QObject,
   QString generalError() { return m_general_error; }
   QString generalErrorDetails() { return m_general_error_details; }
 
-  bool clearBeforeRender() const;
-  void setClearBeforeRender(bool v);
-  bool stopAtRender() const;
-  void setStopAtRender(bool v);
-  bool highlightRender() const;
-  void setHighlightRender(bool v);
   enum Severity {
         Warning,
         Fatal
     };
   Q_ENUM(Severity);
   Severity errorSeverity() const { return m_severity; }
+  void retraceRendertarget();
  public slots:
   void onUpdateMetricList();
   void onSelect(glretrace::SelectionId id, QList<int> selection);
@@ -211,7 +200,6 @@ class FrameRetraceModel : public QObject,
   void onQMetricList();
   void onQMetricData(QList<glretrace::BarMetrics> metrics);
   void onRenders();
-  void onRenderTarget();
   void onFrameCount();
   void onMaxMetric();
   void onShaderCompileError();
@@ -222,7 +210,6 @@ class FrameRetraceModel : public QObject,
   // thread.  The handler generates QObjects which are passed to qml
   void updateMetricList();
  private:
-  void retrace_rendertarget();
   void retrace_shader_assemblies();
   void retrace_api();
   void retrace_batch();
@@ -234,6 +221,7 @@ class FrameRetraceModel : public QObject,
   QApiModel m_api;
   QBatchModel m_batch;
   QExperimentModel m_experiment;
+  QRenderTargetModel *m_rendertarget;
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;
@@ -256,7 +244,6 @@ class FrameRetraceModel : public QObject,
 
   std::vector<MetricId> m_active_metrics;
   float m_max_metric;
-  bool m_clear_before_render, m_stop_at_render, m_highlight_render;
   QString m_general_error, m_general_error_details;
   Severity m_severity;
 };

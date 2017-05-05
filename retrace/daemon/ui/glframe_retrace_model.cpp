@@ -27,7 +27,6 @@
 
 #include "glframe_retrace_model.hpp"
 
-#include <QQuickImageProvider>
 #include <QtConcurrentRun>
 #include <QFileInfo>
 
@@ -37,9 +36,9 @@
 
 #include "glframe_qbargraph.hpp"
 #include "glframe_retrace.hpp"
-#include "glframe_retrace_images.hpp"
 #include "glframe_logger.hpp"
 #include "glframe_qutil.hpp"
+#include "glframe_rendertarget_model.hpp"
 #include "glframe_socket.hpp"
 
 using glretrace::DEBUG;
@@ -60,19 +59,18 @@ using glretrace::SelectionId;
 using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
 
-FrameRetraceModel::FrameRetraceModel() : m_experiment(&m_retrace),
-                                         m_state(NULL),
-                                         m_selection(NULL),
-                                         m_selection_count(0),
-                                         m_experiment_count(0),
-                                         m_shader_compile_error(""),
-                                         m_open_percent(0),
-                                         m_frame_count(0),
-                                         m_max_metric(0),
-                                         m_clear_before_render(false),
-                                         m_stop_at_render(false),
-                                         m_highlight_render(false),
-                                         m_severity(Warning) {
+FrameRetraceModel::FrameRetraceModel()
+    : m_experiment(&m_retrace),
+      m_rendertarget(new QRenderTargetModel(this)),
+      m_state(NULL),
+      m_selection(NULL),
+      m_selection_count(0),
+      m_experiment_count(0),
+      m_shader_compile_error(""),
+      m_open_percent(0),
+      m_frame_count(0),
+      m_max_metric(0),
+      m_severity(Warning) {
   m_metrics_model.push_back(new QMetric(MetricId(0), "No metric"));
   filterMetrics("");
   connect(this, &glretrace::FrameRetraceModel::updateMetricList,
@@ -218,8 +216,7 @@ FrameRetraceModel::onRenderTarget(SelectionId selectionCount,
                                   ExperimentId experimentCount,
                                   const std::vector<unsigned char> &data) {
   ScopedLock s(m_protect);
-  glretrace::FrameImages::instance()->SetImage(data);
-  emit onRenderTarget();
+  m_rendertarget->onRenderTarget(selectionCount, experimentCount, data);
 }
 
 void
@@ -234,17 +231,11 @@ FrameRetraceModel::onShaderCompile(RenderId renderId,
 }
 
 void
-FrameRetraceModel::retrace_rendertarget() {
-  RenderOptions opt = DEFAULT_RENDER;
-  if (m_clear_before_render)
-    opt = (RenderOptions) (opt | CLEAR_BEFORE_RENDER);
-  if (m_stop_at_render)
-    opt = (RenderOptions) (opt | STOP_AT_RENDER);
-  RenderTargetType rt_type = glretrace::NORMAL_RENDER;
-  if (m_highlight_render)
-    rt_type = HIGHLIGHT_RENDER;
+FrameRetraceModel::retraceRendertarget() {
   if (m_cached_selection.empty())
     return;
+  RenderOptions opt = m_rendertarget->options();
+  RenderTargetType rt_type = m_rendertarget->type();
   RenderSelection rs;
   glretrace::renderSelectionFromList(m_selection_count,
                                      m_cached_selection,
@@ -265,16 +256,6 @@ FrameRetraceModel::retrace_shader_assemblies() {
                                      m_cached_selection,
                                      &rs);
   m_retrace.retraceShaderAssembly(rs, m_experiment_count, this);
-}
-
-
-QString
-FrameRetraceModel::renderTargetImage() const {
-  ScopedLock s(m_protect);
-  static int i = 0;
-  std::stringstream ss;
-  ss << "image://myimageprovider/image" << ++i << ".png";
-  return ss.str().c_str();
 }
 
 void
@@ -438,49 +419,10 @@ FrameRetraceModel::onSelect(SelectionId id, QList<int> selection) {
   ScopedLock s(m_protect);
   m_cached_selection = selection;
   m_selection_count = id;
-  retrace_rendertarget();
+  retraceRendertarget();
   retrace_shader_assemblies();
   retrace_api();
   retrace_batch();
-}
-
-bool
-FrameRetraceModel::clearBeforeRender() const {
-  ScopedLock s(m_protect);
-  return m_clear_before_render;
-}
-
-void
-FrameRetraceModel::setClearBeforeRender(bool v) {
-  ScopedLock s(m_protect);
-  m_clear_before_render = v;
-  retrace_rendertarget();
-}
-
-bool
-FrameRetraceModel::stopAtRender() const {
-  ScopedLock s(m_protect);
-  return m_stop_at_render;
-}
-
-void
-FrameRetraceModel::setStopAtRender(bool v) {
-  ScopedLock s(m_protect);
-  m_stop_at_render = v;
-  retrace_rendertarget();
-}
-
-bool
-FrameRetraceModel::highlightRender() const {
-  ScopedLock s(m_protect);
-  return m_highlight_render;
-}
-
-void
-FrameRetraceModel::setHighlightRender(bool v) {
-  ScopedLock s(m_protect);
-  m_highlight_render = v;
-  retrace_rendertarget();
 }
 
 void
@@ -583,7 +525,7 @@ void
 FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
   ScopedLock s(m_protect);
   m_experiment_count = experiment_count;
-  retrace_rendertarget();
+  retraceRendertarget();
   refreshBarMetrics();
   retrace_shader_assemblies();
   retrace_batch();

@@ -31,6 +31,8 @@ set (UI_SRC
   glframe_metrics_model.cpp
   glframe_qutil.hpp
   glframe_qutil.cpp
+  glframe_rendertarget_model.cpp
+  glframe_rendertarget_model.hpp
   glframe_retrace_images.hpp
   glframe_retrace_images.cpp
   glframe_retrace_model.hpp

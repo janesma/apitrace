@@ -335,7 +335,7 @@ ApplicationWindow {
             Tab {
                 title: "RenderTarget"
                 RenderTargetControl {
-                    model: frameRetrace
+                    model: frameRetrace.rendertarget
                 }
             }
             Tab {
