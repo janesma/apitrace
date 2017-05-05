@@ -334,40 +334,8 @@ ApplicationWindow {
             }
             Tab {
                 title: "RenderTarget"
-                Row {
-                    Column {
-                        id: renderOptions
-                        CheckBox {
-                            text: "Clear before render"
-                            onCheckedChanged: {
-                                frameRetrace.clearBeforeRender = checked;
-                            }
-                        }
-                        CheckBox {
-                            text: "Stop at render"
-                            onCheckedChanged: {
-                                frameRetrace.stopAtRender = checked;
-                            }
-                        }
-                        CheckBox {
-                            text: "Highlight selected render"
-                            onCheckedChanged: {
-                                frameRetrace.highlightRender = checked;
-                            }
-                        }
-                    }
-                    Item {
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: parent.width - renderOptions.width
-                        Image {
-                            id: rtDisplayImage
-                            anchors.fill: parent
-                            fillMode: Image.PreserveAspectFit
-                            source: frameRetrace.renderTargetImage
-                            cache: false
-                        }
-                    }
+                RenderTargetControl {
+                    model: frameRetrace
                 }
             }
             Tab {
