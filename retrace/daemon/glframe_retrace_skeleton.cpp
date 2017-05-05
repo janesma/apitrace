@@ -210,6 +210,14 @@ FrameRetraceSkeleton::Run() {
                                        (RenderTargetType)rt.type(),
                                        (RenderOptions)rt.options(),
                                        this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto rt_resp = proto_response.mutable_rendertarget();
+          rt_resp->set_selection_count(-1);
+          rt_resp->set_experiment_count(-1);
+          rt_resp->set_image("");
+          ShaderAssembly s;
+          writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
       case ApiTrace::METRICS_REQUEST:

@@ -209,21 +209,24 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
       ((last_render >= m_renders.begin()->first) &&
        (last_render <= m_renders.rbegin()->first));
   if (contains_last_render) {
-    Image *i = glstate::getDrawBufferImage(0);
-    if (!i) {
-      GRLOG(WARN, "Failed to obtain draw buffer image for render id");
-      if (callback)
-        callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
-    } else {
-      std::stringstream png;
-      i->writePNG(png);
+    const int image_count = glstate::getDrawBufferImageCount();
+    for (int rt_num = 0; rt_num < image_count; ++rt_num) {
+      Image *i = glstate::getDrawBufferImage(rt_num);
+      if (!i) {
+        GRLOG(WARN, "Failed to obtain draw buffer image for render id");
+        if (callback)
+          callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
+      } else {
+        std::stringstream png;
+        i->writePNG(png);
 
-      std::vector<unsigned char> d;
-      const int bytes = png.str().size();
-      d.resize(bytes);
-      memcpy(d.data(), png.str().c_str(), bytes);
-      if (callback)
-        callback->onRenderTarget(selection.id, experimentCount, d);
+        std::vector<unsigned char> d;
+        const int bytes = png.str().size();
+        d.resize(bytes);
+        memcpy(d.data(), png.str().c_str(), bytes);
+        if (callback)
+          callback->onRenderTarget(selection.id, experimentCount, d);
+      }
     }
   }
 

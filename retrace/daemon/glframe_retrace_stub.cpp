@@ -34,6 +34,7 @@
 #include <string>
 #include <vector>
 
+#include "glframe_logger.hpp"
 #include "glframe_os.hpp"
 #include "glframe_retrace.hpp"
 #include "glframe_socket.hpp"
@@ -44,6 +45,7 @@
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
 using glretrace::RenderSelection;
+using glretrace::ERR;
 using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
 using glretrace::SelectionId;
@@ -58,9 +60,11 @@ using glretrace::RETRACE_FATAL;
 using glretrace::RETRACE_WARN;
 using glretrace::ScopedLock;
 using glretrace::Semaphore;
+using glretrace::Severity;
 using glretrace::ShaderAssembly;
 using glretrace::Socket;
 using glretrace::Thread;
+using glretrace::WARN;
 using google::protobuf::io::ArrayInputStream;
 using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
@@ -174,22 +178,29 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
         // more recent experiment was enabled while this was enqueued
         return;
     }
-    RetraceResponse response;
-    s->retrace(m_proto_msg, &response);
-    if (response.has_error()) {
-      m_callback->onError(ErrorSeverity(response.error().severity()),
-                          response.error().message());
-      return;
+    s->request(m_proto_msg);
+    while (true) {
+      RetraceResponse response;
+      s->response(&response);
+      if (response.has_error()) {
+        Severity s = (response.error().severity() == RETRACE_FATAL ?
+                      ERR : WARN);
+        GRLOG(s, response.error().message().c_str());
+        continue;
+      }
+      assert(response.has_rendertarget());
+      auto rt = response.rendertarget();
+      if (rt.selection_count() == -1)
+        // last response
+        return;
+      assert(rt.has_image());
+      auto imageStr = rt.image();
+      std::vector<unsigned char> image(imageStr.size());
+      memcpy(image.data(), imageStr.c_str(), imageStr.size());
+      m_callback->onRenderTarget(*m_sel_count,
+                                 *m_exp_count,
+                                 image);
     }
-    assert(response.has_rendertarget());
-    auto rt = response.rendertarget();
-    assert(rt.has_image());
-    auto imageStr = rt.image();
-    std::vector<unsigned char> image(imageStr.size());
-    memcpy(image.data(), imageStr.c_str(), imageStr.size());
-    m_callback->onRenderTarget(*m_sel_count,
-                               *m_exp_count,
-                               image);
   }
 
  private:
