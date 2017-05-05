@@ -46,6 +46,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_os.hpp"
 #include "glframe_qbargraph.hpp"
+#include "glframe_rendertarget_model.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
 #include "glframe_retrace_skeleton.hpp"
@@ -118,6 +119,8 @@ int main(int argc, char *argv[]) {
                                         "QBatchModel");
   qmlRegisterType<glretrace::QExperimentModel>("ApiTrace", 1, 0,
                                                "QExperimentModel");
+  qmlRegisterType<glretrace::QRenderTargetModel>("ApiTrace", 1, 0,
+                                                 "QRenderTargetModel");
 
   glretrace::FrameImages::Create();
 
