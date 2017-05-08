@@ -31,6 +31,7 @@
 #include <QObject>
 #include <QImage>
 #include <QQuickImageProvider>
+#include <map>
 #include <vector>
 
 namespace glretrace {
@@ -39,18 +40,16 @@ class FrameImages : public QQuickImageProvider {
   static FrameImages *instance();
   static void Create();
   static void Destroy();
-  virtual QImage requestImage(const QString & id,
-                              QSize * size,
-                              const QSize & requestedSize) {
-    return m_rt;
-  }
-  void SetImage(const std::vector<unsigned char> &buf) {
-    m_rt.loadFromData(buf.data(), buf.size(), "PNG");
-  }
+  virtual QImage requestImage(const QString &id,
+                              QSize *size,
+                              const QSize &requestedSize);
+  void Clear();
+  void AddImage(const char *path, const std::vector<unsigned char> &buf);
  private:
   FrameImages() : QQuickImageProvider(QQmlImageProviderBase::Image),
-                  m_rt(":/qml/images/no_render_target.png") {}
-  QImage m_rt;
+                  m_default(":/qml/images/no_render_target.png") {}
+  QImage m_default;
+  std::map<QString, QImage> m_rts;
   static FrameImages *m_instance;
 };
 

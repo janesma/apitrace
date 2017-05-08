@@ -41,8 +41,8 @@ class FrameRetraceModel;
 
 class QRenderTargetModel : public QObject {
   Q_OBJECT
-  Q_PROPERTY(QString renderTargetImage READ renderTargetImage
-             NOTIFY onRenderTarget)
+  Q_PROPERTY(QStringList renderTargetImages READ renderTargetImages
+             NOTIFY renderTargetsChanged)
   Q_PROPERTY(bool clearBeforeRender READ clearBeforeRender
              WRITE setClearBeforeRender)
   Q_PROPERTY(bool stopAtRender READ stopAtRender
@@ -56,7 +56,7 @@ class QRenderTargetModel : public QObject {
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
                       const std::vector<unsigned char> &data);
-  QString renderTargetImage() const;
+  QStringList renderTargetImages() const;
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
   bool stopAtRender() const;
@@ -67,13 +67,17 @@ class QRenderTargetModel : public QObject {
   RenderOptions options();
 
  signals:
-  void onRenderTarget();
+  void renderTargetsChanged();
 
  private:
   FrameRetraceModel *m_retrace;
   bool m_clear_before_render, m_stop_at_render, m_highlight_render;
+  SelectionId m_sel;
+  ExperimentId m_exp;
+  int m_option_count;
+  int m_index;
+  QStringList m_rts;
 };
-
 
 }  // namespace glretrace
 
