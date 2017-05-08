@@ -67,6 +67,13 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
   }
 
   ++m_index;
+  if (data.empty()) {
+    // error case
+    m_rts.push_back("image://myimageprovider/default_image.png");
+    emit renderTargetsChanged();
+    return;
+  }
+
   {
     std::stringstream ss;
     ss << "image://myimageprovider/image_"

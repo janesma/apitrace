@@ -179,6 +179,7 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
         return;
     }
     s->request(m_proto_msg);
+    bool success = false;
     while (true) {
       RetraceResponse response;
       s->response(&response);
@@ -190,10 +191,20 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
       }
       assert(response.has_rendertarget());
       auto rt = response.rendertarget();
-      if (rt.selection_count() == -1)
+      if (rt.selection_count() == -1) {
+        if (!success) {
+          OnFrameRetrace::uvec v;
+          // error case: send an empty image so the UI can display a
+          // default image.
+          m_callback->onRenderTarget(*m_sel_count,
+                                     *m_exp_count,
+                                     v);
+        }
         // last response
         return;
+      }
       assert(rt.has_image());
+      success = true;
       auto imageStr = rt.image();
       std::vector<unsigned char> image(imageStr.size());
       memcpy(image.data(), imageStr.c_str(), imageStr.size());
