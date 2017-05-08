@@ -441,8 +441,7 @@ FrameRetraceModel::refreshBarMetrics() {
 void
 FrameRetraceModel::refreshMetrics() {
   // "Refresh" button invoke this.
-  refreshBarMetrics();
-  m_metrics_table.refresh();
+  m_selection->experiment();
 }
 
 void
