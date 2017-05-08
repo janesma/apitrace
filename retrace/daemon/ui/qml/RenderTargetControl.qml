@@ -1,9 +1,10 @@
 import QtQuick 2.2
-import QtQuick.Controls 1.1
+import QtQuick.Controls 1.4
 import ApiTrace 1.0
 
 Item {
-    property var model
+    property var rtModel
+    property int rtIndex
     Row {
         anchors.fill: parent
         Column {
@@ -11,31 +12,47 @@ Item {
             CheckBox {
                 text: "Clear before render"
                 onCheckedChanged: {
-                    model.clearBeforeRender = checked;
+                    rtModel.clearBeforeRender = checked;
                 }
             }
             CheckBox {
                 text: "Stop at render"
                 onCheckedChanged: {
-                    model.stopAtRender = checked;
+                    rtModel.stopAtRender = checked;
                 }
             }
             CheckBox {
                 text: "Highlight selected render"
                 onCheckedChanged: {
-                    model.highlightRender = checked;
+                    rtModel.highlightRender = checked;
                 }
             }
         }
-        Item {
+        SplitView {
+            orientation: Qt.Horizontal
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             width: parent.width - renderOptions.width
+            ListView {
+                id: thumbnails
+                width: 100
+                Component {
+                    id: imageDelegate
+                    Image {
+                        id: thumbnailImage
+                        width: thumbnails.width
+                        fillMode: Image.PreserveAspectFit
+                        source: modelData
+                        cache: false
+                    }
+                }
+                model: rtModel.renderTargetImages
+                delegate: imageDelegate
+            }
             Image {
                 id: rtDisplayImage
-                anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
-                source: model.renderTargetImages[0]
+                source: rtModel.renderTargetImages[0]
                 cache: false
             }
         }
