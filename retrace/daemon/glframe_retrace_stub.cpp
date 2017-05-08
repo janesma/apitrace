@@ -435,16 +435,29 @@ class RetraceOpenFileRequest: public IRetraceRequest {
 class RetraceMetricsRequest : public IRetraceRequest {
  public:
   RetraceMetricsRequest(const std::vector<MetricId> &ids,
-                              ExperimentId experimentCount,
-                              OnFrameRetrace *cb)
-      : m_callback(cb) {
+                        ExperimentId *current_exp_count,
+                        std::mutex *protect,
+                        OnFrameRetrace *cb)
+      : m_exp_count(current_exp_count),
+        m_protect(protect),
+        m_callback(cb) {
     auto metricsRequest = m_proto_msg.mutable_metrics();
     for (MetricId i : ids)
       metricsRequest->add_metric_ids(i());
-    metricsRequest->set_experiment_count(experimentCount());
+    metricsRequest->set_experiment_count((*current_exp_count)());
     m_proto_msg.set_requesttype(ApiTrace::METRICS_REQUEST);
   }
   virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &mr = m_proto_msg.metrics();
+      const ExperimentId exp(mr.experiment_count());
+      assert(exp <= *m_exp_count);
+      if (*m_exp_count != exp)
+        // more recent experiment was enabled while this was enqueued
+        return;
+    }
+
     RetraceResponse response;
     s->retrace(m_proto_msg, &response);
     assert(response.has_metricsdata());
@@ -465,6 +478,8 @@ class RetraceMetricsRequest : public IRetraceRequest {
 
  private:
   RetraceRequest m_proto_msg;
+  ExperimentId *m_exp_count;
+  std::mutex *m_protect;
   OnFrameRetrace *m_callback;
 };
 
@@ -473,13 +488,14 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
   RetraceAllMetricsRequest(SelectionId *current_selection,
                            std::mutex *protect,
                            const RenderSelection &selection,
-                           ExperimentId experimentCount,
+                           ExperimentId *current_exp,
                            OnFrameRetrace *cb)
       : m_sel_count(current_selection),
+        m_exp_count(current_exp),
         m_protect(protect),
         m_callback(cb) {
     auto metricsRequest = m_proto_msg.mutable_allmetrics();
-    metricsRequest->set_experiment_count(experimentCount());
+    metricsRequest->set_experiment_count((*current_exp)());
     auto selectionRequest = metricsRequest->mutable_selection();
     makeRenderSelection(selection, selectionRequest);
     m_proto_msg.set_requesttype(ApiTrace::ALL_METRICS_REQUEST);
@@ -489,9 +505,16 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
       const int query_sel_count =
           m_proto_msg.allmetrics().selection().selection_count();
       const SelectionId query_id(query_sel_count);
+      const int query_exp_count =
+          m_proto_msg.allmetrics().experiment_count();
+      const ExperimentId exp_id(query_exp_count);
       std::lock_guard<std::mutex> l(*m_protect);
       if ((*m_sel_count != query_id) &&
           (query_id != SelectionId(0)))
+        // more recent selection was made while this was enqueued
+        return;
+      if ((*m_exp_count > exp_id) &&
+          (exp_id != ExperimentId(0)))
         // more recent selection was made while this was enqueued
         return;
     }
@@ -522,6 +545,7 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
 
  private:
   const SelectionId * const m_sel_count;
+  const ExperimentId * const m_exp_count;
   std::mutex *m_protect;
   RetraceRequest m_proto_msg;
   OnFrameRetrace *m_callback;
@@ -886,7 +910,8 @@ FrameRetraceStub::retraceMetrics(const std::vector<MetricId> &ids,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
-  m_thread->push(new RetraceMetricsRequest(ids, experimentCount, callback));
+  m_thread->push(new RetraceMetricsRequest(ids, &m_current_experiment,
+                                           &m_mutex, callback));
 }
 
 void
@@ -902,7 +927,7 @@ FrameRetraceStub::retraceAllMetrics(const RenderSelection &selection,
   m_thread->push(new RetraceAllMetricsRequest(&m_current_met_selection,
                                               &m_mutex,
                                               selection,
-                                              experimentCount,
+                                              &m_current_experiment,
                                               callback));
 }
 
