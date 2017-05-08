@@ -28,6 +28,8 @@
 #include "glframe_retrace_images.hpp"
 #include <assert.h>
 
+#include <vector>
+
 using glretrace::FrameImages;
 
 FrameImages * FrameImages::m_instance = NULL;
@@ -49,4 +51,23 @@ FrameImages::Destroy() {
     m_instance = NULL;
 }
 
+void
+FrameImages::AddImage(const char *path,
+                      const std::vector<unsigned char> &buf) {
+  QString qs(path);
+  m_rts[qs].loadFromData(buf.data(), buf.size(), "PNG");
+}
 
+void
+FrameImages::Clear() {
+  m_rts.clear();
+}
+
+QImage
+FrameImages::requestImage(const QString &id,
+                          QSize *size,
+                          const QSize &requestedSize) {
+  if (m_rts.find(id) == m_rts.end())
+    return m_default;
+  return m_rts[id];
+}

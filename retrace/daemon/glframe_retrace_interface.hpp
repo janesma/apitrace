@@ -139,6 +139,7 @@ class SelectionId {
   SelectionId &operator++() { ++value; return *this; }
   uint32_t count() const { return value & (~ID_PREFIX_MASK); }
   bool operator<=(const SelectionId &o) const { return value <= o.value; }
+  bool operator>(const SelectionId &o) const { return value > o.value; }
   bool operator==(const SelectionId &o) const { return value == o.value; }
   bool operator!=(const SelectionId &o) const { return value != o.value; }
  private:

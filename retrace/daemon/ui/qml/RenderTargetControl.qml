@@ -35,7 +35,7 @@ Item {
                 id: rtDisplayImage
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
-                source: model.renderTargetImage
+                source: model.renderTargetImages[0]
                 cache: false
             }
         }

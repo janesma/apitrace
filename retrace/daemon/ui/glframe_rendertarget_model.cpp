@@ -30,6 +30,7 @@
 #include <sstream>
 #include <vector>
 
+#include "glframe_os.hpp"
 #include "glframe_retrace_images.hpp"
 #include "glframe_retrace_model.hpp"
 
@@ -46,15 +47,46 @@ QRenderTargetModel::QRenderTargetModel(FrameRetraceModel *retrace)
     : m_retrace(retrace),
       m_clear_before_render(false),
       m_stop_at_render(false),
-      m_highlight_render(false)
-{}
+      m_highlight_render(false),
+      m_sel(0), m_exp(0),
+      m_option_count(0),
+      m_index(0) {
+  m_rts.push_back("image://myimageprovider/default.image.url");
+}
 
 void
 QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
-                                  ExperimentId experimentCount,
-                                  const std::vector<unsigned char> &data) {
-  glretrace::FrameImages::instance()->SetImage(data);
-  emit onRenderTarget();
+                                   ExperimentId experimentCount,
+                                   const std::vector<unsigned char> &data) {
+  if (selectionCount > m_sel || experimentCount > m_exp) {
+    m_sel = selectionCount;
+    m_exp = experimentCount;
+    m_index = 0;
+    glretrace::FrameImages::instance()->Clear();
+    m_rts.clear();
+  }
+
+  ++m_index;
+  {
+    std::stringstream ss;
+    ss << "image://myimageprovider/image_"
+       << m_sel.count() << "_"
+       << m_exp.count() << "_"
+       << m_option_count << "_"
+       << m_index << ".png";
+    m_rts.push_back(ss.str().c_str());
+  }
+
+  {
+    // QML requests path from ImageProvider without the full url
+    std::stringstream ss;
+    ss << "image_" << m_sel.count() << "_"
+       << m_exp.count() << "_"
+       << m_option_count << "_"
+       << m_index << ".png";
+    glretrace::FrameImages::instance()->AddImage(ss.str().c_str(), data);
+  }
+  emit renderTargetsChanged();
 }
 
 
@@ -76,12 +108,9 @@ QRenderTargetModel::type() {
   return NORMAL_RENDER;
 }
 
-QString
-QRenderTargetModel::renderTargetImage() const {
-  static int i = 0;
-  std::stringstream ss;
-  ss << "image://myimageprovider/image" << ++i << ".png";
-  return ss.str().c_str();
+QStringList
+QRenderTargetModel::renderTargetImages() const {
+  return m_rts;
 }
 
 bool
@@ -91,6 +120,9 @@ QRenderTargetModel::clearBeforeRender() const {
 
 void
 QRenderTargetModel::setClearBeforeRender(bool v) {
+  ++m_option_count;
+  glretrace::FrameImages::instance()->Clear();
+  m_rts.clear();
   m_clear_before_render = v;
   m_retrace->retraceRendertarget();
 }
@@ -102,6 +134,9 @@ QRenderTargetModel::stopAtRender() const {
 
 void
 QRenderTargetModel::setStopAtRender(bool v) {
+  ++m_option_count;
+  glretrace::FrameImages::instance()->Clear();
+  m_rts.clear();
   m_stop_at_render = v;
   m_retrace->retraceRendertarget();
 }
@@ -113,6 +148,9 @@ QRenderTargetModel::highlightRender() const {
 
 void
 QRenderTargetModel::setHighlightRender(bool v) {
+  ++m_option_count;
+  glretrace::FrameImages::instance()->Clear();
+  m_rts.clear();
   m_highlight_render = v;
   m_retrace->retraceRendertarget();
 }
