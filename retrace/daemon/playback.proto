@@ -17,6 +17,7 @@ enum RequestType {
   BATCH_REQUEST = 8;
   DISABLE_REQUEST = 9;
   SIMPLE_SHADER_REQUEST = 10;
+  UNIFORM_REQUEST = 11;
 };
 
 message OpenFileRequest {
@@ -155,9 +156,14 @@ message ErrorResponse {
   required string message = 2;
 }
 
+enum BatchRequestType {
+  BATCH = 0;
+  UNIFORM = 1;
+}
+
 message BatchRequest {
-  required RenderSelection selection = 1;
-  required uint32 experiment_count = 2;
+  required RenderSelection selection = 2;
+  required uint32 experiment_count = 3;
 }
 
 message BatchResponse {
@@ -165,6 +171,44 @@ message BatchResponse {
   required uint32 selection_count = 2;
   required uint32 experiment_count = 3;
   required string batch = 4;
+}
+
+message UniformRequest {
+  required RenderSelection selection = 2;
+  required uint32 experiment_count = 3;
+}
+
+enum UniformType {
+  FLOAT_UNIFORM = 1;
+  INT_UNIFORM = 2;
+  UINT_UNIFORM = 3;
+  BOOL_UNIFORM = 4;
+};
+
+enum UniformDimension {
+  D_1x1 = 1;
+  D_2x1 = 2;
+  D_3x1 = 3;
+  D_4x1 = 4;
+  D_2x2 = 5;
+  D_3x2 = 6;
+  D_4x2 = 7;
+  D_2x3 = 8;
+  D_3x3 = 9;
+  D_4x3 = 10;
+  D_2x4 = 11;
+  D_3x4 = 12;
+  D_4x4 = 13;
+};
+
+message UniformResponse {
+  required uint32 render_id = 1;
+  required uint32 selection_count = 2;
+  required uint32 experiment_count = 3;
+  required string name = 4;
+  required UniformType uniform_type = 5;
+  required UniformDimension uniform_dimension = 6;
+  required bytes data = 7; 
 }
 
 message DisableRequest {
@@ -189,6 +233,7 @@ message RetraceRequest {
   optional BatchRequest batch = 9;
   optional DisableRequest disable = 10;
   optional SimpleRequest simpleShader = 11;
+  optional UniformRequest uniform = 12;
 }
 
 message RetraceResponse {
@@ -201,4 +246,5 @@ message RetraceResponse {
   optional ApiResponse api = 7;
   optional ErrorResponse error = 8;
   optional BatchResponse batch = 9;
+  optional UniformResponse uniform = 10;
 }

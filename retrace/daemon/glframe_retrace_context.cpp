@@ -38,6 +38,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_retrace_render.hpp"
+#include "glframe_uniforms.hpp"
 #include "glstate.hpp"
 
 using glretrace::BatchControl;
@@ -451,4 +452,24 @@ RetraceContext::retraceBatch(const RenderSelection &selection,
     }
   }
   control->batchOff();
+}
+
+void
+RetraceContext::retraceUniform(const RenderSelection &selection,
+                               ExperimentId experimentCount,
+                               const StateTrack &tracker,
+                               OnFrameRetrace *callback) {
+  trace::ParseBookmark bm;
+  m_parser->getBookmark(bm);
+  assert(bm.offset == m_start_bookmark.offset);
+
+  for (auto r : m_renders) {
+    r.second->retrace(tracker);
+    if (isSelected(r.first, selection)) {
+      Uniforms u;
+      u.onUniform(selection.id,
+                  experimentCount,
+                  r.first, callback);
+    }
+  }
 }

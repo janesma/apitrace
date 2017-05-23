@@ -89,6 +89,14 @@ class FrameRetraceSkeleton : public Thread,
                        RenderId renderId,
                        const std::string &batch);
 
+  virtual void onUniform(SelectionId selectionCount,
+                         ExperimentId experimentCount,
+                         RenderId renderId,
+                         const std::string &name,
+                         UniformType type,
+                         UniformDimension dimension,
+                         const std::vector<unsigned char> &data);
+
  protected:
   bool m_force_upload;  // for unit test
 

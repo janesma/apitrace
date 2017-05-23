@@ -170,6 +170,13 @@ class FrameRetraceModel : public QObject,
                ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch);
+  void onUniform(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 const std::string &name,
+                 UniformType type,
+                 UniformDimension dimension,
+                 const std::vector<unsigned char> &data) {}
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();

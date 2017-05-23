@@ -37,6 +37,10 @@
 
 #include "glframe_glhelper.hpp"
 
+using glretrace::ExperimentId;
+using glretrace::OnFrameRetrace;
+using glretrace::RenderId;
+using glretrace::SelectionId;
 using glretrace::Uniforms;
 using glretrace::Uniform;
 
@@ -46,6 +50,10 @@ class Uniform {
  public:
   explicit Uniform(int i);
   void set() const;
+  void onUniform(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 OnFrameRetrace *callback) const;
 
  private:
   enum UniformType {
@@ -119,6 +127,7 @@ Uniform::Uniform(int i) {
         m_dataType = k_float;
         is_float = true;
         m_data_size = 1 * sizeof(GLfloat);
+        break;
       case GL_FLOAT_VEC2:
         m_dataType = k_vec2;
         is_float = true;
@@ -304,6 +313,7 @@ Uniform::Uniform(int i) {
 void
 Uniform::set() const {
   int prog;
+  GL::GetError();
   GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &prog);
   GL_CHECK();
   int location = GlFunctions::GetUniformLocation(prog, m_name.c_str());
@@ -416,9 +426,117 @@ Uniform::set() const {
   GL_CHECK();
 }
 
+void
+Uniform::onUniform(SelectionId selectionCount,
+                   ExperimentId experimentCount,
+                   RenderId renderId,
+                   OnFrameRetrace *callback) const {
+  // void onUniform(SelectionId selectionCount,
+  //                        ExperimentId experimentCount,
+  //                        RenderId renderId,
+  //                        const std::string &name,
+  //                        UniformType type,
+  //                        UniformDimension dimension,
+  //                        const std::vector<unsigned char> &data) = 0;
+  glretrace::UniformType t;
+  glretrace::UniformDimension d;
+  switch (m_dataType) {
+    case k_float:
+    case k_vec2:
+    case k_vec3:
+    case k_vec4:
+    case k_mat2:
+    case k_mat3:
+    case k_mat4:
+    case k_mat2x3:
+    case k_mat2x4:
+    case k_mat3x2:
+    case k_mat3x4:
+    case k_mat4x2:
+    case k_mat4x3:
+      t = kFloatUniform;
+      break;
+    case k_int:
+    case k_ivec2:
+    case k_ivec3:
+    case k_ivec4:
+    case k_sampler:
+      t = kIntUniform;
+      break;
+    case k_uint:
+    case k_uivec2:
+    case k_uivec3:
+    case k_uivec4:
+      t = kUIntUniform;
+      break;
+    case k_bool:
+    case k_bvec2:
+    case k_bvec3:
+    case k_bvec4:
+      t = kBoolUniform;
+      break;
+  }
+  switch (m_dataType) {
+    case k_float:
+    case k_sampler:
+    case k_int:
+    case k_uint:
+    case k_bool:
+      d = k1x1;
+      break;
+    case k_vec2:
+    case k_ivec2:
+    case k_uivec2:
+    case k_bvec2:
+      d = k2x1;
+      break;
+    case k_vec3:
+    case k_ivec3:
+    case k_uivec3:
+    case k_bvec3:
+      d = k3x1;
+      break;
+    case k_vec4:
+    case k_ivec4:
+    case k_uivec4:
+    case k_bvec4:
+      d = k4x1;
+      break;
+    case k_mat2:
+      d = k2x2;
+      break;
+    case k_mat3:
+      d = k3x3;
+      break;
+    case k_mat4:
+      d = k4x4;
+      break;
+    case k_mat2x3:
+      d = k2x3;
+      break;
+    case k_mat2x4:
+      d = k2x4;
+      break;
+    case k_mat3x2:
+      d = k3x2;
+      break;
+    case k_mat3x4:
+      d = k3x4;
+      break;
+    case k_mat4x2:
+      d = k4x2;
+      break;
+    case k_mat4x3:
+      d = k4x3;
+      break;
+  }
+  callback->onUniform(selectionCount, experimentCount, renderId,
+                      m_name, t, d, m_data);
+}
+
 Uniforms::Uniforms() {
   int prog, uniform_count;
-  GL_CHECK();
+  GL::GetError();
   GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &prog);
   GL_CHECK();
   GlFunctions::GetProgramiv(prog, GL_ACTIVE_UNIFORMS, &uniform_count);
@@ -438,4 +556,14 @@ Uniforms::set() const {
   for (auto i : m_uniforms) {
     i->set();
   }
+}
+
+void
+Uniforms::onUniform(SelectionId selectionCount,
+                    ExperimentId experimentCount,
+                    RenderId renderId,
+                    OnFrameRetrace *callback) const {
+  for (auto u : m_uniforms)
+    u->onUniform(selectionCount, experimentCount,
+                 renderId, callback);
 }

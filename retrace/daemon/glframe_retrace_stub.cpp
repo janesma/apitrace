@@ -69,8 +69,8 @@ using google::protobuf::io::ArrayInputStream;
 using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
+using glretrace::UniformType;
 namespace {
-
 
 class RetraceSocket {
  public:
@@ -191,7 +191,7 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
       }
       assert(response.has_rendertarget());
       auto rt = response.rendertarget();
-      if (rt.selection_count() == -1) {
+      if (rt.selection_count() == (unsigned int)-1) {
         if (!success) {
           OnFrameRetrace::uvec v;
           // error case: send an empty image so the UI can display a
@@ -281,7 +281,7 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
       s->response(&response);
       assert(response.has_shaderassembly());
       auto shader = response.shaderassembly();
-      if (shader.render_id() == -1)
+      if (shader.render_id() == (unsigned int)-1)
         // all responses sent
         break;
       const auto &shader_assembly = m_proto_msg.shaderassembly();
@@ -656,7 +656,7 @@ class ApiRequest : public IRetraceRequest {
       s->response(&response);
       assert(response.has_api());
       const auto &api_response = response.api();
-      if (api_response.render_id() == -1)
+      if (api_response.render_id() == (unsigned int)-1)
         // all responses sent
         break;
 
@@ -693,8 +693,8 @@ class BatchRequest : public IRetraceRequest {
   BatchRequest(SelectionId *current_selection,
                ExperimentId *current_experiment,
                std::mutex *protect,
-             const RenderSelection &selection,
-             OnFrameRetrace *cb)
+               const RenderSelection &selection,
+               OnFrameRetrace *cb)
       : m_sel_count(current_selection),
         m_exp_count(current_experiment),
         m_protect(protect),
@@ -705,6 +705,7 @@ class BatchRequest : public IRetraceRequest {
     batchRequest->set_experiment_count(current_experiment->count());
     m_proto_msg.set_requesttype(ApiTrace::BATCH_REQUEST);
   }
+
   virtual void retrace(RetraceSocket *s) {
     {
       std::lock_guard<std::mutex> l(*m_protect);
@@ -728,7 +729,7 @@ class BatchRequest : public IRetraceRequest {
       s->response(&response);
       assert(response.has_batch());
       const auto &batch_response = response.batch();
-      if (batch_response.render_id() == -1)
+      if (batch_response.render_id() == (unsigned int)-1)
         // all responses sent
         break;
 
@@ -750,6 +751,150 @@ class BatchRequest : public IRetraceRequest {
       m_callback->onBatch(SelectionId(selection),
                           exp_count,
                           rid, batch_response.batch());
+    }
+  }
+
+ private:
+  const SelectionId * const m_sel_count;
+  const ExperimentId * const m_exp_count;
+  std::mutex *m_protect;
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
+class UniformRequest : public IRetraceRequest {
+ public:
+  UniformRequest(SelectionId *current_selection,
+               ExperimentId *current_experiment,
+               std::mutex *protect,
+               const RenderSelection &selection,
+               OnFrameRetrace *cb)
+      : m_sel_count(current_selection),
+        m_exp_count(current_experiment),
+        m_protect(protect),
+        m_callback(cb) {
+    m_proto_msg.set_requesttype(ApiTrace::UNIFORM_REQUEST);
+    auto request = m_proto_msg.mutable_uniform();
+    auto selectionRequest = request->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    request->set_experiment_count(current_experiment->count());
+  }
+
+
+  virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &uniform = m_proto_msg.uniform();
+      const auto &sel = uniform.selection();
+      const SelectionId id(sel.selection_count());
+      if (*m_sel_count != id)
+        // more recent selection was made while this was enqueued
+        return;
+      const ExperimentId exp(uniform.experiment_count());
+      assert(exp <= *m_exp_count);
+      if (*m_exp_count != exp)
+        // more recent experiment was made while this was enqueued
+        return;
+    }
+    // sends single request, read multiple responses
+    s->request(m_proto_msg);
+    RetraceResponse response;
+    while (true) {
+      response.Clear();
+      s->response(&response);
+      assert(response.has_uniform());
+      const auto &uniform = response.uniform();
+      if (uniform.render_id() == (unsigned int)-1) {
+        // all responses sent.  Send a bogus uniform to inform the
+        // model that uniforms are complete
+        m_callback->onUniform(SelectionId(SelectionId::INVALID_SELECTION),
+                              ExperimentId(ExperimentId::INVALID_EXPERIMENT-1),
+                              RenderId(RenderId::INVALID_RENDER),
+                              "", glretrace::kFloatUniform,
+                              glretrace::k1x1, std::vector<unsigned char>());
+        break;
+      }
+
+      const auto selection = SelectionId(uniform.selection_count());
+      const ExperimentId exp_count(uniform.experiment_count());
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_sel_count != selection)
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+        assert(exp_count <= *m_exp_count);
+        if (*m_exp_count != exp_count)
+          // more recent experiment was made while this was enqueued
+          continue;
+      }
+      UniformType t;
+      switch (uniform.uniform_type()) {
+        case ApiTrace::FLOAT_UNIFORM:
+          t = glretrace::kFloatUniform;
+          break;
+        case ApiTrace::INT_UNIFORM:
+          t = glretrace::kIntUniform;
+          break;
+        case ApiTrace::UINT_UNIFORM:
+          t = glretrace::kUIntUniform;
+          break;
+        case ApiTrace::BOOL_UNIFORM:
+          t = glretrace::kBoolUniform;
+          break;
+      }
+      glretrace::UniformDimension d;
+      switch (uniform.uniform_dimension()) {
+        case ApiTrace::D_1x1:
+          d = glretrace::k1x1;
+          break;
+        case ApiTrace::D_2x1:
+          d = glretrace::k2x1;
+          break;
+        case ApiTrace::D_3x1:
+          d = glretrace::k3x1;
+          break;
+        case ApiTrace::D_4x1:
+          d = glretrace::k4x1;
+          break;
+        case ApiTrace::D_2x2:
+          d = glretrace::k2x2;
+          break;
+        case ApiTrace::D_3x2:
+          d = glretrace::k3x2;
+          break;
+        case ApiTrace::D_4x2:
+          d = glretrace::k4x2;
+          break;
+        case ApiTrace::D_2x3:
+          d = glretrace::k2x3;
+          break;
+        case ApiTrace::D_3x3:
+          d = glretrace::k3x3;
+          break;
+        case ApiTrace::D_4x3:
+          d = glretrace::k4x3;
+          break;
+        case ApiTrace::D_2x4:
+          d = glretrace::k2x4;
+          break;
+        case ApiTrace::D_3x4:
+          d = glretrace::k3x4;
+          break;
+        case ApiTrace::D_4x4:
+          d = glretrace::k4x4;
+          break;
+      }
+      const RenderId rid(uniform.render_id());
+      const auto &payload = uniform.data();
+      std::vector<unsigned char> data(payload.size());
+      memcpy(data.data(), payload.c_str(), payload.size());
+      m_callback->onUniform(selection,
+                            exp_count,
+                            rid,
+                            uniform.name(),
+                            t, d,
+                            data);
     }
   }
 
@@ -991,4 +1136,20 @@ FrameRetraceStub::retraceBatch(const RenderSelection &selection,
                                   &m_current_experiment,
                                   &m_mutex,
                                   selection, callback));
+}
+
+void
+FrameRetraceStub::retraceUniform(const RenderSelection &selection,
+                                 ExperimentId experimentCount,
+                                 OnFrameRetrace *callback) {
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_render_selection = selection.id;
+    assert(m_current_experiment <= experimentCount);
+    m_current_experiment = experimentCount;
+  }
+  m_thread->push(new UniformRequest(&m_current_render_selection,
+                                    &m_current_experiment,
+                                    &m_mutex,
+                                    selection, callback));
 }

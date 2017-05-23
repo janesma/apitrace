@@ -365,3 +365,13 @@ FrameRetrace::retraceBatch(const RenderSelection &selection,
                     &assemblyOutput, callback);
   batchControl.batchOff();
 }
+
+void
+FrameRetrace::retraceUniform(const RenderSelection &selection,
+                             ExperimentId experimentCount,
+                             OnFrameRetrace *callback) {
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
+  for (auto i : m_contexts)
+    i->retraceUniform(selection, experimentCount, m_tracker, callback);
+}

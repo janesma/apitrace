@@ -124,6 +124,13 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) { assert(false); }
+  void onUniform(SelectionId selectionCount,
+                         ExperimentId experimentCount,
+                         RenderId renderId,
+                         const std::string &name,
+                         UniformType type,
+                         UniformDimension dimension,
+                 const std::vector<unsigned char> &data) { assert(false); }
   void filter(const QString& f);
 
   QQmlListProperty<QMetricValue> metrics();

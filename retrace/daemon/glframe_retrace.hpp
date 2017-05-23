@@ -106,6 +106,9 @@ class FrameRetrace : public IFrameRetrace {
   void retraceBatch(const RenderSelection &selection,
                     ExperimentId experimentCount,
                     OnFrameRetrace *callback);
+  void retraceUniform(const RenderSelection &selection,
+                      ExperimentId experimentCount,
+                      OnFrameRetrace *callback);
 
  private:
   // these are global

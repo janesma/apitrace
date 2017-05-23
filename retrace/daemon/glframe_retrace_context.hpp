@@ -99,6 +99,10 @@ class RetraceContext {
                     BatchControl *control,
                     OutputPoller *poller,
                     OnFrameRetrace *callback);
+  void retraceUniform(const RenderSelection &selection,
+                      ExperimentId experimentCount,
+                      const StateTrack &tracker,
+                      OnFrameRetrace *callback);
 
  private:
   trace::AbstractParser *m_parser;

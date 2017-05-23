@@ -31,6 +31,8 @@
 #include <string>
 #include <vector>
 
+#include "glframe_retrace_interface.hpp"
+
 namespace glretrace {
 
 class Uniform;
@@ -42,6 +44,10 @@ class Uniforms {
   Uniforms();
   ~Uniforms();
   void set() const;
+  void onUniform(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 OnFrameRetrace *callback) const;
  private:
   std::vector<Uniform*> m_uniforms;
 };

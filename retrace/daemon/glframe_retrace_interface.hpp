@@ -93,6 +93,8 @@ class RenderId {
   bool operator>=(const RenderId &o) const { return value >= o.value; }
   bool operator<=(const RenderId &o) const { return value <= o.value; }
   bool operator==(const RenderId &o) const { return value == o.value; }
+  static const uint32_t INVALID_RENDER = (-1 & ~ID_PREFIX_MASK);
+
  private:
   uint32_t value;
 };
@@ -117,6 +119,7 @@ class MetricId {
   bool operator<(const MetricId &o) const { return value < o.value; }
   bool operator==(const MetricId &o) const { return value == o.value; }
   bool operator!=(const MetricId &o) const { return value != o.value; }
+
  private:
   // low 16 bits are the counter number
   // middle 32 bits are the group
@@ -142,6 +145,8 @@ class SelectionId {
   bool operator>(const SelectionId &o) const { return value > o.value; }
   bool operator==(const SelectionId &o) const { return value == o.value; }
   bool operator!=(const SelectionId &o) const { return value != o.value; }
+  static const uint32_t INVALID_SELECTION = (-1 & ~ID_PREFIX_MASK);
+
  private:
   uint32_t value;
 };
@@ -164,6 +169,7 @@ class ExperimentId {
   bool operator>(const ExperimentId &o) const { return value > o.value; }
   bool operator<=(const ExperimentId &o) const { return value <= o.value; }
   bool operator!=(const ExperimentId &o) const { return value != o.value; }
+  static const uint32_t INVALID_EXPERIMENT = (-1 & ~ID_PREFIX_MASK);
  private:
   uint32_t value;
 };
@@ -215,6 +221,29 @@ struct ShaderAssembly {
   std::string codeSinking;
 };
 
+enum UniformType {
+  kFloatUniform,
+  kIntUniform,
+  kUIntUniform,
+  kBoolUniform
+};
+
+enum UniformDimension {
+  k1x1,
+  k2x1,
+  k3x1,
+  k4x1,
+  k2x2,
+  k3x2,
+  k4x2,
+  k2x3,
+  k3x3,
+  k4x3,
+  k2x4,
+  k3x4,
+  k4x4
+};
+
 class OnFrameRetrace {
  public:
   typedef std::vector<unsigned char> uvec;
@@ -251,6 +280,13 @@ class OnFrameRetrace {
                        ExperimentId experimentCount,
                        RenderId renderId,
                        const std::string &batch) = 0;
+  virtual void onUniform(SelectionId selectionCount,
+                         ExperimentId experimentCount,
+                         RenderId renderId,
+                         const std::string &name,
+                         UniformType type,
+                         UniformDimension dimension,
+                         const std::vector<unsigned char> &data) = 0;
 };
 
 class IFrameRetrace {
@@ -298,6 +334,9 @@ class IFrameRetrace {
   virtual void retraceBatch(const RenderSelection &selection,
                             ExperimentId experimentCount,
                             OnFrameRetrace *callback) = 0;
+  virtual void retraceUniform(const RenderSelection &selection,
+                              ExperimentId experimentCount,
+                              OnFrameRetrace *callback) = 0;
 };
 
 class FrameState {

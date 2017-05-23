@@ -55,6 +55,8 @@ using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
 using glretrace::Socket;
+using glretrace::UniformDimension;
+using glretrace::UniformType;
 using glretrace::application_cache_directory;
 using google::protobuf::io::ArrayInputStream;
 using google::protobuf::io::ArrayOutputStream;
@@ -345,6 +347,28 @@ FrameRetraceSkeleton::Run() {
           m_frame->simpleShader(selection, simple.simple_shader());
           break;
         }
+      case ApiTrace::UNIFORM_REQUEST:
+        {
+          assert(request.has_uniform());
+          auto uniform = request.uniform();
+          RenderSelection selection;
+          makeRenderSelection(uniform.selection(), &selection);
+          m_frame->retraceUniform(selection,
+                                  ExperimentId(uniform.experiment_count()),
+                                  this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto uniform_resp = proto_response.mutable_uniform();
+          uniform_resp->set_render_id(-1);
+          uniform_resp->set_selection_count(-1);
+          uniform_resp->set_experiment_count(-1);
+          uniform_resp->set_name("");
+          uniform_resp->set_uniform_type(ApiTrace::FLOAT_UNIFORM);
+          uniform_resp->set_uniform_dimension(ApiTrace::D_1x1);
+          uniform_resp->set_data("");
+          writeResponse(m_socket, proto_response, &m_buf);
+          break;
+        }
     }
   }
 }
@@ -487,5 +511,78 @@ FrameRetraceSkeleton::onBatch(SelectionId selectionCount,
   response->set_selection_count(selectionCount());
   response->set_experiment_count(experimentCount.count());
   response->set_batch(batch);
+  writeResponse(m_socket, proto_response, &m_buf);
+}
+
+void
+FrameRetraceSkeleton::onUniform(SelectionId selectionCount,
+                                ExperimentId experimentCount,
+                                RenderId renderId,
+                                const std::string &name,
+                                UniformType type,
+                                UniformDimension dimension,
+                                const std::vector<unsigned char> &data) {
+  RetraceResponse proto_response;
+  auto response = proto_response.mutable_uniform();
+  response->set_render_id(renderId());
+  response->set_selection_count(selectionCount());
+  response->set_experiment_count(experimentCount.count());
+  response->set_name(name);
+  switch (type) {
+    case kFloatUniform:
+      response->set_uniform_type(ApiTrace::FLOAT_UNIFORM);
+      break;
+    case kIntUniform:
+      response->set_uniform_type(ApiTrace::INT_UNIFORM);
+      break;
+    case kUIntUniform:
+      response->set_uniform_type(ApiTrace::UINT_UNIFORM);
+      break;
+    case kBoolUniform:
+      response->set_uniform_type(ApiTrace::BOOL_UNIFORM);
+      break;
+  }
+  switch (dimension) {
+    case k1x1:
+      response->set_uniform_dimension(ApiTrace::D_1x1);
+      break;
+    case k2x1:
+      response->set_uniform_dimension(ApiTrace::D_2x1);
+      break;
+    case k3x1:
+      response->set_uniform_dimension(ApiTrace::D_3x1);
+      break;
+    case k4x1:
+      response->set_uniform_dimension(ApiTrace::D_4x1);
+      break;
+    case k2x2:
+      response->set_uniform_dimension(ApiTrace::D_2x2);
+      break;
+    case k3x2:
+      response->set_uniform_dimension(ApiTrace::D_3x2);
+      break;
+    case k4x2:
+      response->set_uniform_dimension(ApiTrace::D_4x2);
+      break;
+    case k2x3:
+      response->set_uniform_dimension(ApiTrace::D_2x3);
+      break;
+    case k3x3:
+      response->set_uniform_dimension(ApiTrace::D_3x3);
+      break;
+    case k4x3:
+      response->set_uniform_dimension(ApiTrace::D_4x3);
+      break;
+    case k2x4:
+      response->set_uniform_dimension(ApiTrace::D_2x4);
+      break;
+    case k3x4:
+      response->set_uniform_dimension(ApiTrace::D_3x4);
+      break;
+    case k4x4:
+      response->set_uniform_dimension(ApiTrace::D_4x4);
+      break;
+  }
+  response->set_data(data.data(), data.size());
   writeResponse(m_socket, proto_response, &m_buf);
 }
