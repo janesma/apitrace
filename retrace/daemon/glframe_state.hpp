@@ -148,9 +148,10 @@ class StateTrack {
   void trackGetUniformBlockIndex(const trace::Call &);
   void trackUniformBlockBinding(const trace::Call &);
   void trackBindFragDataLocation(const trace::Call &);
+  void trackBindProgramPipeline(const trace::Call &);
 
   OutputPoller *m_poller;
-  int current_program;
+  int current_program, current_pipeline;
   std::map<int, std::string> shader_to_source;
   std::map<int, int> shader_to_type;
   std::map<std::string, int> source_to_shader;

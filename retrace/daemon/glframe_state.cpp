@@ -77,6 +77,7 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glGetUniformBlockIndex"] = &StateTrack::trackGetUniformBlockIndex;
   lookup["glUniformBlockBinding"] = &StateTrack::trackUniformBlockBinding;
   lookup["glBindFragDataLocation"] = &StateTrack::trackBindFragDataLocation;
+  lookup["glBindProgramPipeline"] = &StateTrack::trackBindProgramPipeline;
 }
 
 bool
@@ -756,6 +757,16 @@ StateTrack::trackBindFragDataLocation(const trace::Call &call) {
   const std::string name(call.args[2].value->toString());
   m_program_to_frag_data_location[program][name] = call_location;
 }
+
+void
+StateTrack::trackBindProgramPipeline(const trace::Call &call) {
+  int call_pipeline = call.args[0].value->toDouble();
+  if (!call_pipeline)
+    current_pipeline = 0;
+  else
+    current_pipeline = getRetracedPipeline(call_pipeline);
+}
+
 
 void
 StateTrack::onAssembly(ShaderType st, AssemblyType at,
