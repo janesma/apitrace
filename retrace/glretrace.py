@@ -687,4 +687,9 @@ glretrace::getRetracedUniformBlockIndex(GLuint traced_program,
     return _uniformBlock_map[traced_program][traced_index];
 }
 
+GLuint 
+glretrace::getRetracedPipeline(GLuint traced_pipeline) {
+    return _pipeline_map[traced_pipeline];
+}
+
 '''
