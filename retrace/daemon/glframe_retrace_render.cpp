@@ -79,6 +79,19 @@ RetraceRender::isRender(const trace::Call &call) {
           || isClear(call));
 }
 
+bool
+RetraceRender::endsFrame(const trace::Call &c) {
+  if (c.flags & trace::CALL_FLAG_END_FRAME) {
+    // apitrace considers glFrameTerminatorGREMEDY to be a terminator,
+    // but this always follows swapbuffers when it exists.
+    if (strncmp("glFrameTerminatorGREMEDY", c.sig->name,
+                strlen("glFrameTerminatorGREMEDY")) == 0)
+      return false;
+    return true;
+  }
+  return false;
+}
+
 int
 RetraceRender::currentRenderBuffer() {
   glstate::Context context;
@@ -110,7 +123,7 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     tracker->flush();
     m_retracer->retrace(*call);
     tracker->track(*call);
-    m_end_of_frame = call->flags & trace::CALL_FLAG_END_FRAME;
+    m_end_of_frame = endsFrame(*call);
     const bool render = isRender(*call);
     compute = isCompute(*call);
     if (changesContext(*call)) {
