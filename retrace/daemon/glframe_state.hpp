@@ -149,6 +149,7 @@ class StateTrack {
   void trackUniformBlockBinding(const trace::Call &);
   void trackBindFragDataLocation(const trace::Call &);
   void trackBindProgramPipeline(const trace::Call &);
+  void trackUseProgramStages(const trace::Call &);
 
   OutputPoller *m_poller;
   int current_program, current_pipeline;
@@ -170,6 +171,15 @@ class StateTrack {
   std::map<int, ShaderAssembly> program_to_tess_eval;
   std::map<int, ShaderAssembly> program_to_geom;
   std::map<int, ShaderAssembly> program_to_comp;
+
+  // for these maps, key is pipeline.  Value is the program stage
+  // bound to the pipeline
+  std::map<int, int> pipeline_to_vertex_program;
+  std::map<int, int> pipeline_to_fragment_program;
+  std::map<int, int> pipeline_to_tess_control_program;
+  std::map<int, int> pipeline_to_tess_eval_program;
+  std::map<int, int> pipeline_to_geom_program;
+  std::map<int, int> pipeline_to_comp_program;
 
   std::map<int, int> vertex_to_program;
   std::map<int, int> fragment_to_program;

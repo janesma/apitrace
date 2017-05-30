@@ -78,6 +78,7 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glUniformBlockBinding"] = &StateTrack::trackUniformBlockBinding;
   lookup["glBindFragDataLocation"] = &StateTrack::trackBindFragDataLocation;
   lookup["glBindProgramPipeline"] = &StateTrack::trackBindProgramPipeline;
+  lookup["glUseProgramStages"] = &StateTrack::trackUseProgramStages;
 }
 
 bool
@@ -767,6 +768,26 @@ StateTrack::trackBindProgramPipeline(const trace::Call &call) {
     current_pipeline = getRetracedPipeline(call_pipeline);
 }
 
+void
+StateTrack::trackUseProgramStages(const trace::Call &call) {
+  const int call_pipeline = call.args[0].value->toDouble();
+  const int pipeline = getRetracedPipeline(call_pipeline);
+  const unsigned int stages = call.args[1].value->toDouble();
+  const int call_program = call.args[2].value->toDouble();
+  const int program = getRetracedProgram(call_program);
+  if (stages & GL_VERTEX_SHADER_BIT)
+    pipeline_to_vertex_program[pipeline] = program;
+  if (stages & GL_FRAGMENT_SHADER_BIT)
+    pipeline_to_fragment_program[pipeline] = program;
+  if (stages & GL_TESS_CONTROL_SHADER_BIT)
+    pipeline_to_tess_control_program[pipeline] = program;
+  if (stages & GL_TESS_EVALUATION_SHADER_BIT)
+    pipeline_to_tess_eval_program[pipeline] = program;
+  if (stages & GL_GEOMETRY_SHADER_BIT)
+    pipeline_to_geom_program[pipeline] = program;
+  if (stages & GL_COMPUTE_SHADER_BIT)
+    pipeline_to_comp_program[pipeline] = program;
+}
 
 void
 StateTrack::onAssembly(ShaderType st, AssemblyType at,
