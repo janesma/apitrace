@@ -75,6 +75,7 @@ class RetraceRender {
              OnFrameRetrace *callback);
   static bool isRender(const trace::Call &c);
   static bool changesContext(const trace::Call &c);
+  static bool endsFrame(const trace::Call &c);
   static int currentRenderBuffer();
 
  private:

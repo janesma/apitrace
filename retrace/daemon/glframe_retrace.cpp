@@ -145,7 +145,7 @@ FrameRetrace::openFile(const std::string &filename,
       retracer.retrace(*call);
       m_tracker.track(*call);
     }
-    const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
+    const bool frame_boundary = RetraceRender::endsFrame(*call);
     delete call;
     if (frame_boundary) {
       ++current_frame;
@@ -222,7 +222,7 @@ FrameState::FrameState(const std::string &filename,
   trace::Call *call;
   int current_frame = 0;
   while ((call = p->scan_call()) && current_frame < framenumber) {
-    if (call->flags & trace::CALL_FLAG_END_FRAME) {
+    if (RetraceRender::endsFrame(*call)) {
       ++current_frame;
       if (current_frame == framenumber) {
         delete call;
@@ -237,7 +237,7 @@ FrameState::FrameState(const std::string &filename,
       ++render_count;
     }
 
-    if (call->flags & trace::CALL_FLAG_END_FRAME) {
+    if (RetraceRender::endsFrame(*call)) {
       delete call;
       break;
     }
