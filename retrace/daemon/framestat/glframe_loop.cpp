@@ -102,7 +102,10 @@ FrameLoop::advanceToFrame(int f) {
     retracer.retrace(*call);
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
     if (frame_boundary) {
-      ++m_current_frame;
+      // do not count bogus frame terminators
+      if (strncmp("glFrameTerminatorGREMEDY", call->sig->name,
+                  strlen("glFrameTerminatorGREMEDY")) != 0)
+        ++m_current_frame;
       break;
     }
   }
