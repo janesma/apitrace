@@ -267,38 +267,86 @@ StateTrack::parse() {
 
 const ShaderAssembly &
 StateTrack::currentVertexShader() const {
-  auto sh = program_to_vertex.find(current_program);
+  int program = current_program;
+  if (current_program == 0 && current_pipeline != 0) {
+    auto pipe = pipeline_to_vertex_program.find(current_pipeline);
+    if (pipe == pipeline_to_vertex_program.end())
+      program = 0;
+    else
+      program = pipe->second;
+  }
+  auto sh = program_to_vertex.find(program);
   return (sh == program_to_vertex.end() ?
           empty_shader : sh->second);
 }
 
 const ShaderAssembly &
 StateTrack::currentFragmentShader() const {
-  auto sh = program_to_fragment.find(current_program);
+  int program = current_program;
+  if (current_program == 0 && current_pipeline != 0) {
+    auto pipe = pipeline_to_fragment_program.find(current_pipeline);
+    if (pipe == pipeline_to_fragment_program.end())
+      program = 0;
+    else
+      program = pipe->second;
+  }
+  auto sh = program_to_fragment.find(program);
   return (sh == program_to_fragment.end() ? empty_shader : sh->second);
 }
 
 const ShaderAssembly &
 StateTrack::currentTessControlShader() const {
-  auto sh = program_to_tess_control.find(current_program);
+  int program = current_program;
+  if (current_program == 0 && current_pipeline != 0) {
+    auto pipe = pipeline_to_tess_control_program.find(current_pipeline);
+    if (pipe == pipeline_to_tess_control_program.end())
+      program = 0;
+    else
+      program = pipe->second;
+  }
+  auto sh = program_to_tess_control.find(program);
   return (sh == program_to_tess_control.end() ? empty_shader : sh->second);
 }
 
 const ShaderAssembly &
 StateTrack::currentTessEvalShader() const {
-  auto sh = program_to_tess_eval.find(current_program);
+  int program = current_program;
+  if (current_program == 0 && current_pipeline != 0) {
+    auto pipe = pipeline_to_tess_eval_program.find(current_pipeline);
+    if (pipe == pipeline_to_tess_eval_program.end())
+      program = 0;
+    else
+      program = pipe->second;
+  }
+  auto sh = program_to_tess_eval.find(program);
   return (sh == program_to_tess_eval.end() ? empty_shader : sh->second);
 }
 
 const ShaderAssembly &
 StateTrack::currentGeomShader() const {
-  auto sh = program_to_geom.find(current_program);
+  int program = current_program;
+  if (current_program == 0 && current_pipeline != 0) {
+    auto pipe = pipeline_to_geom_program.find(current_pipeline);
+    if (pipe == pipeline_to_geom_program.end())
+      program = 0;
+    else
+      program = pipe->second;
+  }
+  auto sh = program_to_geom.find(program);
   return (sh == program_to_geom.end() ? empty_shader : sh->second);
 }
 
 const ShaderAssembly &
 StateTrack::currentCompShader() const {
-  auto sh = program_to_comp.find(current_program);
+  int program = current_program;
+  if (current_program == 0 && current_pipeline != 0) {
+    auto pipe = pipeline_to_comp_program.find(current_pipeline);
+    if (pipe == pipeline_to_comp_program.end())
+      program = 0;
+    else
+      program = pipe->second;
+  }
+  auto sh = program_to_comp.find(program);
   return (sh == program_to_comp.end() ? empty_shader : sh->second);
 }
 
@@ -356,6 +404,9 @@ StateTrack::useProgram(int orig_retraced_program,
                        const std::string &comp,
                        std::string *message) {
   if (vs.empty() && comp.empty())
+    return -1;
+
+  if (orig_retraced_program == 0)
     return -1;
 
   const ProgramKey k(orig_retraced_program,
