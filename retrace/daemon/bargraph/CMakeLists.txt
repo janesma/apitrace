@@ -55,7 +55,7 @@ target_link_libraries(retrace_bargraph
   Qt5::Core Qt5::Gui Qt5::OpenGL Qt5::Concurrent Qt5::Quick
   )
 
-if (NOT WIN32)
+if (ENABLE_WAFFLE AND NOT WIN32)
     add_subdirectory(test)
 endif()
 
