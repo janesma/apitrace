@@ -53,6 +53,7 @@
 #include "glframe_retrace_stub.hpp"
 #include "glframe_shader_model.hpp"
 #include "glframe_socket.hpp"
+#include "glframe_uniform_model.hpp"
 #include "glretrace.hpp"
 
 using glretrace::FrameRetraceModel;
@@ -121,6 +122,10 @@ int main(int argc, char *argv[]) {
                                                "QExperimentModel");
   qmlRegisterType<glretrace::QRenderTargetModel>("ApiTrace", 1, 0,
                                                  "QRenderTargetModel");
+  qmlRegisterType<glretrace::QUniformValue>("ApiTrace", 1, 0,
+                                             "QUniformValue");
+  qmlRegisterType<glretrace::QUniformsModel>("ApiTrace", 1, 0,
+                                             "QUniformsModel");
 
   glretrace::FrameImages::Create();
 
