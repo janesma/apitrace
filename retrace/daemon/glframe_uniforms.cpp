@@ -268,6 +268,7 @@ Uniform::Uniform(int i) {
       case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
       case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
       case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+      case GL_IMAGE_2D:
       case GL_IMAGE_CUBE_MAP_ARRAY:
       case GL_INT_IMAGE_CUBE_MAP_ARRAY:
       case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY:
@@ -438,6 +439,8 @@ Uniform::onUniform(SelectionId selectionCount,
   //                        UniformType type,
   //                        UniformDimension dimension,
   //                        const std::vector<unsigned char> &data) = 0;
+  if (m_location == -1)
+    return;
   glretrace::UniformType t;
   glretrace::UniformDimension d;
   switch (m_dataType) {
@@ -538,6 +541,8 @@ Uniforms::Uniforms() {
   int prog, uniform_count;
   GL::GetError();
   GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &prog);
+  if (prog == 0)
+    return;
   GL_CHECK();
   GlFunctions::GetProgramiv(prog, GL_ACTIVE_UNIFORMS, &uniform_count);
   GL_CHECK();
