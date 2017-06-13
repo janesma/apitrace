@@ -55,6 +55,7 @@ namespace glretrace {
 class FrameRetrace;
 class QSelection;
 class QRenderTargetModel;
+class QUniformsModel;
 
 class QRenderBookmark : public QObject {
   Q_OBJECT
@@ -120,6 +121,8 @@ class FrameRetraceModel : public QObject,
              READ experiments CONSTANT)
   Q_PROPERTY(glretrace::QRenderTargetModel* rendertarget
              READ rendertarget CONSTANT)
+  Q_PROPERTY(glretrace::QUniformsModel* uniformModel
+             READ uniformModel CONSTANT)
 
  public:
   FrameRetraceModel();
@@ -176,12 +179,13 @@ class FrameRetraceModel : public QObject,
                  const std::string &name,
                  UniformType type,
                  UniformDimension dimension,
-                 const std::vector<unsigned char> &data) {}
+                 const std::vector<unsigned char> &data);
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
   QRenderShadersList *shaders() { return &m_shaders; }
   QExperimentModel *experiments() { return &m_experiment; }
+  QUniformsModel *uniformModel() { return m_uniforms; }
   QApiModel *api() { return &m_api; }
   QBatchModel *batch() { return &m_batch; }
   QRenderTargetModel *rendertarget() { return m_rendertarget; }
@@ -220,6 +224,7 @@ class FrameRetraceModel : public QObject,
   void retrace_shader_assemblies();
   void retrace_api();
   void retrace_batch();
+  void retrace_uniforms();
   void refreshBarMetrics();
 
   mutable std::mutex m_protect;
@@ -229,6 +234,7 @@ class FrameRetraceModel : public QObject,
   QBatchModel m_batch;
   QExperimentModel m_experiment;
   QRenderTargetModel *m_rendertarget;
+  QUniformsModel *m_uniforms;
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;

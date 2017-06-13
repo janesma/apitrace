@@ -40,6 +40,7 @@
 #include "glframe_qutil.hpp"
 #include "glframe_rendertarget_model.hpp"
 #include "glframe_socket.hpp"
+#include "glframe_uniform_model.hpp"
 
 using glretrace::DEBUG;
 using glretrace::ERR;
@@ -58,10 +59,13 @@ using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
+using glretrace::UniformType;
+using glretrace::UniformDimension;
 
 FrameRetraceModel::FrameRetraceModel()
     : m_experiment(&m_retrace),
       m_rendertarget(new QRenderTargetModel(this)),
+      m_uniforms(new QUniformsModel()),
       m_state(NULL),
       m_selection(NULL),
       m_selection_count(0),
@@ -423,6 +427,7 @@ FrameRetraceModel::onSelect(SelectionId id, QList<int> selection) {
   retrace_shader_assemblies();
   retrace_api();
   retrace_batch();
+  retrace_uniforms();
 }
 
 void
@@ -528,4 +533,26 @@ FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
   refreshBarMetrics();
   retrace_shader_assemblies();
   retrace_batch();
+}
+
+void
+FrameRetraceModel::onUniform(SelectionId selectionCount,
+                             ExperimentId experimentCount,
+                             RenderId renderId,
+                             const std::string &name,
+                             UniformType type,
+                             UniformDimension dimension,
+                             const std::vector<unsigned char> &data) {
+  m_uniforms->onUniform(selectionCount, experimentCount, renderId,
+                        name, type, dimension, data);
+}
+
+void
+FrameRetraceModel::retrace_uniforms() {
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &sel);
+  m_uniforms->clear();
+  m_retrace.retraceUniform(sel, m_experiment_count, this);
 }
