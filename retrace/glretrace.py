@@ -613,8 +613,7 @@ _getActiveProgram(void)
         if (pipeline) {
             glGetProgramPipelineiv(pipeline, GL_ACTIVE_PROGRAM, &program);
         } else {
-            program = currentContext->currentProgram;
-            assert(program == _glGetInteger(GL_CURRENT_PROGRAM));
+            program = _glGetInteger(GL_CURRENT_PROGRAM);
         }
     }
     return program;
