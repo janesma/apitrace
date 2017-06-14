@@ -12,5 +12,6 @@
         <file>qml/BatchControl.qml</file>
         <file>qml/ExperimentControl.qml</file>
         <file>qml/RenderTargetControl.qml</file>
+        <file>qml/UniformControl.qml</file>
     </qresource>
 </RCC>

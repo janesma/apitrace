@@ -374,6 +374,15 @@ ApplicationWindow {
                     experimentModel: frameRetrace.experimentModel
                 }
             }
+            Tab {
+                title: "Uniforms"
+                id: uniformTab
+                anchors.fill: parent
+                clip: true
+                UniformControl {
+                    uniformModel: frameRetrace.uniformModel
+                }
+            }
         }
     }
 }
