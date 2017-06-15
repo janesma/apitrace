@@ -104,6 +104,9 @@ class QUniformsModel : public QObject,
                  const std::vector<unsigned char> &data);
   void clear();
   Q_INVOKABLE void setIndex(int index);
+  Q_INVOKABLE void setUniform(const QString &name,
+                              const int index,
+                              const QString &value);
 
  signals:
   // new list of collated programs available

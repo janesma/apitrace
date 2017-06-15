@@ -80,6 +80,7 @@ Item {
                 delegate: Component {
                     Column {
                         Text {
+                            id: nameText
                             text: modelData.name
                         }
                         Grid {
@@ -92,10 +93,22 @@ Item {
                                         width: uniformScroll.width / 4
                                         height: uniformText.height
                                         border.width: 1
-                                        Text {
+                                        TextInput {
                                             id: uniformText
                                             anchors.centerIn: parent
+                                            selectByMouse: true
                                             text: modelData
+                                            font.family: "Monospace"
+                                            validator: DoubleValidator{}
+                                            Keys.onReturnPressed: {
+                                                if (!acceptableInput) {
+                                                    text = modelData;
+                                                    return;
+                                                }
+                                                uniformModel.setUniform(nameText.text,
+                                                                        index,
+                                                                        text);
+                                            }
                                         }
                                     }
                                 }
