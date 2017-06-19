@@ -48,6 +48,9 @@ class Uniforms {
                  ExperimentId experimentCount,
                  RenderId renderId,
                  OnFrameRetrace *callback) const;
+  void overrideUniform(const std::string &name,
+                       int index,
+                       const std::string &value);
  private:
   std::vector<Uniform*> m_uniforms;
 };

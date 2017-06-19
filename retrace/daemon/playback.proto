@@ -18,6 +18,7 @@ enum RequestType {
   DISABLE_REQUEST = 9;
   SIMPLE_SHADER_REQUEST = 10;
   UNIFORM_REQUEST = 11;
+  SET_UNIFORM_REQUEST = 12;
 };
 
 message OpenFileRequest {
@@ -211,6 +212,13 @@ message UniformResponse {
   required bytes data = 7; 
 }
 
+message SetUniformRequest {
+  required RenderSelection selection = 1;
+  required string name = 2;
+  required uint32 index = 3;
+  required string data = 4;
+}
+
 message DisableRequest {
   required RenderSelection selection = 1;
   required bool disable = 2;
@@ -234,6 +242,7 @@ message RetraceRequest {
   optional DisableRequest disable = 10;
   optional SimpleRequest simpleShader = 11;
   optional UniformRequest uniform = 12;
+  optional SetUniformRequest set_uniform = 13;
 }
 
 message RetraceResponse {

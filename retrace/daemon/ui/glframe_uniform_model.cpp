@@ -45,6 +45,10 @@ using glretrace::UniformDimension;
 QUniformsModel::QUniformsModel() {
 }
 
+QUniformsModel::QUniformsModel(IFrameRetrace *retrace)
+    : m_retrace(retrace) {
+}
+
 QUniformsModel::~QUniformsModel() {
 }
 
@@ -74,6 +78,7 @@ QUniformsModel::onUniform(SelectionId selectionCount,
   ScopedLock s(m_protect);
   QUniformValue *u = new QUniformValue(name, type, dimension, data);
   m_uniforms_by_renderid[renderId].push_back(u);
+  m_sel_count = selectionCount;
 }
 
 void
@@ -228,4 +233,18 @@ void
 QUniformsModel::setUniform(const QString &name,
                            const int index,
                            const QString &value) {
+  RenderSelection selection;
+  selection.id = m_sel_count;
+  auto render = m_uniforms_by_renderid.begin();
+  for (int i = 0; i < m_index; ++i)
+    ++render;
+
+  selection.series.push_back(RenderSequence(render->first,
+                                            RenderId(render->first() + 1)));
+  m_retrace->setUniform(selection,
+                        name.toStdString(),
+                        index,
+                        value.toStdString());
+  emit uniformExperiment();
 }
+

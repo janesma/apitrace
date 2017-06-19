@@ -92,6 +92,7 @@ class QUniformsModel : public QObject,
              NOTIFY uniformsChanged)
  public:
   QUniformsModel();
+  explicit QUniformsModel(IFrameRetrace *retrace);
   ~QUniformsModel();
   QStringList renders() const;
   QQmlListProperty<QUniformValue> uniforms();
@@ -113,13 +114,16 @@ class QUniformsModel : public QObject,
   void rendersChanged();
   // after index is selected, uniform data is available
   void uniformsChanged();
+  void uniformExperiment();
 
  private:
   // stores a list of render sets, collated by uniform interface.  If
   // two renders have identical uniforms, then they appear in the same
   // set.
+  IFrameRetrace *m_retrace;
   QStringList m_renders;
   SelectionId m_sel_count;
+  ExperimentId m_experiment_count;
   int m_index;
   typedef QList<QUniformValue *> uniform_list;
   std::map<RenderId, uniform_list> m_uniforms_by_renderid;

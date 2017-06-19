@@ -109,6 +109,10 @@ class FrameRetrace : public IFrameRetrace {
   void retraceUniform(const RenderSelection &selection,
                       ExperimentId experimentCount,
                       OnFrameRetrace *callback);
+  void setUniform(const RenderSelection &selection,
+                  const std::string &name,
+                  int index,
+                  const std::string &data);
 
  private:
   // these are global

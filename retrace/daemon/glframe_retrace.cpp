@@ -375,3 +375,14 @@ FrameRetrace::retraceUniform(const RenderSelection &selection,
   for (auto i : m_contexts)
     i->retraceUniform(selection, experimentCount, m_tracker, callback);
 }
+
+void
+FrameRetrace::setUniform(const RenderSelection &selection,
+                         const std::string &name,
+                         int index,
+                         const std::string &data) {
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
+  for (auto i : m_contexts)
+    i->setUniform(selection, name, index, data);
+}

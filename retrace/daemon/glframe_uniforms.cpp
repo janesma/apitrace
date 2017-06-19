@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
+#include <string.h>
 
 #include <sstream>
 #include <string>
@@ -54,6 +55,9 @@ class Uniform {
                  ExperimentId experimentCount,
                  RenderId renderId,
                  OnFrameRetrace *callback) const;
+  void overrideUniform(const std::string &name,
+                       int index,
+                       const std::string &value);
 
  private:
   enum UniformType {
@@ -537,6 +541,76 @@ Uniform::onUniform(SelectionId selectionCount,
                       m_name, t, d, m_data);
 }
 
+void
+Uniform::overrideUniform(const std::string &name,
+                         int index,
+                         const std::string &value) {
+  if (name != m_name)
+    return;
+  glretrace::UniformType t;
+  switch (m_dataType) {
+    case k_float:
+    case k_vec2:
+    case k_vec3:
+    case k_vec4:
+    case k_mat2:
+    case k_mat3:
+    case k_mat4:
+    case k_mat2x3:
+    case k_mat2x4:
+    case k_mat3x2:
+    case k_mat3x4:
+    case k_mat4x2:
+    case k_mat4x3:
+      t = kFloatUniform;
+      break;
+    case k_int:
+    case k_ivec2:
+    case k_ivec3:
+    case k_ivec4:
+    case k_sampler:
+      t = kIntUniform;
+      break;
+    case k_uint:
+    case k_uivec2:
+    case k_uivec3:
+    case k_uivec4:
+      t = kUIntUniform;
+      break;
+    case k_bool:
+    case k_bvec2:
+    case k_bvec3:
+    case k_bvec4:
+      t = kBoolUniform;
+      break;
+    default:
+      assert(false);
+  }
+  assert((unsigned)4*index < m_data.size());
+  void * dest = (4 * index) + m_data.data();
+  switch (t) {
+    case kFloatUniform:
+      {
+        const float f = std::stof(value);
+        assert(sizeof(f) == 4);
+        memcpy(dest, &f, sizeof(f));
+        break;
+      }
+    case kIntUniform:
+    case kUIntUniform:
+    case kBoolUniform:
+      {
+        const uint32_t i = std::stoi(value);
+        assert(sizeof(i) == 4);
+        memcpy(dest, &i, sizeof(i));
+        break;
+      }
+    default:
+      assert(false);
+  }
+}
+
+
 Uniforms::Uniforms() {
   int prog, uniform_count;
   GL::GetError();
@@ -571,4 +645,12 @@ Uniforms::onUniform(SelectionId selectionCount,
   for (auto u : m_uniforms)
     u->onUniform(selectionCount, experimentCount,
                  renderId, callback);
+}
+
+void
+Uniforms::overrideUniform(const std::string &name,
+                          int index,
+                          const std::string &value) {
+  for (auto u : m_uniforms)
+    u->overrideUniform(name, index, value);
 }

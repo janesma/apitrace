@@ -906,6 +906,32 @@ class UniformRequest : public IRetraceRequest {
   OnFrameRetrace *m_callback;
 };
 
+class SetUniformRequest : public IRetraceRequest {
+ public:
+  SetUniformRequest(const RenderSelection &selection,
+                    const std::string &name,
+                    int index,
+                    const std::string &data) {
+    m_proto_msg.set_requesttype(ApiTrace::SET_UNIFORM_REQUEST);
+    auto request = m_proto_msg.mutable_set_uniform();
+    auto selectionRequest = request->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    request->set_name(name);
+    request->set_index(index);
+    request->set_data(data);
+  }
+
+
+  virtual void retrace(RetraceSocket *s) {
+    {
+      s->request(m_proto_msg);
+    }
+  }
+
+ private:
+  RetraceRequest m_proto_msg;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -1152,4 +1178,17 @@ FrameRetraceStub::retraceUniform(const RenderSelection &selection,
                                     &m_current_experiment,
                                     &m_mutex,
                                     selection, callback));
+}
+
+void
+FrameRetraceStub::setUniform(const RenderSelection &selection,
+                                  const std::string &name,
+                                  int index,
+                                  const std::string &data) {
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    assert(m_current_render_selection <= selection.id);
+    m_current_render_selection = selection.id;
+  }
+  m_thread->push(new SetUniformRequest(selection, name, index, data));
 }

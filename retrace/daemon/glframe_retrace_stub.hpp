@@ -89,6 +89,10 @@ class FrameRetraceStub : public IFrameRetrace {
   virtual void retraceUniform(const RenderSelection &selection,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback);
+  virtual void setUniform(const RenderSelection &selection,
+                          const std::string &name,
+                          int index,
+                          const std::string &data);
 
  private:
   mutable std::mutex m_mutex;

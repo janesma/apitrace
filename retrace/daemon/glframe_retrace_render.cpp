@@ -35,6 +35,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_state.hpp"
+#include "glframe_uniforms.hpp"
 #include "retrace.hpp"
 #include "glstate_internal.hpp"
 #include "trace_parser.hpp"
@@ -174,6 +175,19 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
 }
 
 void
+RetraceRender::overrideUniforms() const {
+  if (m_uniform_overrides.size() == 0)
+    return;
+  Uniforms u;
+  for (auto i : m_uniform_overrides) {
+    u.overrideUniform(i.first.name,
+                      i.first.index,
+                      i.second);
+  }
+  u.set();
+}
+
+void
 RetraceRender::retraceRenderTarget(const StateTrack &tracker,
                                    RenderTargetType type) const {
   // check that the parser is in correct state
@@ -207,6 +221,8 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   } else if (m_retrace_program > -1) {
     StateTrack::useProgramGL(m_retrace_program);
   }
+
+  overrideUniforms();
 
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
@@ -291,6 +307,8 @@ RetraceRender::retrace(const StateTrack &tracker) const {
     StateTrack::useProgramGL(m_retrace_program);
   }
 
+  overrideUniforms();
+
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
@@ -351,4 +369,10 @@ RetraceRender::disableDraw(bool disable) {
 void
 RetraceRender::simpleShader(bool simple) {
   m_simple_shader = simple;
+}
+
+void
+RetraceRender::setUniform(const std::string &name, int index,
+                          const std::string &data) {
+  m_uniform_overrides[UniformKey(name, index)] = data;
 }

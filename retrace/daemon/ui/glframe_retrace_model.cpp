@@ -65,7 +65,7 @@ using glretrace::UniformDimension;
 FrameRetraceModel::FrameRetraceModel()
     : m_experiment(&m_retrace),
       m_rendertarget(new QRenderTargetModel(this)),
-      m_uniforms(new QUniformsModel()),
+      m_uniforms(new QUniformsModel(&m_retrace)),
       m_state(NULL),
       m_selection(NULL),
       m_selection_count(0),
@@ -416,6 +416,8 @@ FrameRetraceModel::setSelection(QSelection *s) {
           s, &QSelection::experiment);
   connect(s, &QSelection::onExperiment,
           &m_shaders, &QRenderShadersList::onExperiment);
+  connect(m_uniforms, &QUniformsModel::uniformExperiment,
+          s, &QSelection::experiment);
 }
 
 void
@@ -533,6 +535,7 @@ FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
   refreshBarMetrics();
   retrace_shader_assemblies();
   retrace_batch();
+  retrace_uniforms();
 }
 
 void

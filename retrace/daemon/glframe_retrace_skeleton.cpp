@@ -369,6 +369,22 @@ FrameRetraceSkeleton::Run() {
           writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
+      case ApiTrace::SET_UNIFORM_REQUEST:
+        {
+          assert(request.has_set_uniform());
+          auto set_uniform = request.set_uniform();
+          RenderSelection selection;
+          makeRenderSelection(set_uniform.selection(), &selection);
+          auto data_begin = set_uniform.data().begin();
+          auto data_end = set_uniform.data().end();
+          const std::vector<unsigned char> uniform_data(data_begin,
+                                                        data_end);
+          m_frame->setUniform(selection,
+                              set_uniform.name(),
+                              set_uniform.index(),
+                              set_uniform.data());
+          break;
+        }
     }
   }
 }

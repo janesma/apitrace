@@ -28,6 +28,7 @@
 #ifndef _GLFRAME_RETRACE_RENDER_HPP_
 #define _GLFRAME_RETRACE_RENDER_HPP_
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -73,12 +74,16 @@ class RetraceRender {
   void onApi(SelectionId selId,
              RenderId renderId,
              OnFrameRetrace *callback);
+  void setUniform(const std::string &name, int index,
+                  const std::string &data);
   static bool isRender(const trace::Call &c);
   static bool changesContext(const trace::Call &c);
   static bool endsFrame(const trace::Call &c);
   static int currentRenderBuffer();
 
  private:
+  void overrideUniforms() const;
+
   trace::AbstractParser *m_parser;
   retrace::Retracer *m_retracer;
   RenderBookmark m_bookmark;
@@ -93,6 +98,19 @@ class RetraceRender {
   bool m_end_of_frame, m_highlight_rt, m_changes_context;
   std::vector<std::string> m_api_calls;
   bool m_disabled, m_simple_shader;
+  struct UniformKey {
+    std::string name;
+    int index;
+    UniformKey(const std::string &n, int i) : name(n), index(i) {}
+    bool operator<(const UniformKey &o) const {
+      if (name < o.name)
+        return true;
+      if (name > o.name)
+        return false;
+      return index < o.index;
+    }
+  };
+  std::map<UniformKey, std::string> m_uniform_overrides;
 };
 
 }  // namespace glretrace

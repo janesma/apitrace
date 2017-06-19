@@ -337,6 +337,10 @@ class IFrameRetrace {
   virtual void retraceUniform(const RenderSelection &selection,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) = 0;
+  virtual void setUniform(const RenderSelection &selection,
+                          const std::string &name,
+                          int index,
+                          const std::string &data) = 0;
 };
 
 class FrameState {
