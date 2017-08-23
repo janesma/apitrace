@@ -72,6 +72,9 @@ bool
 RetraceRender::changesContext(const trace::Call &call) {
   if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
     return true;
+  if (strncmp(call.name(), "glXMakeContextCurrent",
+              strlen("glXMakeContextCurrent")) == 0)
+    return true;
   return false;
 }
 
