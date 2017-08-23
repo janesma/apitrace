@@ -28,7 +28,6 @@
 #ifndef _GLFRAME_RETRACE_RENDER_HPP_
 #define _GLFRAME_RETRACE_RENDER_HPP_
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -55,10 +54,23 @@ class RetraceRender {
   RetraceRender(trace::AbstractParser *parser,
                 retrace::Retracer *retracer,
                 StateTrack *tracker);
+  ~RetraceRender();
+
+  struct UniformCallbackContext {
+    UniformCallbackContext(SelectionId s, ExperimentId e,
+                           RenderId r, OnFrameRetrace *c)
+        : selection(s), experiment(e), render(r), callback(c) {}
+    SelectionId selection;
+    ExperimentId experiment;
+    RenderId render;
+    OnFrameRetrace *callback;
+  };
+
   void retraceRenderTarget(const StateTrack &tracker,
                            RenderTargetType type) const;
   void retrace(StateTrack *tracker) const;
-  void retrace(const StateTrack &tracker) const;
+  void retrace(const StateTrack &tracker,
+               const UniformCallbackContext *c = NULL) const;
   bool endsFrame() const { return m_end_of_frame; }
   bool replaceShaders(StateTrack *tracker,
                       const std::string &vs,
@@ -98,19 +110,8 @@ class RetraceRender {
   bool m_end_of_frame, m_highlight_rt, m_changes_context;
   std::vector<std::string> m_api_calls;
   bool m_disabled, m_simple_shader;
-  struct UniformKey {
-    std::string name;
-    int index;
-    UniformKey(const std::string &n, int i) : name(n), index(i) {}
-    bool operator<(const UniformKey &o) const {
-      if (name < o.name)
-        return true;
-      if (name > o.name)
-        return false;
-      return index < o.index;
-    }
-  };
-  std::map<UniformKey, std::string> m_uniform_overrides;
+  class UniformOverride;
+  UniformOverride *m_uniform_override;
 };
 
 }  // namespace glretrace

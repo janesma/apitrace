@@ -464,12 +464,14 @@ RetraceContext::retraceUniform(const RenderSelection &selection,
   assert(bm.offset == m_start_bookmark.offset);
 
   for (auto r : m_renders) {
-    r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
-      Uniforms u;
-      u.onUniform(selection.id,
-                  experimentCount,
-                  r.first, callback);
+      // pass down the context that is needed to make the uniform callback
+      const RetraceRender::UniformCallbackContext c(selection.id,
+                                                    experimentCount,
+                                                    r.first, callback);
+      r.second->retrace(tracker, &c);
+    } else {
+      r.second->retrace(tracker);
     }
   }
 }
