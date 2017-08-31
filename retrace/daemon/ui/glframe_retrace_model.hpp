@@ -180,6 +180,12 @@ class FrameRetraceModel : public QObject,
                  UniformType type,
                  UniformDimension dimension,
                  const std::vector<unsigned char> &data);
+  void onState(SelectionId selectionCount,
+               ExperimentId experimentCount,
+               RenderId renderId,
+               StateKey item,
+               const std::string &value);
+
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }
   QString apiCalls();
@@ -223,6 +229,7 @@ class FrameRetraceModel : public QObject,
   void retrace_api();
   void retrace_batch();
   void retrace_uniforms();
+  void retrace_state();
   void refreshBarMetrics();
 
   enum TabIndex {
@@ -232,7 +239,8 @@ class FrameRetraceModel : public QObject,
     kBatch,
     kMetrics,
     kExperiments,
-    kUniforms
+    kUniforms,
+    kState
   };
 
   mutable std::mutex m_protect;

@@ -484,3 +484,15 @@ RetraceContext::setUniform(const RenderSelection &selection,
     if (isSelected(r.first, selection))
       r.second->setUniform(name, index, data);
 }
+
+void
+RetraceContext::retraceState(const RenderSelection &selection,
+                             ExperimentId experimentCount,
+                             const StateTrack &tracker,
+                             OnFrameRetrace *callback) {
+  for (auto r : m_renders) {
+    r.second->retrace(tracker);
+    if (isSelected(r.first, selection))
+      r.second->onState(selection.id, experimentCount, r.first, callback);
+  }
+}

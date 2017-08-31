@@ -765,10 +765,10 @@ class BatchRequest : public IRetraceRequest {
 class UniformRequest : public IRetraceRequest {
  public:
   UniformRequest(SelectionId *current_selection,
-               ExperimentId *current_experiment,
-               std::mutex *protect,
-               const RenderSelection &selection,
-               OnFrameRetrace *cb)
+                 ExperimentId *current_experiment,
+                 std::mutex *protect,
+                 const RenderSelection &selection,
+                 OnFrameRetrace *cb)
       : m_sel_count(current_selection),
         m_exp_count(current_experiment),
         m_protect(protect),
@@ -930,6 +930,81 @@ class SetUniformRequest : public IRetraceRequest {
 
  private:
   RetraceRequest m_proto_msg;
+};
+
+class StateRequest : public IRetraceRequest {
+ public:
+  StateRequest(SelectionId *current_selection,
+               ExperimentId *current_experiment,
+               std::mutex *protect,
+               const RenderSelection &selection,
+               OnFrameRetrace *cb)
+      : m_sel_count(current_selection),
+        m_exp_count(current_experiment),
+        m_protect(protect),
+        m_callback(cb) {
+    auto stateRequest = m_proto_msg.mutable_state();
+    auto selectionRequest = stateRequest->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    stateRequest->set_experiment_count((*current_experiment)());
+    m_proto_msg.set_requesttype(ApiTrace::STATE_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &sel = m_proto_msg.state().selection();
+      const SelectionId id(sel.selection_count());
+      if (*m_sel_count != id)
+        // more recent selection was made while this was enqueued
+        return;
+      const ExperimentId eid(m_proto_msg.state().experiment_count());
+      if (*m_exp_count != eid)
+        // more recent experiment was made while this was enqueued
+        return;
+    }
+    RetraceResponse response;
+    // sends single request, read multiple responses
+    s->request(m_proto_msg);
+    while (true) {
+      response.Clear();
+      s->response(&response);
+      assert(response.has_state());
+      const auto &state_response = response.state();
+      if (state_response.render_id() == (unsigned int)-1)
+        // all responses sent
+        break;
+
+      const auto selection = SelectionId(state_response.selection_count());
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_sel_count != selection)
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
+      const auto experiment = ExperimentId(state_response.experiment_count());
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_exp_count != experiment)
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
+      const RenderId rid(state_response.render_id());
+      glretrace::StateKey k((glretrace::StateItem)state_response.item().name(),
+                            state_response.item().index());
+
+      m_callback->onState(selection, experiment, rid,
+                          k, state_response.value());
+    }
+  }
+
+ private:
+  const SelectionId * const m_sel_count;
+  const ExperimentId * const m_exp_count;
+  std::mutex *m_protect;
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
 };
 
 class NullRequest : public IRetraceRequest {
@@ -1191,4 +1266,20 @@ FrameRetraceStub::setUniform(const RenderSelection &selection,
     m_current_render_selection = selection.id;
   }
   m_thread->push(new SetUniformRequest(selection, name, index, data));
+}
+
+void
+FrameRetraceStub::retraceState(const RenderSelection &selection,
+                               ExperimentId experimentCount,
+                               OnFrameRetrace *callback) {
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_render_selection = selection.id;
+    assert(m_current_experiment <= experimentCount);
+    m_current_experiment = experimentCount;
+  }
+  m_thread->push(new StateRequest(&m_current_render_selection,
+                                  &m_current_experiment,
+                                  &m_mutex,
+                                  selection, callback));
 }

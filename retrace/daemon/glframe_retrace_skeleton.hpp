@@ -96,6 +96,11 @@ class FrameRetraceSkeleton : public Thread,
                          UniformType type,
                          UniformDimension dimension,
                          const std::vector<unsigned char> &data);
+  virtual void onState(SelectionId selectionCount,
+                       ExperimentId experimentCount,
+                       RenderId renderId,
+                       StateKey item,
+                       const std::string &value);
 
  protected:
   bool m_force_upload;  // for unit test

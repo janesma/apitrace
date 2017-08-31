@@ -255,6 +255,18 @@ enum UniformDimension {
 
 // Serializable asynchronous callbacks made from remote
 // implementations of IFrameRetrace.
+enum StateItem {
+  CULL_FACE = 0x0B44,
+  CULL_FACE_MODE = 0x0B45,
+};
+
+struct StateKey {
+  StateItem name;
+  int index;
+
+  StateKey(StateItem n, int i) : name(n), index(i) {}
+};
+
 class OnFrameRetrace {
  public:
   typedef std::vector<unsigned char> uvec;
@@ -298,6 +310,11 @@ class OnFrameRetrace {
                          UniformType type,
                          UniformDimension dimension,
                          const std::vector<unsigned char> &data) = 0;
+  virtual void onState(SelectionId selectionCount,
+                       ExperimentId experimentCount,
+                       RenderId renderId,
+                       StateKey item,
+                       const std::string &value) = 0;
 };
 
 // Serializable asynchronous retrace requests.
@@ -353,6 +370,9 @@ class IFrameRetrace {
                           const std::string &name,
                           int index,
                           const std::string &data) = 0;
+  virtual void retraceState(const RenderSelection &selection,
+                            ExperimentId experimentCount,
+                            OnFrameRetrace *callback) = 0;
 };
 
 class FrameState {

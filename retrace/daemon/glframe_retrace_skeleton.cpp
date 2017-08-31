@@ -385,6 +385,28 @@ FrameRetraceSkeleton::Run() {
                               set_uniform.data());
           break;
         }
+      case ApiTrace::STATE_REQUEST:
+        {
+          assert(request.has_state());
+          auto state = request.state();
+          RenderSelection selection;
+          makeRenderSelection(state.selection(), &selection);
+          m_frame->retraceState(selection,
+                                ExperimentId(state.experiment_count()),
+                                this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto state_resp = proto_response.mutable_state();
+          state_resp->set_selection_count(-1);
+          state_resp->set_render_id(-1);
+          state_resp->set_experiment_count(-1);
+          state_resp->set_value("");
+          auto r_item = state_resp->mutable_item();
+          r_item->set_name(ApiTrace::StateItem(ApiTrace::INVALID_STATE_ITEM));
+          r_item->set_index(0);
+          writeResponse(m_socket, proto_response, &m_buf);
+          break;
+        }
     }
   }
 }
@@ -600,5 +622,23 @@ FrameRetraceSkeleton::onUniform(SelectionId selectionCount,
       break;
   }
   response->set_data(data.data(), data.size());
+  writeResponse(m_socket, proto_response, &m_buf);
+}
+
+void
+FrameRetraceSkeleton::onState(SelectionId selectionCount,
+                              ExperimentId experimentCount,
+                              RenderId renderId,
+                              StateKey item,
+                              const std::string &value) {
+  RetraceResponse proto_response;
+  auto response = proto_response.mutable_state();
+  response->set_render_id(renderId());
+  response->set_selection_count(selectionCount());
+  response->set_experiment_count(experimentCount.count());
+  auto r_item = response->mutable_item();
+  r_item->set_name(ApiTrace::StateItem(item.name));
+  r_item->set_index(item.index);
+  response->set_value(value);
   writeResponse(m_socket, proto_response, &m_buf);
 }

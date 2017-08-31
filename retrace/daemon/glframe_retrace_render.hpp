@@ -88,6 +88,10 @@ class RetraceRender {
              OnFrameRetrace *callback);
   void setUniform(const std::string &name, int index,
                   const std::string &data);
+  void onState(SelectionId selId,
+               ExperimentId experimentCount,
+               RenderId renderId,
+               OnFrameRetrace *callback);
   static bool isRender(const trace::Call &c);
   static bool changesContext(const trace::Call &c);
   static bool endsFrame(const trace::Call &c);

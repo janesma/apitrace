@@ -425,3 +425,46 @@ RetraceRender::setUniform(const std::string &name, int index,
                           const std::string &data) {
   m_uniform_override->setUniform(name, index, data);
 }
+
+std::string cull_to_string(GLint cull) {
+  switch (cull) {
+    case GL_FRONT:
+      return std::string("GL_FRONT");
+    case GL_BACK:
+      return std::string("GL_BACK");
+    case GL_FRONT_AND_BACK:
+      return std::string("GL_FRONT_AND_BACK");
+    default:
+      assert(false);
+  }
+}
+
+void
+RetraceRender::onState(SelectionId selId,
+                       ExperimentId experimentCount,
+                       RenderId renderId,
+                       OnFrameRetrace *callback) {
+  {
+    GL::GetError();
+    GLboolean cull_enabled = GlFunctions::IsEnabled(GL_CULL_FACE);
+    GLenum e = GL::GetError();
+    if (e == GL_NO_ERROR) {
+      callback->onState(selId, experimentCount, renderId,
+                        StateKey(CULL_FACE, 0),
+                        cull_enabled ? "true" : "false");
+    }
+  }
+  {
+    GL::GetError();
+    GLint cull;
+    GlFunctions::GetIntegerv(GL_CULL_FACE_MODE, &cull);
+    GLenum e = GL::GetError();
+    if (e == GL_NO_ERROR) {
+      const std::string cull_str = cull_to_string(cull);
+      if (cull_str.size() > 0) {
+        callback->onState(selId, experimentCount, renderId,
+                          StateKey(CULL_FACE_MODE, 0), cull_str);
+      }
+    }
+  }
+}
