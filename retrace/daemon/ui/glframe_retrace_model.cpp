@@ -41,6 +41,7 @@
 #include "glframe_rendertarget_model.hpp"
 #include "glframe_socket.hpp"
 #include "glframe_uniform_model.hpp"
+#include "glframe_state_model.hpp"
 
 using glretrace::DEBUG;
 using glretrace::ERR;
@@ -66,6 +67,7 @@ FrameRetraceModel::FrameRetraceModel()
     : m_experiment(&m_retrace),
       m_rendertarget(new QRenderTargetModel(this)),
       m_uniforms(new QUniformsModel(&m_retrace)),
+      m_stateModel(new QStateModel(&m_retrace)),
       m_state(NULL),
       m_selection(NULL),
       m_selection_count(0),
@@ -88,6 +90,12 @@ FrameRetraceModel::~FrameRetraceModel() {
     m_state = NULL;
   }
   m_retrace.Shutdown();
+  delete m_rendertarget;
+  delete m_uniforms;
+  delete m_stateModel;
+  for (auto i : m_metrics_model)
+    delete i;
+  m_metrics_model.clear();
 }
 
 FrameState *frame_state_off_thread(std::string filename,
@@ -620,7 +628,8 @@ FrameRetraceModel::onState(SelectionId selectionCount,
                            RenderId renderId,
                            StateKey item,
                            const std::string &value) {
-  std::cout << value << "\n";
+  m_stateModel->onState(selectionCount, experimentCount,
+                        renderId, item, value);
 }
 
 void

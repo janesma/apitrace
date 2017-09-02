@@ -178,6 +178,7 @@ class ExperimentId {
   bool operator>(const ExperimentId &o) const { return value > o.value; }
   bool operator<=(const ExperimentId &o) const { return value <= o.value; }
   bool operator!=(const ExperimentId &o) const { return value != o.value; }
+  bool operator==(const ExperimentId &o) const { return value == o.value; }
   static const uint32_t INVALID_EXPERIMENT = (-1 & ~ID_PREFIX_MASK);
  private:
   uint32_t value;
@@ -258,12 +259,14 @@ enum UniformDimension {
 enum StateItem {
   CULL_FACE = 0x0B44,
   CULL_FACE_MODE = 0x0B45,
+  INVALID_NAME = -1,
 };
 
 struct StateKey {
   StateItem name;
   int index;
 
+  StateKey() : name(INVALID_NAME), index(0) {}
   StateKey(StateItem n, int i) : name(n), index(i) {}
 };
 

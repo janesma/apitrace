@@ -39,6 +39,8 @@ set (UI_SRC
   glframe_retrace_model.cpp
   glframe_shader_model.hpp
   glframe_shader_model.cpp
+  glframe_state_model.hpp
+  glframe_state_model.cpp
   glframe_uniform_model.hpp
   glframe_uniform_model.cpp
   )

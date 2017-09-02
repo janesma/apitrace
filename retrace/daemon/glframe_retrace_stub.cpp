@@ -970,9 +970,15 @@ class StateRequest : public IRetraceRequest {
       s->response(&response);
       assert(response.has_state());
       const auto &state_response = response.state();
-      if (state_response.render_id() == (unsigned int)-1)
-        // all responses sent
+      if (state_response.render_id() == (unsigned int)-1) {
+        // all responses sent.  Send a bogus state to inform the
+        // model that uniforms are complete
+        m_callback->onState(SelectionId(SelectionId::INVALID_SELECTION),
+                            ExperimentId(ExperimentId::INVALID_EXPERIMENT-1),
+                            RenderId(RenderId::INVALID_RENDER),
+                            glretrace::StateKey(), "");
         break;
+      }
 
       const auto selection = SelectionId(state_response.selection_count());
       {

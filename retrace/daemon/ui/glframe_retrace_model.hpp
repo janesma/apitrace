@@ -56,6 +56,7 @@ class FrameRetrace;
 class QSelection;
 class QRenderTargetModel;
 class QUniformsModel;
+class QStateModel;
 
 class QRenderBookmark : public QObject {
   Q_OBJECT
@@ -121,6 +122,8 @@ class FrameRetraceModel : public QObject,
              READ rendertarget CONSTANT)
   Q_PROPERTY(glretrace::QUniformsModel* uniformModel
              READ uniformModel CONSTANT)
+  Q_PROPERTY(glretrace::QStateModel* stateModel
+             READ stateModel CONSTANT)
 
  public:
   FrameRetraceModel();
@@ -192,6 +195,7 @@ class FrameRetraceModel : public QObject,
   QRenderShadersList *shaders() { return &m_shaders; }
   QExperimentModel *experiments() { return &m_experiment; }
   QUniformsModel *uniformModel() { return m_uniforms; }
+  QStateModel *stateModel() { return m_stateModel; }
   QApiModel *api() { return &m_api; }
   QBatchModel *batch() { return &m_batch; }
   QRenderTargetModel *rendertarget() { return m_rendertarget; }
@@ -251,6 +255,7 @@ class FrameRetraceModel : public QObject,
   QExperimentModel m_experiment;
   QRenderTargetModel *m_rendertarget;
   QUniformsModel *m_uniforms;
+  QStateModel *m_stateModel;
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;
