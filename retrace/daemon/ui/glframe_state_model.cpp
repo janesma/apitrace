@@ -40,17 +40,17 @@ QStateValue::QStateValue(const std::string &_name,
                          const std::vector<std::string> &_choices)
     : m_name(_name.c_str()) {
   for (auto c : _choices)
-    m_choices.append(QString::fromStdString(c));
+    m_choices.append(QVariant(c.c_str()));
 }
 
 void
 QStateValue::insert(int index, const std::string &value) {
   while (m_values.size() < index)
-    m_values.append(QString());
+    m_values.append("");
   if (m_values.size() == index)
-    m_values.append(QString::fromStdString(value));
+    m_values.append(value.c_str());
   else
-    m_values[index] = QString::fromStdString(value);
+    m_values[index] = QVariant(value.c_str());
 }
 
 QStateModel::QStateModel() {}
@@ -61,11 +61,7 @@ QStateModel::~QStateModel() {}
 
 QQmlListProperty<QStateValue> QStateModel::state() {
   ScopedLock s(m_protect);
-  QList<QStateValue*> l;
-  for (auto i : m_state_by_name)
-    l.push_back(i.second);
-
-  return QQmlListProperty<glretrace::QStateValue>(this, l);
+  return QQmlListProperty<glretrace::QStateValue>(this, m_states);
 }
 
 std::string
@@ -81,7 +77,7 @@ state_name_to_string(StateItem n) {
 }
 
 std::vector<std::string>
-name_to_choines(StateItem n) {
+name_to_choices(StateItem n) {
   switch (n) {
     case glretrace::CULL_FACE:
       return {"true", "false"};
@@ -92,11 +88,49 @@ name_to_choines(StateItem n) {
   }
 }
 
+void
+QStateModel::clear() {
+  // QObjects being displayed in the UI must be cleared from the UI
+  // before being deleted.  This routine is invoked in the UI thread
+  // (as opposed to the retrace thread).  The emit with the empty
+  // states calls down into ::state() to retrieve the new empty list
+  // within a single thread.  After emit, it is safe to delete the
+  // objects.  Conversely, if these objects were cleaned up after an
+  // emit in the retrace thread, the request for updated state would
+  // be enqueued.  The result is an asynchronous crash.
+  {
+    ScopedLock s(m_protect);
+    m_states.clear();
+  }
+  emit stateChanged();
+  {
+    ScopedLock s(m_protect);
+    for (auto i : m_state_by_name)
+      delete i.second;
+    m_state_by_name.clear();
+  }
+}
+
 void QStateModel::onState(SelectionId selectionCount,
                           ExperimentId experimentCount,
                           RenderId renderId,
                           StateKey item,
                           const std::string &value) {
+  if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION)) {
+    {
+      ScopedLock s(m_protect);
+      m_states.clear();
+      for (auto i : m_state_by_name)
+        m_states.push_back(i.second);
+    }
+    emit stateChanged();
+    return;
+  }
+
+  if ((selectionCount > m_sel_count) ||
+      (experimentCount > m_experiment_count))
+    clear();
+
   ScopedLock s(m_protect);
   if ((selectionCount > m_sel_count) ||
       (experimentCount > m_experiment_count)) {
@@ -106,15 +140,11 @@ void QStateModel::onState(SelectionId selectionCount,
     assert(selectionCount == m_sel_count);
     assert(experimentCount == m_experiment_count);
   }
-  if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION)) {
-    emit stateChanged();
-    return;
-  }
   const auto name = state_name_to_string(item.name);
   auto state_value = m_state_by_name.find(name);
   if (state_value == m_state_by_name.end()) {
     QStateValue *i = new QStateValue(name,
-                                     name_to_choines(item.name));
+                                     name_to_choices(item.name));
     m_state_by_name[name] = i;
     state_value = m_state_by_name.find(name);
   }

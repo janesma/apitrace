@@ -388,6 +388,15 @@ ApplicationWindow {
                     uniformModel: frameRetrace.uniformModel
                 }
             }
+            Tab {
+                title: "State"
+                id: stateTab
+                anchors.fill: parent
+                clip: true
+                StateControl {
+                    stateModel: frameRetrace.stateModel
+                }
+            }
         }
     }
 }

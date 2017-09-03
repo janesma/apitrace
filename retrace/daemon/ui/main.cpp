@@ -53,6 +53,7 @@
 #include "glframe_retrace_stub.hpp"
 #include "glframe_shader_model.hpp"
 #include "glframe_socket.hpp"
+#include "glframe_state_model.hpp"
 #include "glframe_uniform_model.hpp"
 #include "glretrace.hpp"
 
@@ -103,7 +104,7 @@ int main(int argc, char *argv[]) {
   qmlRegisterType<glretrace::FrameRetraceModel>("ApiTrace", 1, 0,
                                                 "FrameRetrace");
   qmlRegisterType<glretrace::QMetricValue>("ApiTrace", 1, 0,
-                                      "QMetricValue");
+                                           "QMetricValue");
   qmlRegisterType<glretrace::QMetricsModel>("ApiTrace", 1, 0,
                                             "QMetricsModel");
 
@@ -117,15 +118,19 @@ int main(int argc, char *argv[]) {
   qmlRegisterType<glretrace::QApiModel>("ApiTrace", 1, 0,
                                         "QApiModel");
   qmlRegisterType<glretrace::QBatchModel>("ApiTrace", 1, 0,
-                                        "QBatchModel");
+                                          "QBatchModel");
   qmlRegisterType<glretrace::QExperimentModel>("ApiTrace", 1, 0,
                                                "QExperimentModel");
   qmlRegisterType<glretrace::QRenderTargetModel>("ApiTrace", 1, 0,
                                                  "QRenderTargetModel");
   qmlRegisterType<glretrace::QUniformValue>("ApiTrace", 1, 0,
-                                             "QUniformValue");
+                                            "QUniformValue");
   qmlRegisterType<glretrace::QUniformsModel>("ApiTrace", 1, 0,
                                              "QUniformsModel");
+  qmlRegisterType<glretrace::QStateModel>("ApiTrace", 1, 0,
+                                          "QStateModel");
+  qmlRegisterType<glretrace::QStateValue>("ApiTrace", 1, 0,
+                                          "QStateValue");
 
   glretrace::FrameImages::Create();
 

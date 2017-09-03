@@ -13,5 +13,6 @@
         <file>qml/ExperimentControl.qml</file>
         <file>qml/RenderTargetControl.qml</file>
         <file>qml/UniformControl.qml</file>
+        <file>qml/StateControl.qml</file>
     </qresource>
 </RCC>

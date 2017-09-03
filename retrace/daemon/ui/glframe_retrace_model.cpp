@@ -638,5 +638,6 @@ FrameRetraceModel::retrace_state() {
   glretrace::renderSelectionFromList(m_selection_count,
                                      m_cached_selection,
                                      &sel);
+  m_stateModel->clear();
   m_retrace.retraceState(sel, m_experiment_count, this);
 }
