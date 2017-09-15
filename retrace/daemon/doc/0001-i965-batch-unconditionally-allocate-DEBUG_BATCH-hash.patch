@@ -1,4 +1,4 @@
-From 0e4bfd6a5795b86d1f8b91376484de99c8c54c64 Mon Sep 17 00:00:00 2001
+From 0cd8af68139383fea8ef70859eff0b737ec64c72 Mon Sep 17 00:00:00 2001
 From: Mark Janes <mark.a.janes@intel.com>
 Date: Mon, 24 Apr 2017 09:11:04 -0700
 Subject: [PATCH] i965/batch: unconditionally allocate DEBUG_BATCH hash tables
@@ -11,7 +11,7 @@ associated data structure must be created in advance of toggling output.
  2 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/src/intel/common/gen_debug.h b/src/intel/common/gen_debug.h
-index c0b74ea2afe..c1292805aca 100644
+index da98f852a4b..496a5695c4f 100644
 --- a/src/intel/common/gen_debug.h
 +++ b/src/intel/common/gen_debug.h
 @@ -39,7 +39,8 @@ extern "C" {
@@ -25,12 +25,12 @@ index c0b74ea2afe..c1292805aca 100644
  #define DEBUG_TEXTURE             (1ull <<  0)
  #define DEBUG_STATE               (1ull <<  1)
 diff --git a/src/mesa/drivers/dri/i965/intel_batchbuffer.c b/src/mesa/drivers/dri/i965/intel_batchbuffer.c
-index 6e4b55cf9ec..edcfe8a19a7 100644
+index b6ce8174d57..9421d1f2c6c 100644
 --- a/src/mesa/drivers/dri/i965/intel_batchbuffer.c
 +++ b/src/mesa/drivers/dri/i965/intel_batchbuffer.c
-@@ -81,10 +81,10 @@ intel_batchbuffer_init(struct intel_batchbuffer *batch,
-    batch->exec_objects =
-       malloc(batch->exec_array_size * sizeof(batch->exec_objects[0]));
+@@ -110,10 +110,10 @@ intel_batchbuffer_init(struct intel_screen *screen,
+    batch->validation_list =
+       malloc(batch->exec_array_size * sizeof(batch->validation_list[0]));
  
 -   if (INTEL_DEBUG & DEBUG_BATCH) {
 +   /* if (INTEL_DEBUG & DEBUG_BATCH) { */
@@ -38,9 +38,9 @@ index 6e4b55cf9ec..edcfe8a19a7 100644
           _mesa_hash_table_create(NULL, uint_key_hash, uint_key_compare);
 -   }
 +   /* } */
- }
  
- static void
+    batch->use_batch_first =
+       screen->kernel_features & KERNEL_ALLOWS_EXEC_BATCH_FIRST;
 -- 
 2.11.0
 
