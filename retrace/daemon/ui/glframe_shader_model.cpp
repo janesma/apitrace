@@ -153,29 +153,31 @@ QRenderShadersList::overrideShaders(int index,
                                     const QString &tess_eval,
                                     const QString &geom,
                                     const QString &comp) {
-  ScopedLock s(m_protect);
-  ++m_experiment_count;
+  {
+    ScopedLock s(m_protect);
+    ++m_experiment_count;
 
-  const std::string &vss = vs.toStdString(),
-                    &fss = fs.toStdString(),
-         &tess_control_s = tess_control.toStdString(),
-            &tess_eval_s = tess_eval.toStdString(),
-                 &geom_s = geom.toStdString(),
-                 &comp_s = comp.toStdString();
+    const std::string &vss = vs.toStdString(),
+                      &fss = fs.toStdString(),
+           &tess_control_s = tess_control.toStdString(),
+              &tess_eval_s = tess_eval.toStdString(),
+                   &geom_s = geom.toStdString(),
+                   &comp_s = comp.toStdString();
 
-  GRLOGF(DEBUG, "vs: %s\nfs: %s\ntess_control: %s\n"
-         "tess_eval: %s\ngeom: %s\ncomp: %s",
-         vss.c_str(), fss.c_str(),
-         tess_control_s.c_str(), tess_eval_s.c_str(), geom_s.c_str(),
-         comp_s.c_str());
-  for (auto i : m_renders[index]) {
-    m_retracer->replaceShaders(i, m_experiment_count, vss, fss,
-                               tess_control_s, tess_eval_s, geom_s, comp_s,
-                               m_retraceModel);
+    GRLOGF(DEBUG, "vs: %s\nfs: %s\ntess_control: %s\n"
+           "tess_eval: %s\ngeom: %s\ncomp: %s",
+           vss.c_str(), fss.c_str(),
+           tess_control_s.c_str(), tess_eval_s.c_str(), geom_s.c_str(),
+           comp_s.c_str());
+    for (auto i : m_renders[index]) {
+      m_retracer->replaceShaders(i, m_experiment_count, vss, fss,
+                                 tess_control_s, tess_eval_s, geom_s, comp_s,
+                                 m_retraceModel);
+    }
+    m_renders.clear();
+    m_shader_assemblies.clear();
+    m_render_strings.clear();
   }
-  m_renders.clear();
-  m_shader_assemblies.clear();
-  m_render_strings.clear();
   emit shadersChanged();
 }
 
