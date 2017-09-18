@@ -100,7 +100,7 @@ static QFuture<FrameState *> future;
 
 void
 exec_retracer(const char *main_exe, int port) {
-  // frame_retrace_server should be at the same path as frame_retrace
+  // frameretrace_server should be at the same path as frameretrace
   std::string server_exe(main_exe);
 
   char sep;
@@ -108,10 +108,10 @@ exec_retracer(const char *main_exe, int port) {
 
 #ifdef WIN32
   sep = '\\';
-  server_exe_name = "frame_retrace_server.exe";
+  server_exe_name = "frameretrace_server.exe";
 #else
   sep = '/';
-  server_exe_name = "frame_retrace_server";
+  server_exe_name = "frameretrace_server";
 #endif
 
   size_t last_sep = server_exe.rfind(sep);

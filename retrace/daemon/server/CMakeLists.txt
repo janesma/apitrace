@@ -11,7 +11,7 @@ set (SERVER_SRC
   main.cpp
   )
 
-add_executable(frame_retrace_server
+add_executable(frameretrace_server
   ${SERVER_SRC}
 )
 
@@ -23,7 +23,7 @@ else()
   set (THREAD_LIB pthread dl)
 endif()
 
-target_link_libraries(frame_retrace_server
+target_link_libraries(frameretrace_server
   retrace_daemon
   glretrace_common
   glhelpers
@@ -34,7 +34,7 @@ target_link_libraries(frame_retrace_server
   ${THREAD_LIB}
 )
 
-install (TARGETS frame_retrace_server RUNTIME DESTINATION bin) 
+install (TARGETS frameretrace_server RUNTIME DESTINATION bin) 
 
 if (NOT WIN32)
   Lint(SERVER_SRC)

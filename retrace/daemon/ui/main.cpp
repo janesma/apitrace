@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
   QGuiApplication app(argc, argv);
   app.setOrganizationName("Open Source Technology Center");
   app.setOrganizationDomain("intel.com");
-  app.setApplicationName("frame_retrace");
+  app.setApplicationName("frameretrace");
 
   qRegisterMetaType<glretrace::ExperimentId>();
   qRegisterMetaType<glretrace::SelectionId>();

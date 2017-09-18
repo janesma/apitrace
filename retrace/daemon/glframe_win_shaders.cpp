@@ -40,7 +40,7 @@ void WinShaders::init() {
   // open the directory
   const DWORD pid = GetCurrentProcessId();
   std::stringstream shader_dump_dir;
-  shader_dump_dir << "C:\\Intel\\IGC\\frame_retrace_server.exe_" << pid << "\\";
+  shader_dump_dir << "C:\\Intel\\IGC\\frameretrace_server.exe_" << pid << "\\";
   m_dump_dir = shader_dump_dir.str();
   shader_dump_dir << "*";
   m_dump_pattern = shader_dump_dir.str();

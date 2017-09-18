@@ -54,7 +54,7 @@ Logger::Create() {
     const char *dir = "/tmp";
 #endif
   std::stringstream ss;
-  ss << dir << "/" << "frame_retrace.log";
+  ss << dir << "/" << "frameretrace.log";
   m_instance = new Logger(ss.str());
 }
 

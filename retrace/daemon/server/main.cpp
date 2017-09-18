@@ -52,7 +52,7 @@ int parse_args(int argc, char *argv[]) {
         return atoi(optarg);
       case 'h':
       default: /* '?' */
-        printf("USAGE: frame_retrace_server [-p port]\n"
+        printf("USAGE: frameretrace_server [-p port]\n"
                "\tdefault port: 24642");
         break;
     }

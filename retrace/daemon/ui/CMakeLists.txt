@@ -43,7 +43,7 @@ set (UI_SRC
   glframe_uniform_model.cpp
   )
 
-add_executable(frame_retrace
+add_executable(frameretrace
   ${UI_SRC}
   ${UIS_HDRS}
   ${RESOURCE_ADDED} 
@@ -57,7 +57,7 @@ else()
   set (THREAD_LIB pthread dl)
 endif()
 
-target_link_libraries(frame_retrace
+target_link_libraries(frameretrace
   retrace_daemon
   retrace_bargraph
   glretrace_common
@@ -70,6 +70,6 @@ target_link_libraries(frame_retrace
   ${THREAD_LIB}
 )
 
-install (TARGETS frame_retrace RUNTIME DESTINATION bin) 
+install (TARGETS frameretrace RUNTIME DESTINATION bin) 
 
 Lint(UI_SRC)
