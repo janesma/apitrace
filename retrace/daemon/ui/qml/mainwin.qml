@@ -324,6 +324,11 @@ ApplicationWindow {
             Layout.alignment: Qt.AlignTop
             Layout.fillWidth: true
             Layout.fillHeight: true
+
+            onCurrentIndexChanged: {
+                frameRetrace.setTab(currentIndex);
+            }
+            
             Tab {
                 title: "Shaders"
                 anchors.fill: parent

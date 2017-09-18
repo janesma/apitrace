@@ -107,10 +107,6 @@ QMetricsModel::init(IFrameRetrace *r,
   s.id = m_current_selection_count;
   s.series.push_back(RenderSequence(RenderId(0), RenderId(render_count)));
   m_retrace->retraceAllMetrics(s, m_experiment_count, this);
-  connect(qs, &QSelection::onSelect,
-          this, &QMetricsModel::onSelect);
-  connect(qs, &QSelection::onExperiment,
-          this, &QMetricsModel::onExperiment);
   emit onMetricsChanged();
 }
 

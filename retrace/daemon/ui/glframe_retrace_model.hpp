@@ -136,6 +136,8 @@ class FrameRetraceModel : public QObject,
   Q_INVOKABLE void refreshMetrics();
   Q_INVOKABLE void filterMetrics(const QString &f);
   Q_INVOKABLE QString urlToFilePath(const QUrl &url);
+  Q_INVOKABLE void setTab(const int index);
+
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();
   QSelection *selection();
@@ -227,6 +229,16 @@ class FrameRetraceModel : public QObject,
   void retrace_uniforms();
   void refreshBarMetrics();
 
+  enum TabIndex {
+    kShaders = 0,
+    kRenderTarget,
+    kApiCalls,
+    kBatch,
+    kMetrics,
+    kExperiments,
+    kUniforms
+  };
+
   mutable std::mutex m_protect;
   FrameRetraceStub m_retrace;
   QMetricsModel m_metrics_table;
@@ -246,7 +258,7 @@ class FrameRetraceModel : public QObject,
 
   QRenderShadersList m_shaders;
   QString m_shader_compile_error;
-  QString main_exe;  // for path to frame_retrace_server
+  QString main_exe;  // for path to frameretrace_server
 
   int m_target_frame_number, m_open_percent, m_frame_count;
 
@@ -259,6 +271,7 @@ class FrameRetraceModel : public QObject,
   float m_max_metric;
   QString m_general_error, m_general_error_details;
   Severity m_severity;
+  TabIndex m_current_tab;
 };
 
 }  // namespace glretrace

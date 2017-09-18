@@ -425,11 +425,34 @@ FrameRetraceModel::onSelect(SelectionId id, QList<int> selection) {
   ScopedLock s(m_protect);
   m_cached_selection = selection;
   m_selection_count = id;
-  retraceRendertarget();
-  retrace_shader_assemblies();
-  retrace_api();
-  retrace_batch();
-  retrace_uniforms();
+
+  // refresh currently visible tab
+  if (m_current_tab == kRenderTarget)
+    retraceRendertarget();
+  if (m_current_tab == kShaders)
+    retrace_shader_assemblies();
+  if (m_current_tab == kApiCalls)
+    retrace_api();
+  if (m_current_tab == kBatch)
+    retrace_batch();
+  if (m_current_tab == kUniforms)
+    retrace_uniforms();
+  if (m_current_tab == kMetrics)
+    m_metrics_table.onSelect(id, selection);
+
+  // refresh other tabs
+  if (m_current_tab != kRenderTarget)
+    retraceRendertarget();
+  if (m_current_tab != kShaders)
+    retrace_shader_assemblies();
+  if (m_current_tab != kApiCalls)
+    retrace_api();
+  if (m_current_tab != kBatch)
+    retrace_batch();
+  if (m_current_tab != kUniforms)
+    retrace_uniforms();
+  if (m_current_tab != kMetrics)
+    m_metrics_table.onSelect(id, selection);
 }
 
 void
@@ -531,11 +554,32 @@ void
 FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
   ScopedLock s(m_protect);
   m_experiment_count = experiment_count;
-  retraceRendertarget();
+
   refreshBarMetrics();
-  retrace_shader_assemblies();
-  retrace_batch();
-  retrace_uniforms();
+
+  // refresh the currently shown tab
+  if (m_current_tab == kRenderTarget)
+    retraceRendertarget();
+  if (m_current_tab == kShaders)
+    retrace_shader_assemblies();
+  if (m_current_tab == kBatch)
+    retrace_batch();
+  if (m_current_tab == kUniforms)
+    retrace_uniforms();
+  if (m_current_tab == kMetrics)
+    m_metrics_table.onExperiment(experiment_count);
+
+  // refresh the rest of the tabs
+  if (m_current_tab != kRenderTarget)
+    retraceRendertarget();
+  if (m_current_tab != kShaders)
+    retrace_shader_assemblies();
+  if (m_current_tab != kBatch)
+    retrace_batch();
+  if (m_current_tab != kUniforms)
+    retrace_uniforms();
+  if (m_current_tab != kMetrics)
+    m_metrics_table.onExperiment(experiment_count);
 }
 
 void
@@ -558,4 +602,9 @@ FrameRetraceModel::retrace_uniforms() {
                                      &sel);
   m_uniforms->clear();
   m_retrace.retraceUniform(sel, m_experiment_count, this);
+}
+
+void
+FrameRetraceModel::setTab(const int index) {
+  m_current_tab = static_cast<TabIndex>(index);
 }
