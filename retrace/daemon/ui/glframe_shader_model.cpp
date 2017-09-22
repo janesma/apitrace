@@ -191,3 +191,14 @@ QRenderShadersList::onExperiment(ExperimentId id) {
     m_render_strings.clear();
   }
 }
+
+void
+QRenderShadersList::onShaderCompile(RenderId renderId,
+                                   ExperimentId experimentCount,
+                                   bool status,
+                                   const std::string &errorString) {
+  if (errorString.size())
+    GRLOGF(WARN, "Compilation error: %s", errorString.c_str());
+  m_shader_compile_error = errorString.c_str();
+  emit onShaderCompileError();
+}

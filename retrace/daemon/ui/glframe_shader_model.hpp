@@ -35,6 +35,7 @@
 
 #include <mutex>
 #include <vector>
+#include <string>
 
 #include "glframe_retrace_interface.hpp"
 #include "glframe_traits.hpp"
@@ -170,8 +171,12 @@ class QRenderShadersList : public QObject,
              CONSTANT)
   Q_PROPERTY(QStringList renders
              READ renders NOTIFY onRendersChanged)
+  Q_PROPERTY(QString shaderCompileError READ shaderCompileError
+             NOTIFY onShaderCompileError)
  public:
-  QRenderShadersList() : m_retracer(NULL), m_retraceModel(NULL) {}
+  QRenderShadersList() : m_shader_compile_error(""),
+                         m_retracer(NULL),
+                         m_retraceModel(NULL) {}
   ~QRenderShadersList() {}
   void setRetrace(IFrameRetrace *retracer,
                   FrameRetraceModel *model);
@@ -185,6 +190,11 @@ class QRenderShadersList : public QObject,
                         const ShaderAssembly &geom,
                         const ShaderAssembly &comp);
   QStringList renders();
+  QString shaderCompileError() { return m_shader_compile_error; }
+  void onShaderCompile(RenderId renderId,
+                       ExperimentId experimentCount,
+                       bool status,
+                       const std::string &errorString);
   Q_INVOKABLE void setIndex(int index);
   Q_INVOKABLE void overrideShaders(int index,
                                    const QString &vs, const QString &fs,
@@ -196,6 +206,7 @@ class QRenderShadersList : public QObject,
  signals:
   void onRendersChanged();
   void shadersChanged();
+  void onShaderCompileError();
  private:
   void setIndexDirect(int index);
 
@@ -206,6 +217,7 @@ class QRenderShadersList : public QObject,
   std::vector<std::vector<ShaderAssembly>> m_shader_assemblies;
   SelectionId m_current_selection;
   ExperimentId m_experiment_count;
+  QString m_shader_compile_error;
   IFrameRetrace *m_retracer;
   FrameRetraceModel *m_retraceModel;
 };

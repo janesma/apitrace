@@ -70,7 +70,6 @@ FrameRetraceModel::FrameRetraceModel()
       m_selection(NULL),
       m_selection_count(0),
       m_experiment_count(0),
-      m_shader_compile_error(""),
       m_open_percent(0),
       m_frame_count(0),
       m_max_metric(0),
@@ -228,10 +227,7 @@ FrameRetraceModel::onShaderCompile(RenderId renderId,
                                    ExperimentId experimentCount,
                                    bool status,
                                    const std::string &errorString) {
-  if (errorString.size())
-    GRLOGF(WARN, "Compilation error: %s", errorString.c_str());
-  m_shader_compile_error = errorString.c_str();
-  emit onShaderCompileError();
+  m_shaders.onShaderCompile(renderId, experimentCount, status, errorString);
 }
 
 void

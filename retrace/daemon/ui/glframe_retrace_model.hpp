@@ -106,8 +106,6 @@ class FrameRetraceModel : public QObject,
   Q_PROPERTY(glretrace::QRenderShadersList* shaders READ shaders CONSTANT)
   Q_PROPERTY(glretrace::QApiModel* api READ api CONSTANT)
   Q_PROPERTY(glretrace::QBatchModel* batch READ batch CONSTANT)
-  Q_PROPERTY(QString shaderCompileError READ shaderCompileError
-             NOTIFY onShaderCompileError)
   Q_PROPERTY(QString argvZero READ argvZero WRITE setArgvZero
              NOTIFY onArgvZero)
   Q_PROPERTY(glretrace::QMetricsModel* metricTab READ metricTab CONSTANT)
@@ -191,7 +189,6 @@ class FrameRetraceModel : public QObject,
   QApiModel *api() { return &m_api; }
   QBatchModel *batch() { return &m_batch; }
   QRenderTargetModel *rendertarget() { return m_rendertarget; }
-  QString shaderCompileError() { return m_shader_compile_error; }
   QString argvZero() { return main_exe; }
   void setArgvZero(const QString &a) { main_exe = a; emit onArgvZero(); }
   QMetricsModel *metricTab() { return &m_metrics_table; }
@@ -215,7 +212,6 @@ class FrameRetraceModel : public QObject,
   void onRenders();
   void onFrameCount();
   void onMaxMetric();
-  void onShaderCompileError();
   void onArgvZero();
   void onGeneralError();
 
@@ -257,7 +253,6 @@ class FrameRetraceModel : public QObject,
   QList<BarMetrics> m_metrics;
 
   QRenderShadersList m_shaders;
-  QString m_shader_compile_error;
   QString main_exe;  // for path to frameretrace_server
 
   int m_target_frame_number, m_open_percent, m_frame_count;

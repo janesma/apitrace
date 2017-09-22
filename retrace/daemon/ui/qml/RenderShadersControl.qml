@@ -11,7 +11,7 @@ Item {
         id: compileError
         title: "Shader Compilation Error"
         icon: StandardIcon.Warning
-        text: frameRetrace.shaderCompileError
+        text: renderModel.shaderCompileError
         onTextChanged: {
             if (Boolean(text))
                 visible = true;
