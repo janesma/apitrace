@@ -70,6 +70,7 @@ target_link_libraries (retrace_common
     ${ZLIB_LIBRARIES}
     ${SNAPPY_LIBRARIES}
     ${GETOPT_LIBRARIES}
+    ${X11_X11_LIB}
 )
 if (NOT ANDROID AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries (retrace_common rt)
