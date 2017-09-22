@@ -113,6 +113,11 @@ QRenderShadersList::onShaderAssembly(RenderId renderId,
   if (m_render_strings.size() == 1)
     // first shader assembly for a new selection.  update shader display
     setIndexDirect(0);
+  if (m_render_strings.size() == m_index + 1)
+    // attempt to maintain the same index for the displayed shaders,
+    // so the UI does not reset to the zero index when shader
+    // compilation delivers new content.
+    setIndexDirect(m_index);
 
   emit onRendersChanged();
 }
@@ -136,6 +141,9 @@ QRenderShadersList::setIndexDirect(int index) {
 void
 QRenderShadersList::setIndex(int index) {
   ScopedLock s(m_protect);
+  // maintain the selected index, so stable content can be displayed
+  // when new experiments cause shaders to be retraced.
+  m_index = index;
   setIndexDirect(index);
 }
 
@@ -155,8 +163,6 @@ QRenderShadersList::overrideShaders(int index,
                                     const QString &comp) {
   {
     ScopedLock s(m_protect);
-    ++m_experiment_count;
-
     const std::string &vss = vs.toStdString(),
                       &fss = fs.toStdString(),
            &tess_control_s = tess_control.toStdString(),
@@ -174,11 +180,7 @@ QRenderShadersList::overrideShaders(int index,
                                  tess_control_s, tess_eval_s, geom_s, comp_s,
                                  m_retraceModel);
     }
-    m_renders.clear();
-    m_shader_assemblies.clear();
-    m_render_strings.clear();
   }
-  emit shadersChanged();
 }
 
 void
@@ -197,8 +199,20 @@ QRenderShadersList::onShaderCompile(RenderId renderId,
                                    ExperimentId experimentCount,
                                    bool status,
                                    const std::string &errorString) {
-  if (errorString.size())
+  if (errorString.size()) {
     GRLOGF(WARN, "Compilation error: %s", errorString.c_str());
+  } else {
+    // successful shader compile.  New shader retrace is required to
+    // display modified assemblies.
+    {
+      ScopedLock s(m_protect);
+      m_renders.clear();
+      m_shader_assemblies.clear();
+      m_render_strings.clear();
+    }
+    // triggers experiment increment, retrace
+    emit shadersChanged();
+  }
   m_shader_compile_error = errorString.c_str();
   emit onShaderCompileError();
 }

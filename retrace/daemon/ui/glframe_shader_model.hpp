@@ -218,6 +218,7 @@ class QRenderShadersList : public QObject,
   SelectionId m_current_selection;
   ExperimentId m_experiment_count;
   QString m_shader_compile_error;
+  int m_index;
   IFrameRetrace *m_retracer;
   FrameRetraceModel *m_retraceModel;
 };
