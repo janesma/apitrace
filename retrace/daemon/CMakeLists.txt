@@ -52,6 +52,8 @@ set (RETRACE_SOURCES
   glframe_gpu_speed.hpp
   glframe_metrics.cpp
   glframe_metrics.hpp
+  glframe_metrics_intel.cpp
+  glframe_metrics_intel.hpp
   glframe_os.hpp
   glframe_logger.cpp
   glframe_logger.hpp

@@ -163,7 +163,7 @@ FrameRetrace::openFile(const std::string &filename,
   }
 
   // sends list of available metrics to ui
-  m_metrics = new PerfMetrics(callback);
+  m_metrics = PerfMetrics::Create(callback);
   parser->getBookmark(frame_start.start);
 
   // play through the frame, recording each context
@@ -277,7 +277,7 @@ FrameRetrace::retraceMetrics(const std::vector<MetricId> &ids,
       i->retraceMetrics(m_metrics, m_tracker);
     m_metrics->publish(experimentCount,
                        SelectionId(0),  // this use case is not based
-                       // on render selection
+                                        // on render selection
                        callback);
   }
 }

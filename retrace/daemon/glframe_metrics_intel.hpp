@@ -25,55 +25,44 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
-#ifndef _GLFRAME_METRICS_HPP_
-#define _GLFRAME_METRICS_HPP_
+#ifndef _GLFRAME_METRICS_INTEL_HPP_
+#define _GLFRAME_METRICS_INTEL_HPP_
 
 #include <map>
 #include <vector>
 
+#include "glframe_metrics.hpp"
 #include "glframe_traits.hpp"
-#include "glframe_retrace_interface.hpp"
+#include "glframe_retrace.hpp"
 
 namespace glretrace {
 
 class PerfMetricsContext;
 struct Context;
 
-class PerfMetrics {
+class PerfMetricsIntel : public PerfMetrics, NoCopy, NoAssign {
  public:
-  // Constructor accepts OnFrameRetrace callback pointer, and calls
-  // onMetricList before returning.
-  static PerfMetrics *Create(OnFrameRetrace *callback);
-  virtual ~PerfMetrics() {}
-
-  // Indicates the number of passes a metrics retrace must make to
-  // collect the full metric set
-  virtual int groupCount() const = 0;
-
-  // Subsequent begin/end will collect data for all counters in the group
-  virtual void selectGroup(int index) = 0;
-
-  // Subsequent begin/end will collect data for the metric associated
-  // with the id
-  virtual void selectMetric(MetricId metric) = 0;
-
-  // Begin collection for selected metrics.  When reported, the
-  // counter values will be associated with the specified render.
-  virtual void begin(RenderId render) = 0;
-
-  // End collection for the selected metrics.
-  virtual void end() = 0;
-
-  // Flush and call onMetrics, providing all queried metric data.
-  virtual void publish(ExperimentId experimentCount,
+  explicit PerfMetricsIntel(OnFrameRetrace *cb);
+  ~PerfMetricsIntel();
+  int groupCount() const;
+  void selectMetric(MetricId metric);
+  void selectGroup(int index);
+  void begin(RenderId render);
+  void end();
+  void publish(ExperimentId experimentCount,
                SelectionId selectionCount,
-               OnFrameRetrace *callback) = 0;
-
-  // Call before changing to another context
-  virtual void endContext() = 0;
-  virtual void beginContext() = 0;
+               OnFrameRetrace *callback);
+  void endContext();
+  void beginContext();
+  typedef std::map<MetricId, std::map<RenderId, float>> MetricMap;
+ private:
+  PerfMetricsContext* m_current_context;
+  std::map<Context*, PerfMetricsContext*> m_contexts;
+  MetricMap m_data;
+  int m_current_group;
+  MetricId m_current_metric;
 };
 
 }  // namespace glretrace
 
-#endif /* _GLFRAME_METRICS_HPP__ */
+#endif /* _GLFRAME_METRICS_INTEL_HPP__ */
