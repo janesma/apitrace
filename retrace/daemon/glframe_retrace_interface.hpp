@@ -128,7 +128,14 @@ class MetricId {
 };
 
 // Decorates Selection numbers with a mask, so they can never be
-// confused with any other Id
+// confused with any other Id.  A global SelectionId increments every
+// time the users selects new renders, triggering retrace requests.
+// Retrace requests carry the new id when they are enqueued.  Stale
+// requests will be canceled when they are dequeued, by checking the
+// global id that was subsequently incremented.  Asynchronous
+// callbacks which contain a stale id will not be displayed to the
+// user, because there is a retrace for a newer selection in the
+// queue.
 class SelectionId {
  public:
   explicit SelectionId(uint32_t selectionNumber) {
@@ -152,7 +159,9 @@ class SelectionId {
 };
 
 // Decorates Experiment numbers with a mask, so they can never be
-// confused with any other Id
+// confused with any other Id.  Retrace requests originating from an
+// experiment will be enqueue with the value of a globally
+// incrementing ExperimentId.  See SelectionId.
 class ExperimentId {
  public:
   ExperimentId() : value(0) {}
@@ -244,6 +253,8 @@ enum UniformDimension {
   k4x4
 };
 
+// Serializable asynchronous callbacks made from remote
+// implementations of IFrameRetrace.
 class OnFrameRetrace {
  public:
   typedef std::vector<unsigned char> uvec;
@@ -289,6 +300,7 @@ class OnFrameRetrace {
                          const std::vector<unsigned char> &data) = 0;
 };
 
+// Serializable asynchronous retrace requests.
 class IFrameRetrace {
  public:
   virtual ~IFrameRetrace() {}
