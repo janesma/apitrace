@@ -77,7 +77,7 @@ set(qapitrace_UIS
 
 set (CMAKE_AUTOMOC ON)
 # Silence `Note: No relevant classes found. No output generated.`
-set (CMAKE_AUTOMOC_MOC_OPTIONS "-nn")
+set (CMAKE_AUTOMOC_MOC_OPTIONS "")
 
 QT5_WRAP_UI(qapitrace_UIS_H ${qapitrace_UIS})
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
