@@ -141,6 +141,8 @@ QMetricsModel::onMetrics(const MetricSeries &metricData,
 
 void
 QMetricsModel::onSelect(SelectionId id, QList<int> selection) {
+  if (!m_retrace)
+    return;
   m_current_selection_count = id;
   m_render_selection.clear();
   if (selection.empty()) {

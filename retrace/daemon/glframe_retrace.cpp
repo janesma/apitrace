@@ -114,8 +114,7 @@ FrameRetrace::openFile(const std::string &filename,
     msg << "Performance counters not enabled.\n"
         "To enable counters, execute as root: "
         "`/sbin/sysctl dev.i915.perf_stream_paranoid=0`";
-    callback->onError(RETRACE_FATAL, msg.str());
-    return;
+    callback->onError(RETRACE_WARN, msg.str());
   }
 
   assemblyOutput.init();
