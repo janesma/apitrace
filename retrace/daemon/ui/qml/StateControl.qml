@@ -5,6 +5,36 @@ import ApiTrace 1.0
 
 Item {
     property QStateModel stateModel
+    function getWidth(choices) {
+        console.warn("getWidth called: " + choices.length.toString());
+        var len = 0;
+        for (var i = 0; i < choices.length; i++) {
+            console.warn("getWidth: " + choices[i]);
+            var choice_len = choices[i].length;
+            if (choice_len > len) {
+                len = choice_len;
+            }
+        }
+        console.warn("getWidth returned: " + len.toString());
+        return len;
+    }
+
+    function getLongest(choices) {
+        console.warn("getLongest called: " + choices.length.toString());
+        var len = 0;
+        var longest = 0;
+        for (var i = 0; i < choices.length; i++) {
+            console.warn("getLongest: " + choices[i]);
+            var choice_len = choices[i].length;
+            if (choice_len > len) {
+                len = choice_len;
+                longest = i;
+            }
+        }
+        console.warn("getLongest returned: " + choices[longest]);
+        return choices[longest];
+    }
+
     ScrollView {
         anchors.fill: parent
         ListView {
@@ -21,18 +51,15 @@ Item {
                         id: stateGrid
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        // property var choice_width: getWidth(modelData.choices)
                         Repeater {
                             model: modelData.values
-                            Rectangle {
-                                width: stateText.width
-                                height: stateText.height
-                                anchors.margins:10
-                                border.width: 1
-                                Text {
-                                    id: stateText
-                                    anchors.centerIn: parent
-                                    text: modelData
-                                }
+                            property var choices: modelData.choices
+                            ComboBoxFitContents {
+                                model: choices
+                                currentIndex: modelData
+                                // currentText: modelData
+                                // border.width: 1
                             }
                         }
                     }

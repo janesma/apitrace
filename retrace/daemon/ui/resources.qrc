@@ -14,5 +14,6 @@
         <file>qml/RenderTargetControl.qml</file>
         <file>qml/UniformControl.qml</file>
         <file>qml/StateControl.qml</file>
+        <file>qml/ComboBoxFitContents.qml</file>
     </qresource>
 </RCC>

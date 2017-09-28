@@ -45,12 +45,23 @@ QStateValue::QStateValue(const std::string &_name,
 
 void
 QStateValue::insert(int index, const std::string &value) {
+  int value_index = 0;
+  QVariant qvalue(value.c_str());
+  for (auto c : m_choices) {
+    if (qvalue == c) {
+      break;
+    ++value_index;
+    }
+  }
+  // value must be found
+  assert(value_index < m_choices.size());
+
   while (m_values.size() < index)
-    m_values.append("");
+    m_values.append(0);
   if (m_values.size() == index)
-    m_values.append(value.c_str());
+    m_values.append(value_index);
   else
-    m_values[index] = QVariant(value.c_str());
+    m_values[index] = value_index;
 }
 
 QStateModel::QStateModel() {}
