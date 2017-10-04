@@ -120,6 +120,7 @@ static void *pUniformMatrix4fv = NULL;
 static void *pUniformMatrix4x2fv = NULL;
 static void *pUniformMatrix4x3fv = NULL;
 static void *pFinish = NULL;
+static void *pCullFace = NULL;
 
 }  // namespace
 
@@ -330,6 +331,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pUniformMatrix4x3fv);
   pFinish = _GetProcAddress("glFinish");
   assert(pFinish);
+  pCullFace = _GetProcAddress("glCullFace");
+  assert(pCullFace);
 }
 
 GLuint
@@ -949,4 +952,10 @@ void
 GlFunctions::Finish() {
   typedef void (*FINISH)();
   return ((FINISH)pFinish)();
+}
+
+void
+GlFunctions::CullFace(GLenum mode) {
+  typedef void (*CULLFACE)(GLenum mode);
+  return ((CULLFACE)pCullFace)(mode);
 }

@@ -96,6 +96,9 @@ class FrameRetraceStub : public IFrameRetrace {
   virtual void retraceState(const RenderSelection &selection,
                             ExperimentId experimentCount,
                             OnFrameRetrace *callback);
+  virtual void setState(const RenderSelection &selection,
+                        const StateKey &item,
+                        const std::string &value);
 
  private:
   mutable std::mutex m_mutex;

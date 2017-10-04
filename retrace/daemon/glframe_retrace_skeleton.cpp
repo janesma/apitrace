@@ -407,6 +407,17 @@ FrameRetraceSkeleton::Run() {
           writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
+      case ApiTrace::SET_STATE_REQUEST:
+        {
+          assert(request.has_set_state());
+          auto state = request.set_state();
+          RenderSelection selection;
+          makeRenderSelection(state.selection(), &selection);
+          glretrace::StateKey k((glretrace::StateItem)state.item().name(),
+                                state.item().index());
+          m_frame->setState(selection, k, state.value());
+          break;
+        }
     }
   }
 }

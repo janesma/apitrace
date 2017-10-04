@@ -31,10 +31,12 @@
 #include <vector>
 
 #include "glframe_os.hpp"
+#include "glframe_retrace_render.hpp"
 
 using glretrace::QStateModel;
 using glretrace::QStateValue;
 using glretrace::StateItem;
+using glretrace::state_name_to_enum;
 
 QStateValue::QStateValue(const std::string &_name,
                          const std::vector<std::string> &_choices)
@@ -48,10 +50,9 @@ QStateValue::insert(int index, const std::string &value) {
   int value_index = 0;
   QVariant qvalue(value.c_str());
   for (auto c : m_choices) {
-    if (qvalue == c) {
+    if (qvalue == c)
       break;
     ++value_index;
-    }
   }
   // value must be found
   assert(value_index < m_choices.size());
@@ -66,7 +67,7 @@ QStateValue::insert(int index, const std::string &value) {
 
 QStateModel::QStateModel() {}
 
-QStateModel::QStateModel(IFrameRetrace *retrace) {}
+QStateModel::QStateModel(IFrameRetrace *retrace) : m_retrace(retrace) {}
 
 QStateModel::~QStateModel() {}
 
@@ -119,6 +120,7 @@ QStateModel::clear() {
     for (auto i : m_state_by_name)
       delete i.second;
     m_state_by_name.clear();
+    m_renders.clear();
   }
 }
 
@@ -151,6 +153,8 @@ void QStateModel::onState(SelectionId selectionCount,
     assert(selectionCount == m_sel_count);
     assert(experimentCount == m_experiment_count);
   }
+  if (m_renders.empty() || renderId != m_renders.back())
+    m_renders.push_back(renderId);
   const auto name = state_name_to_string(item.name);
   auto state_value = m_state_by_name.find(name);
   if (state_value == m_state_by_name.end()) {
@@ -166,6 +170,22 @@ void
 QStateModel::setState(const QString &name,
                       const int index,
                       const QString &value) {
-  assert(false);
+  RenderSelection sel;
+  sel.id = m_sel_count;
+  auto r = m_renders.begin();
+  sel.series.push_back(RenderSequence(*r, RenderId(r->index() + 1)));
+  ++r;
+  while (r != m_renders.end()) {
+    if (*r == sel.series.back().end)
+      ++sel.series.back().end;
+    else
+      sel.series.push_back(RenderSequence(*r, RenderId(r->index() + 1)));
+    ++r;
+  }
+
+  StateItem i = static_cast<StateItem>(state_name_to_enum(name.toStdString()));
+  StateKey key(i, index);
+  m_retrace->setState(sel, key, value.toStdString());
+  emit stateExperiment();
 }
 

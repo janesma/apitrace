@@ -110,6 +110,9 @@ class RetraceContext {
                     ExperimentId experimentCount,
                     const StateTrack &tracker,
                     OnFrameRetrace *callback);
+  void setState(const RenderSelection &selection,
+                const StateKey &item,
+                const std::string &value);
 
  private:
   trace::AbstractParser *m_parser;

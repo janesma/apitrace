@@ -51,15 +51,19 @@ Item {
                         id: stateGrid
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        // property var choice_width: getWidth(modelData.choices)
                         Repeater {
                             model: modelData.values
                             property var choices: modelData.choices
+                            property var name: modelData.name
                             ComboBoxFitContents {
                                 model: choices
+                                property int stateIndex : index
                                 currentIndex: modelData
-                                // currentText: modelData
-                                // border.width: 1
+                                onActivated: {
+                                    stateModel.setState(name,
+                                                        stateIndex,
+                                                        choices[currentIndex]);
+                                }
                             }
                         }
                     }

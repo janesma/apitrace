@@ -20,6 +20,7 @@ enum RequestType {
   UNIFORM_REQUEST = 11;
   SET_UNIFORM_REQUEST = 12;
   STATE_REQUEST = 13;
+  SET_STATE_REQUEST = 14;
 };
 
 message OpenFileRequest {
@@ -249,6 +250,12 @@ message StateResponse {
   required string value = 5;
 }
 
+message SetStateRequest {
+  required RenderSelection selection = 1;
+  required StateKey item = 2;
+  required string value = 3;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
@@ -264,6 +271,7 @@ message RetraceRequest {
   optional UniformRequest uniform = 12;
   optional SetUniformRequest set_uniform = 13;
   optional StateRequest state = 14;
+  optional SetStateRequest set_state = 15;
 }
 
 message RetraceResponse {

@@ -175,6 +175,7 @@ class GlFunctions {
   static void UniformMatrix4x3fv(GLint location, GLsizei count,
                                  GLboolean transpose, const GLfloat *value);
   static void Finish();
+  static void CullFace(GLenum mode);
 
  private:
   GlFunctions();

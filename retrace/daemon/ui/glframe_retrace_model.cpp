@@ -422,6 +422,8 @@ FrameRetraceModel::setSelection(QSelection *s) {
           &m_shaders, &QRenderShadersList::onExperiment);
   connect(m_uniforms, &QUniformsModel::uniformExperiment,
           s, &QSelection::experiment);
+  connect(m_stateModel, &QStateModel::stateExperiment,
+          s, &QSelection::experiment);
 }
 
 void

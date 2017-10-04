@@ -93,6 +93,7 @@ class RenderId {
   bool operator>=(const RenderId &o) const { return value >= o.value; }
   bool operator<=(const RenderId &o) const { return value <= o.value; }
   bool operator==(const RenderId &o) const { return value == o.value; }
+  bool operator!=(const RenderId &o) const { return value != o.value; }
   static const uint32_t INVALID_RENDER = (-1 & ~ID_PREFIX_MASK);
 
  private:
@@ -192,6 +193,7 @@ struct MetricSeries {
 
 struct RenderSequence {
   RenderSequence(RenderId b, RenderId e) : begin(b), end(e) {}
+  RenderSequence(const RenderSequence &o) : begin(o.begin), end(o.end) {}
   RenderSequence() {}
   RenderId begin;
   RenderId end;
@@ -202,6 +204,9 @@ typedef std::vector<RenderSequence> RenderSeries;
 struct RenderSelection {
   SelectionId id;
   RenderSeries series;
+  RenderSelection() {}
+  RenderSelection(const RenderSelection &o)
+      : id(o.id), series(o.series) {}
   void clear() { series.clear(); }
   void push_back(int begin, int end) {
     series.push_back(RenderSequence(RenderId(begin), RenderId(end)));
@@ -268,6 +273,13 @@ struct StateKey {
 
   StateKey() : name(INVALID_NAME), index(0) {}
   StateKey(StateItem n, int i) : name(n), index(i) {}
+  bool operator<(const StateKey &o) const {
+    if (name < o.name)
+      return true;
+    if (name > o.name)
+      return false;
+    return index < o.index;
+  }
 };
 
 class OnFrameRetrace {
@@ -376,6 +388,9 @@ class IFrameRetrace {
   virtual void retraceState(const RenderSelection &selection,
                             ExperimentId experimentCount,
                             OnFrameRetrace *callback) = 0;
+  virtual void setState(const RenderSelection &selection,
+                        const StateKey &item,
+                        const std::string &value) = 0;
 };
 
 class FrameState {

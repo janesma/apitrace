@@ -87,7 +87,6 @@ class QStateModel : public QObject,
                             const QString &value);
 
  signals:
-  // after index is selected, uniform data is available
   void stateExperiment();
   void stateChanged();
 
@@ -99,6 +98,7 @@ class QStateModel : public QObject,
   std::map<std::string, QStateValue*> m_state_by_name;
   QList<QStateValue*> m_states;
   std::vector<QStateValue*> m_for_deletion;
+  std::vector<RenderId> m_renders;
   mutable std::mutex m_protect;
 };
 

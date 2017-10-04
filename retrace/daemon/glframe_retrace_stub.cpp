@@ -63,6 +63,7 @@ using glretrace::Semaphore;
 using glretrace::Severity;
 using glretrace::ShaderAssembly;
 using glretrace::Socket;
+using glretrace::StateKey;
 using glretrace::Thread;
 using glretrace::WARN;
 using google::protobuf::io::ArrayInputStream;
@@ -70,6 +71,7 @@ using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
 using glretrace::UniformType;
+
 namespace {
 
 class RetraceSocket {
@@ -1013,6 +1015,32 @@ class StateRequest : public IRetraceRequest {
   OnFrameRetrace *m_callback;
 };
 
+class SetStateRequest : public IRetraceRequest {
+ public:
+  SetStateRequest(const RenderSelection &selection,
+                  StateKey item,
+                  const std::string &value)
+      : m_selection(selection),
+        m_item(item),
+        m_value(value) {}
+  void retrace(RetraceSocket *sock) {
+    RetraceRequest msg;
+    msg.set_requesttype(ApiTrace::SET_STATE_REQUEST);
+    auto req = msg.mutable_set_state();
+    auto item = req->mutable_item();
+    item->set_name(static_cast<ApiTrace::StateItem>(m_item.name));
+    item->set_index(m_item.index);
+    auto selection = req->mutable_selection();
+    makeRenderSelection(m_selection, selection);
+    req->set_value(m_value);
+    sock->request(msg);
+  }
+ private:
+  const RenderSelection m_selection;
+  const StateKey m_item;
+  const std::string m_value;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -1288,4 +1316,11 @@ FrameRetraceStub::retraceState(const RenderSelection &selection,
                                   &m_current_experiment,
                                   &m_mutex,
                                   selection, callback));
+}
+
+void
+FrameRetraceStub::setState(const RenderSelection &selection,
+                           const StateKey &item,
+                           const std::string &value) {
+  m_thread->push(new SetStateRequest(selection, item, value));
 }
