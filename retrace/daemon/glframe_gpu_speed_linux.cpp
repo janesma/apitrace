@@ -47,6 +47,9 @@ glretrace::check_gpu_speed(OnFrameRetrace *callback) {
   const int max_rate = atoi(reinterpret_cast<char*>(buf.data()));
   fclose(fh);
   fh = fopen("/sys/class/drm/card0/gt_min_freq_mhz", "r");
+  if (!fh)
+    // non-intel hardware
+    return;
   bytes = fread(buf.data(), 1, 99, fh);
   buf[bytes] = '\0';
   const int min_rate = atoi(reinterpret_cast<char*>(buf.data()));
