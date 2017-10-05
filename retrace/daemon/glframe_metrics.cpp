@@ -28,6 +28,7 @@
 #include "glframe_metrics_intel.hpp"
 
 using glretrace::PerfMetrics;
+using glretrace::OnFrameRetrace;
 
 PerfMetrics *PerfMetrics::Create(OnFrameRetrace *callback) {
   return new PerfMetricsIntel(callback);
