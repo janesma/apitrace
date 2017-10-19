@@ -61,8 +61,9 @@ QStateValue::insert(int index, const std::string &value) {
     m_values.append(0);
   if (m_values.size() == index)
     m_values.append(value_index);
-  else
-    m_values[index] = value_index;
+  else if (m_values[index] != value_index)
+    // selected renders have different values
+    m_values[index] = -1;
 }
 
 QStateModel::QStateModel() {}
