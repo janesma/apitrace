@@ -26,6 +26,7 @@
  **************************************************************************/
 
 #include "glframe_state_model.hpp"
+#include <GL/gl.h>
 
 #include <string>
 #include <vector>
@@ -35,18 +36,21 @@
 
 using glretrace::QStateModel;
 using glretrace::QStateValue;
-using glretrace::StateItem;
 using glretrace::state_name_to_enum;
+
+static const int kUninitializedValue = -2;
+static const int kMixedValue = -1;
 
 QStateValue::QStateValue(const std::string &_name,
                          const std::vector<std::string> &_choices)
-    : m_name(_name.c_str()) {
+    : m_name(_name.c_str()),
+      m_value(kUninitializedValue) {
   for (auto c : _choices)
     m_choices.append(QVariant(c.c_str()));
 }
 
 void
-QStateValue::insert(int index, const std::string &value) {
+QStateValue::insert(const std::string &value) {
   int value_index = 0;
   QVariant qvalue(value.c_str());
   for (auto c : m_choices) {
@@ -57,13 +61,15 @@ QStateValue::insert(int index, const std::string &value) {
   // value must be found
   assert(value_index < m_choices.size());
 
-  while (m_values.size() < index)
-    m_values.append(0);
-  if (m_values.size() == index)
-    m_values.append(value_index);
-  else if (m_values[index] != value_index)
+  if (m_value == kUninitializedValue) {
     // selected renders have different values
-    m_values[index] = -1;
+    m_value = value_index;
+    return;
+  }
+
+  if (m_value != value_index)
+    // selected renders have different values
+    m_value = kMixedValue;
 }
 
 QStateModel::QStateModel() {}
@@ -77,25 +83,14 @@ QQmlListProperty<QStateValue> QStateModel::state() {
   return QQmlListProperty<glretrace::QStateValue>(this, m_states);
 }
 
-std::string
-state_name_to_string(StateItem n) {
-  switch (n) {
-    case glretrace::CULL_FACE:
-      return std::string("CULL_FACE");
-    case glretrace::CULL_FACE_MODE:
-      return std::string("CULL_FACE_MODE");
-    default:
-      assert(false);
-  }
-}
-
 std::vector<std::string>
-name_to_choices(StateItem n) {
-  switch (n) {
-    case glretrace::CULL_FACE:
+name_to_choices(const std::string &n) {
+  switch (state_name_to_enum(n)) {
+    case GL_CULL_FACE:
       return {"true", "false"};
-    case glretrace::CULL_FACE_MODE:
+    case GL_CULL_FACE_MODE:
       return {"GL_FRONT", "GL_BACK", "GL_FRONT_AND_BACK"};
+    case GL_INVALID_ENUM:
     default:
       assert(false);
   }
@@ -156,20 +151,19 @@ void QStateModel::onState(SelectionId selectionCount,
   }
   if (m_renders.empty() || renderId != m_renders.back())
     m_renders.push_back(renderId);
-  const auto name = state_name_to_string(item.name);
+  auto &name = item.name;
   auto state_value = m_state_by_name.find(name);
   if (state_value == m_state_by_name.end()) {
     QStateValue *i = new QStateValue(name,
-                                     name_to_choices(item.name));
+                                     name_to_choices(name));
     m_state_by_name[name] = i;
     state_value = m_state_by_name.find(name);
   }
-  state_value->second->insert(item.index, value);
+  state_value->second->insert(value);
 }
 
 void
 QStateModel::setState(const QString &name,
-                      const int index,
                       const QString &value) {
   RenderSelection sel;
   sel.id = m_sel_count;
@@ -184,8 +178,7 @@ QStateModel::setState(const QString &name,
     ++r;
   }
 
-  StateItem i = static_cast<StateItem>(state_name_to_enum(name.toStdString()));
-  StateKey key(i, index);
+  StateKey key("", "", name.toStdString());
   m_retrace->setState(sel, key, value.toStdString());
   emit stateExperiment();
 }

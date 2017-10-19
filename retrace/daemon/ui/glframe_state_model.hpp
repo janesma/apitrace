@@ -48,22 +48,23 @@ class QStateValue : public QObject, NoCopy, NoAssign, NoMove {
   Q_OBJECT
 
   Q_PROPERTY(QString name READ name CONSTANT)
-  Q_PROPERTY(QList<QVariant> values READ values CONSTANT)
+  Q_PROPERTY(QVariant value READ value CONSTANT)
   Q_PROPERTY(QList<QVariant> choices READ choices CONSTANT)
 
  public:
   QStateValue() {}
   QStateValue(const std::string &_name,
               const std::vector<std::string> &_choices);
-  void insert(int index, const std::string &value);
+  void insert(const std::string &value);
 
   QString name() const { return m_name; }
-  QList<QVariant> values() const { return m_values; }
+  QVariant value() const { return m_value; }
   QList<QVariant> choices() const { return m_choices; }
 
  private:
   QString m_name;
-  QList<QVariant> m_values, m_choices;
+  QVariant m_value;
+  QList<QVariant> m_choices;
 };
 
 class QStateModel : public QObject,
@@ -83,7 +84,6 @@ class QStateModel : public QObject,
                const std::string &value);
   void clear();
   Q_INVOKABLE void setState(const QString &name,
-                            const int index,
                             const QString &value);
 
  signals:

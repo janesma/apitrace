@@ -402,8 +402,9 @@ FrameRetraceSkeleton::Run() {
           state_resp->set_experiment_count(-1);
           state_resp->set_value("");
           auto r_item = state_resp->mutable_item();
-          r_item->set_name(ApiTrace::StateItem(ApiTrace::INVALID_STATE_ITEM));
-          r_item->set_index(0);
+          r_item->set_group("");
+          r_item->set_path("");
+          r_item->set_name("");
           writeResponse(m_socket, proto_response, &m_buf);
           break;
         }
@@ -413,8 +414,10 @@ FrameRetraceSkeleton::Run() {
           auto state = request.set_state();
           RenderSelection selection;
           makeRenderSelection(state.selection(), &selection);
-          glretrace::StateKey k((glretrace::StateItem)state.item().name(),
-                                state.item().index());
+          auto &item = state.item();
+          glretrace::StateKey k(item.group(),
+                                item.path(),
+                                item.name());
           m_frame->setState(selection, k, state.value());
           break;
         }
@@ -648,8 +651,9 @@ FrameRetraceSkeleton::onState(SelectionId selectionCount,
   response->set_selection_count(selectionCount());
   response->set_experiment_count(experimentCount.count());
   auto r_item = response->mutable_item();
-  r_item->set_name(ApiTrace::StateItem(item.name));
-  r_item->set_index(item.index);
+  r_item->set_group(item.group);
+  r_item->set_path(item.path);
+  r_item->set_name(item.name);
   response->set_value(value);
   writeResponse(m_socket, proto_response, &m_buf);
 }

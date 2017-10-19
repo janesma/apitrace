@@ -259,29 +259,31 @@ enum UniformDimension {
   k4x4
 };
 
-// Serializable asynchronous callbacks made from remote
-// implementations of IFrameRetrace.
-enum StateItem {
-  CULL_FACE = 0x0B44,
-  CULL_FACE_MODE = 0x0B45,
-  INVALID_NAME = -1,
-};
-
 struct StateKey {
-  StateItem name;
-  int index;
+  std::string group;
+  std::string path;
+  std::string name;
 
-  StateKey() : name(INVALID_NAME), index(0) {}
-  StateKey(StateItem n, int i) : name(n), index(i) {}
+  StateKey() {}
+  StateKey(const std::string _group,
+           const std::string _path,
+           const std::string _name)
+      : group(_group), path(_path), name(_name) {}
   bool operator<(const StateKey &o) const {
     if (name < o.name)
       return true;
     if (name > o.name)
       return false;
-    return index < o.index;
+    if (path < o.path)
+      return true;
+    if (path > o.path)
+      return false;
+    return group < o.group;
   }
 };
 
+// Serializable asynchronous callbacks made from remote
+// implementations of IFrameRetrace.
 class OnFrameRetrace {
  public:
   typedef std::vector<unsigned char> uvec;

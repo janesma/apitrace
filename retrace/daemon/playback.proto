@@ -231,15 +231,10 @@ message StateRequest {
   required uint32 experiment_count = 2;
 }
 
-enum StateItem {
-  CULL_FACE = 0x0B44;
-  CULL_FACE_MODE = 0x0B45;
-  INVALID_STATE_ITEM = 0x0;
-}
-
 message StateKey {
-  required StateItem name = 1;
-  required uint32 index = 2;
+  required string group = 1;
+  required string path = 2;
+  required string name = 3;
 }
 
 message StateResponse {

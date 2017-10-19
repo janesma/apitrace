@@ -50,8 +50,6 @@ using glretrace::StateTrack;
 using glretrace::RenderTargetType;
 using glretrace::RenderId;
 using glretrace::OnFrameRetrace;
-using glretrace::CULL_FACE;
-using glretrace::CULL_FACE_MODE;
 using glretrace::state_name_to_enum;
 
 static const std::string simple_fs =
@@ -153,10 +151,13 @@ class RetraceRender::UniformOverride {
 uint32_t
 glretrace::state_name_to_enum(const std::string &value) {
   static const std::map<std::string, uint32_t> names {
-    {"CULL_FACE", CULL_FACE},
-    {"CULL_FACE_MODE", CULL_FACE_MODE}
+    {"CULL_FACE", GL_CULL_FACE},
+    {"CULL_FACE_MODE", GL_CULL_FACE_MODE}
   };
-  return names.find(value)->second;
+  const auto i = names.find(value);
+  if (i == names.end())
+    return GL_INVALID_ENUM;
+  return i->second;
 }
 
 uint32_t value_to_int(const std::string &value) {
@@ -205,13 +206,13 @@ RetraceRender::StateOverride::saveState() {
   for (auto i : m_overrides) {
     if (m_saved_state.find(i.first) != m_saved_state.end())
       continue;
-    switch (i.first.name) {
-      case CULL_FACE:
+    switch (glretrace::state_name_to_enum(i.first.name)) {
+      case GL_CULL_FACE:
         assert(GL::GetError() == GL_NO_ERROR);
         m_saved_state[i.first] = GlFunctions::IsEnabled(GL_CULL_FACE);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
-      case CULL_FACE_MODE: {
+      case GL_CULL_FACE_MODE: {
         assert(GL::GetError() == GL_NO_ERROR);
         GLint cull;
         GlFunctions::GetIntegerv(GL_CULL_FACE_MODE, &cull);
@@ -219,7 +220,8 @@ RetraceRender::StateOverride::saveState() {
         m_saved_state[i.first] = cull;
         break;
       }
-      case INVALID_NAME:
+      case GL_INVALID_ENUM:
+      default:
         assert(false);
         break;
     }
@@ -238,23 +240,23 @@ RetraceRender::StateOverride::restoreState() const {
 
 void
 RetraceRender::StateOverride::enact_state(const KeyMap &m) const {
+  GL::GetError();
   for (auto i : m) {
-    switch (i.first.name) {
-      case CULL_FACE:
-        assert(GL::GetError() == GL_NO_ERROR);
+    switch (glretrace::state_name_to_enum(i.first.name)) {
+      case GL_CULL_FACE:
         if (i.second)
           GlFunctions::Enable(GL_CULL_FACE);
         else
           GlFunctions::Disable(GL_CULL_FACE);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
-      case CULL_FACE_MODE: {
-        assert(GL::GetError() == GL_NO_ERROR);
+      case GL_CULL_FACE_MODE: {
         GlFunctions::CullFace(i.second);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
-      case INVALID_NAME:
+      case GL_INVALID_ENUM:
+      default:
         assert(false);
         break;
     }
@@ -579,7 +581,7 @@ RetraceRender::onState(SelectionId selId,
     GLenum e = GL::GetError();
     if (e == GL_NO_ERROR) {
       callback->onState(selId, experimentCount, renderId,
-                        StateKey(CULL_FACE, 0),
+                        StateKey("", "", "CULL_FACE"),
                         cull_enabled ? "true" : "false");
     }
   }
@@ -592,7 +594,7 @@ RetraceRender::onState(SelectionId selId,
       const std::string cull_str = value_to_string(cull);
       if (cull_str.size() > 0) {
         callback->onState(selId, experimentCount, renderId,
-                          StateKey(CULL_FACE_MODE, 0), cull_str);
+                          StateKey("", "", "CULL_FACE_MODE"), cull_str);
       }
     }
   }

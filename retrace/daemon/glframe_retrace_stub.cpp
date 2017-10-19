@@ -999,9 +999,8 @@ class StateRequest : public IRetraceRequest {
           continue;
       }
       const RenderId rid(state_response.render_id());
-      glretrace::StateKey k((glretrace::StateItem)state_response.item().name(),
-                            state_response.item().index());
-
+      auto &item = state_response.item();
+      glretrace::StateKey k(item.group(), item.path(), item.name());
       m_callback->onState(selection, experiment, rid,
                           k, state_response.value());
     }
@@ -1028,13 +1027,15 @@ class SetStateRequest : public IRetraceRequest {
     msg.set_requesttype(ApiTrace::SET_STATE_REQUEST);
     auto req = msg.mutable_set_state();
     auto item = req->mutable_item();
-    item->set_name(static_cast<ApiTrace::StateItem>(m_item.name));
-    item->set_index(m_item.index);
+    item->set_group(m_item.group);
+    item->set_path(m_item.path);
+    item->set_name(m_item.name);
     auto selection = req->mutable_selection();
     makeRenderSelection(m_selection, selection);
     req->set_value(m_value);
     sock->request(msg);
   }
+
  private:
   const RenderSelection m_selection;
   const StateKey m_item;
