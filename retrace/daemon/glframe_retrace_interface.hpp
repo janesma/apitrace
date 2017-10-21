@@ -270,13 +270,13 @@ struct StateKey {
            const std::string _name)
       : group(_group), path(_path), name(_name) {}
   bool operator<(const StateKey &o) const {
-    if (name < o.name)
-      return true;
-    if (name > o.name)
-      return false;
     if (path < o.path)
       return true;
     if (path > o.path)
+      return false;
+    if (name < o.name)
+      return true;
+    if (name > o.name)
       return false;
     return group < o.group;
   }
