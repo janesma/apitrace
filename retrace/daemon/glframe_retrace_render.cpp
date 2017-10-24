@@ -184,6 +184,7 @@ void
 RetraceRender::StateOverride::saveState() {
   for (auto i : m_overrides) {
     if (m_saved_state.find(i.first) != m_saved_state.end())
+      // we have already saved the state
       continue;
     switch (glretrace::state_name_to_enum(i.first.name)) {
       case GL_CULL_FACE:
@@ -197,6 +198,24 @@ RetraceRender::StateOverride::saveState() {
         GlFunctions::GetIntegerv(GL_CULL_FACE_MODE, &cull);
         assert(GL::GetError() == GL_NO_ERROR);
         m_saved_state[i.first] = cull;
+        break;
+      }
+      case GL_BLEND:
+        m_saved_state[i.first] = GlFunctions::IsEnabled(GL_BLEND);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      case GL_BLEND_SRC: {
+        GLint s;
+        GlFunctions::GetIntegerv(GL_BLEND_SRC, &s);
+        assert(GL::GetError() == GL_NO_ERROR);
+        m_saved_state[i.first] = s;
+        break;
+      }
+      case GL_BLEND_DST: {
+        GLint s;
+        GlFunctions::GetIntegerv(GL_BLEND_DST, &s);
+        assert(GL::GetError() == GL_NO_ERROR);
+        m_saved_state[i.first] = s;
         break;
       }
       case GL_INVALID_ENUM:
@@ -222,15 +241,40 @@ RetraceRender::StateOverride::enact_state(const KeyMap &m) const {
   GL::GetError();
   for (auto i : m) {
     switch (glretrace::state_name_to_enum(i.first.name)) {
-      case GL_CULL_FACE:
+      case GL_CULL_FACE: {
         if (i.second)
           GlFunctions::Enable(GL_CULL_FACE);
         else
           GlFunctions::Disable(GL_CULL_FACE);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
+      }
       case GL_CULL_FACE_MODE: {
         GlFunctions::CullFace(i.second);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
+      case GL_BLEND: {
+        if (i.second)
+          GlFunctions::Enable(GL_BLEND);
+        else
+          GlFunctions::Disable(GL_BLEND);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
+      case GL_BLEND_SRC: {
+        GLint dst;
+        GlFunctions::GetIntegerv(GL_BLEND_DST, &dst);
+        assert(GL::GetError() == GL_NO_ERROR);
+        GlFunctions::BlendFunc(i.second, dst);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
+      case GL_BLEND_DST: {
+        GLint src;
+        GlFunctions::GetIntegerv(GL_BLEND_DST, &src);
+        assert(GL::GetError() == GL_NO_ERROR);
+        GlFunctions::BlendFunc(src, i.second);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
@@ -547,12 +591,11 @@ RetraceRender::onState(SelectionId selId,
     GLenum e = GL::GetError();
     if (e == GL_NO_ERROR) {
       callback->onState(selId, experimentCount, renderId,
-                        StateKey("Rendering", "Cull State", "CULL_FACE"),
+                        StateKey("Rendering", "Cull State", "GL_CULL_FACE"),
                         cull_enabled ? "true" : "false");
     }
   }
   {
-    GL::GetError();
     GLint cull;
     GlFunctions::GetIntegerv(GL_CULL_FACE_MODE, &cull);
     GLenum e = GL::GetError();
@@ -561,7 +604,43 @@ RetraceRender::onState(SelectionId selId,
       if (cull_str.size() > 0) {
         callback->onState(selId, experimentCount, renderId,
                           StateKey("Rendering", "Cull State",
-                                   "CULL_FACE_MODE"), cull_str);
+                                   "GL_CULL_FACE_MODE"), cull_str);
+      }
+    }
+  }
+  {
+    GL::GetError();
+    GLboolean enabled = GlFunctions::IsEnabled(GL_BLEND);
+    GLenum e = GL::GetError();
+    if (e == GL_NO_ERROR) {
+      callback->onState(selId, experimentCount, renderId,
+                        StateKey("Rendering", "Blend State", "GL_BLEND"),
+                        enabled ? "true" : "false");
+    }
+  }
+  {
+    GLint s;
+    GlFunctions::GetIntegerv(GL_BLEND_SRC, &s);
+    GLenum e = GL::GetError();
+    if (e == GL_NO_ERROR) {
+      const std::string state_str = state_enum_to_name(s);
+      if (state_str.size() > 0) {
+        callback->onState(selId, experimentCount, renderId,
+                          StateKey("Rendering", "Blend State",
+                                   "GL_BLEND_SRC"), state_str);
+      }
+    }
+  }
+  {
+    GLint s;
+    GlFunctions::GetIntegerv(GL_BLEND_DST, &s);
+    GLenum e = GL::GetError();
+    if (e == GL_NO_ERROR) {
+      const std::string state_str = state_enum_to_name(s);
+      if (state_str.size() > 0) {
+        callback->onState(selId, experimentCount, renderId,
+                          StateKey("Rendering", "Blend State",
+                                   "GL_BLEND_DST"), state_str);
       }
     }
   }
