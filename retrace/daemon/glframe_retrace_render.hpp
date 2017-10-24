@@ -49,8 +49,6 @@ class ExperimentId;
 class MetricId;
 class PerfMetrics;
 
-uint32_t state_name_to_enum(const std::string &value);
-
 class RetraceRender {
  public:
   RetraceRender(trace::AbstractParser *parser,

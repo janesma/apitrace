@@ -34,6 +34,7 @@
 
 #include "glframe_os.hpp"
 #include "glframe_retrace_render.hpp"
+#include "glframe_state_enums.hpp"
 
 using glretrace::QStateModel;
 using glretrace::QStateValue;
@@ -97,19 +98,6 @@ QStateModel::~QStateModel() {}
 QQmlListProperty<QStateValue> QStateModel::state() {
   ScopedLock s(m_protect);
   return QQmlListProperty<glretrace::QStateValue>(this, m_states);
-}
-
-std::vector<std::string>
-name_to_choices(const std::string &n) {
-  switch (state_name_to_enum(n)) {
-    case GL_CULL_FACE:
-      return {"true", "false"};
-    case GL_CULL_FACE_MODE:
-      return {"GL_FRONT", "GL_BACK", "GL_FRONT_AND_BACK"};
-    case GL_INVALID_ENUM:
-    default:
-      assert(false);
-  }
 }
 
 void
@@ -189,7 +177,7 @@ void QStateModel::onState(SelectionId selectionCount,
                                      item.group,
                                      item.path,
                                      name,
-                                     name_to_choices(name));
+                                     state_name_to_choices(name));
     m_state_by_name[item] = i;
     state_value = m_state_by_name.find(item);
     m_for_deletion.push_back(i);

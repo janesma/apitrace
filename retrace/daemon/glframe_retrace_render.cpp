@@ -36,6 +36,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_state.hpp"
+#include "glframe_state_enums.hpp"
 #include "glframe_uniforms.hpp"
 #include "retrace.hpp"
 #include "glstate_internal.hpp"
@@ -51,6 +52,7 @@ using glretrace::RenderTargetType;
 using glretrace::RenderId;
 using glretrace::OnFrameRetrace;
 using glretrace::state_name_to_enum;
+using glretrace::state_enum_to_name;
 
 static const std::string simple_fs =
     "void main(void) {\n"
@@ -148,35 +150,12 @@ class RetraceRender::UniformOverride {
   std::map<UniformKey, std::string> m_uniform_overrides;
 };
 
-uint32_t
-glretrace::state_name_to_enum(const std::string &value) {
-  static const std::map<std::string, uint32_t> names {
-    {"CULL_FACE", GL_CULL_FACE},
-    {"CULL_FACE_MODE", GL_CULL_FACE_MODE}
-  };
-  const auto i = names.find(value);
-  if (i == names.end())
-    return GL_INVALID_ENUM;
-  return i->second;
-}
-
-uint32_t value_to_int(const std::string &value) {
-  static const std::map<std::string, uint32_t> lookup = {
-    {"GL_FRONT", GL_FRONT},
-    {"GL_BACK", GL_BACK},
-    {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
-    {"true", 1},
-    {"false", 0}
-  };
-  return lookup.find(value)->second;
-}
-
 class RetraceRender::StateOverride {
  public:
   StateOverride() {}
   void setState(const StateKey &item,
                 const std::string &value) {
-    m_overrides[item] = value_to_int(value);
+    m_overrides[item] = state_name_to_enum(value);
   }
   void saveState();
   void overrideState() const;
@@ -557,19 +536,6 @@ RetraceRender::setUniform(const std::string &name, int index,
   m_uniform_override->setUniform(name, index, data);
 }
 
-std::string value_to_string(GLint value) {
-  switch (value) {
-    case GL_FRONT:
-      return std::string("GL_FRONT");
-    case GL_BACK:
-      return std::string("GL_BACK");
-    case GL_FRONT_AND_BACK:
-      return std::string("GL_FRONT_AND_BACK");
-    default:
-      assert(false);
-  }
-}
-
 void
 RetraceRender::onState(SelectionId selId,
                        ExperimentId experimentCount,
@@ -591,7 +557,7 @@ RetraceRender::onState(SelectionId selId,
     GlFunctions::GetIntegerv(GL_CULL_FACE_MODE, &cull);
     GLenum e = GL::GetError();
     if (e == GL_NO_ERROR) {
-      const std::string cull_str = value_to_string(cull);
+      const std::string cull_str = state_enum_to_name(cull);
       if (cull_str.size() > 0) {
         callback->onState(selId, experimentCount, renderId,
                           StateKey("Rendering", "Cull State",
