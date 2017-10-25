@@ -242,13 +242,13 @@ message StateResponse {
   required uint32 render_id = 2;
   required uint32 experiment_count = 3;
   required StateKey item = 4;
-  required string value = 5;
+  repeated string value = 5;
 }
 
 message SetStateRequest {
   required RenderSelection selection = 1;
   required StateKey item = 2;
-  required string value = 3;
+  repeated string value = 3;
 }
 
 message RetraceRequest {

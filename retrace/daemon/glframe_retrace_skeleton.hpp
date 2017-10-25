@@ -100,7 +100,7 @@ class FrameRetraceSkeleton : public Thread,
                        ExperimentId experimentCount,
                        RenderId renderId,
                        StateKey item,
-                       const std::string &value);
+                       const std::vector<std::string> &value);
 
  protected:
   bool m_force_upload;  // for unit test

@@ -978,7 +978,7 @@ class StateRequest : public IRetraceRequest {
         m_callback->onState(SelectionId(SelectionId::INVALID_SELECTION),
                             ExperimentId(ExperimentId::INVALID_EXPERIMENT-1),
                             RenderId(RenderId::INVALID_RENDER),
-                            glretrace::StateKey(), "");
+                            glretrace::StateKey(), std::vector<std::string>());
         break;
       }
 
@@ -1001,8 +1001,11 @@ class StateRequest : public IRetraceRequest {
       const RenderId rid(state_response.render_id());
       auto &item = state_response.item();
       glretrace::StateKey k(item.group(), item.path(), item.name());
+      std::vector<std::string> value;
+      for (auto v : state_response.value())
+        value.push_back(v);
       m_callback->onState(selection, experiment, rid,
-                          k, state_response.value());
+                          k, value);
     }
   }
 
@@ -1018,7 +1021,7 @@ class SetStateRequest : public IRetraceRequest {
  public:
   SetStateRequest(const RenderSelection &selection,
                   StateKey item,
-                  const std::string &value)
+                  const std::vector<std::string> &value)
       : m_selection(selection),
         m_item(item),
         m_value(value) {}
@@ -1032,14 +1035,15 @@ class SetStateRequest : public IRetraceRequest {
     item->set_name(m_item.name);
     auto selection = req->mutable_selection();
     makeRenderSelection(m_selection, selection);
-    req->set_value(m_value);
+    for (auto v : m_value)
+      req->add_value(v);
     sock->request(msg);
   }
 
  private:
   const RenderSelection m_selection;
   const StateKey m_item;
-  const std::string m_value;
+  const std::vector<std::string> m_value;
 };
 
 class NullRequest : public IRetraceRequest {
@@ -1322,6 +1326,6 @@ FrameRetraceStub::retraceState(const RenderSelection &selection,
 void
 FrameRetraceStub::setState(const RenderSelection &selection,
                            const StateKey &item,
-                           const std::string &value) {
+                           const std::vector<std::string> &value) {
   m_thread->push(new SetStateRequest(selection, item, value));
 }

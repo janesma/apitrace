@@ -400,7 +400,7 @@ FrameRetraceSkeleton::Run() {
           state_resp->set_selection_count(-1);
           state_resp->set_render_id(-1);
           state_resp->set_experiment_count(-1);
-          state_resp->set_value("");
+          state_resp->add_value("");
           auto r_item = state_resp->mutable_item();
           r_item->set_group("");
           r_item->set_path("");
@@ -418,7 +418,10 @@ FrameRetraceSkeleton::Run() {
           glretrace::StateKey k(item.group(),
                                 item.path(),
                                 item.name());
-          m_frame->setState(selection, k, state.value());
+          std::vector<std::string> value;
+          for (auto v : state.value())
+            value.push_back(v);
+          m_frame->setState(selection, k, value);
           break;
         }
     }
@@ -644,7 +647,7 @@ FrameRetraceSkeleton::onState(SelectionId selectionCount,
                               ExperimentId experimentCount,
                               RenderId renderId,
                               StateKey item,
-                              const std::string &value) {
+                              const std::vector<std::string> &value) {
   RetraceResponse proto_response;
   auto response = proto_response.mutable_state();
   response->set_render_id(renderId());
@@ -654,6 +657,7 @@ FrameRetraceSkeleton::onState(SelectionId selectionCount,
   r_item->set_group(item.group);
   r_item->set_path(item.path);
   r_item->set_name(item.name);
-  response->set_value(value);
+  for (auto i : value)
+    response->add_value(i);
   writeResponse(m_socket, proto_response, &m_buf);
 }

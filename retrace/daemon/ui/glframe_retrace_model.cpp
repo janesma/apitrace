@@ -629,7 +629,7 @@ FrameRetraceModel::onState(SelectionId selectionCount,
                            ExperimentId experimentCount,
                            RenderId renderId,
                            StateKey item,
-                           const std::string &value) {
+                           const std::vector<std::string> &value) {
   m_stateModel->onState(selectionCount, experimentCount,
                         renderId, item, value);
 }

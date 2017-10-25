@@ -52,6 +52,7 @@ class QStateValue : public QObject, NoCopy, NoAssign, NoMove {
   Q_PROPERTY(QString name READ name CONSTANT)
   Q_PROPERTY(QVariant value READ value CONSTANT)
   Q_PROPERTY(QVariant indent READ indent CONSTANT)
+  Q_PROPERTY(QStateType valueType READ valueType CONSTANT)
   Q_PROPERTY(QVariant visible
              READ visible
              WRITE setVisible
@@ -59,6 +60,14 @@ class QStateValue : public QObject, NoCopy, NoAssign, NoMove {
   Q_PROPERTY(QList<QVariant> choices READ choices CONSTANT)
 
  public:
+  enum QStateType {
+    KglDirectory,
+    KglEnum,
+    KglFloat,
+    KglColor
+  };
+  Q_ENUMS(QStateType);
+
   explicit QStateValue(QObject *parent = 0);
   QStateValue(QObject *parent,
               const std::string &_group,
@@ -66,10 +75,13 @@ class QStateValue : public QObject, NoCopy, NoAssign, NoMove {
               const std::string &_name,
               const std::vector<std::string> &_choices);
   void insert(const std::string &value);
+  void insert(const std::string &red, const std::string &blue,
+              const std::string &green, const std::string &alpha);
 
   QString group() const { return m_group; }
   QString path() const { return m_path; }
   QString name() const { return m_name; }
+  QStateType valueType() const { return m_type; }
   QVariant value() const { return m_value; }
   QVariant indent() const { return m_indent; }
   QVariant visible() const { return m_visible; }
@@ -82,6 +94,7 @@ class QStateValue : public QObject, NoCopy, NoAssign, NoMove {
  private:
   QString m_group, m_path, m_name;
   QVariant m_value, m_indent, m_visible;
+  QStateType m_type;
   QList<QVariant> m_choices;
 };
 
@@ -99,7 +112,7 @@ class QStateModel : public QObject,
                ExperimentId experimentCount,
                RenderId renderId,
                StateKey item,
-               const std::string &value);
+               const std::vector<std::string> &value);
   void clear();
   Q_INVOKABLE void setState(const QString &group,
                             const QString &path,

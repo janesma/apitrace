@@ -187,7 +187,7 @@ class FrameRetraceModel : public QObject,
                ExperimentId experimentCount,
                RenderId renderId,
                StateKey item,
-               const std::string &value);
+               const std::vector<std::string> &value);
 
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }

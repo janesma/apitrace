@@ -135,7 +135,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                        ExperimentId experimentCount,
                        RenderId renderId,
                        StateKey item,
-                       const std::string &value) { assert(false); }
+               const std::vector<std::string> &value) { assert(false); }
 
   void filter(const QString& f);
 

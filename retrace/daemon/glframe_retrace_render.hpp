@@ -90,7 +90,7 @@ class RetraceRender {
   void setUniform(const std::string &name, int index,
                   const std::string &data);
   void setState(const StateKey &item,
-                const std::string &value);
+                const std::vector<std::string> &value);
 
   static bool isRender(const trace::Call &c);
   static bool changesContext(const trace::Call &c);

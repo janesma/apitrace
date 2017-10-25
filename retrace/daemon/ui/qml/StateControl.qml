@@ -27,7 +27,7 @@ Item {
                         anchors.bottom: nameText.bottom
                         width: nameText.height
                         height: nameText.height
-                        visible: modelData.choices.length == 0
+                        visible: (modelData.valueType == QStateValue.KglDirectory)
                         property var collapsed: false
                         color: collapse.collapsed ? "red" : "green"
                         MouseArea {
@@ -50,12 +50,24 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: modelData.name + " : "
                     }
+                    Row {
+                        visible: (modelData.valueType == QStateValue.KglColor)
+                        Text{
+                            text: "Color: "
+                        }
+                        Repeater{
+                            model: modelData.value
+                            Text{
+                                text: modelData
+                            }
+                        }
+                    }
                     ComboBoxFitContents {
                         id: combo
                         anchors.verticalCenter: parent.verticalCenter
                         model: modelData.choices
-                        currentIndex: modelData.value
-                        visible: (modelData.choices.length > 0)
+                        currentIndex: (modelData.valueType == QStateValue.KglEnum ? modelData.value : 0)
+                        visible: (modelData.valueType == QStateValue.KglEnum)
                         onActivated: {
                             stateModel.setState(modelData.group,
                                                 modelData.path,

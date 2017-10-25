@@ -331,7 +331,7 @@ class OnFrameRetrace {
                        ExperimentId experimentCount,
                        RenderId renderId,
                        StateKey item,
-                       const std::string &value) = 0;
+                       const std::vector<std::string> &value) = 0;
 };
 
 // Serializable asynchronous retrace requests.
@@ -392,7 +392,7 @@ class IFrameRetrace {
                             OnFrameRetrace *callback) = 0;
   virtual void setState(const RenderSelection &selection,
                         const StateKey &item,
-                        const std::string &value) = 0;
+                        const std::vector<std::string> &value) = 0;
 };
 
 class FrameState {

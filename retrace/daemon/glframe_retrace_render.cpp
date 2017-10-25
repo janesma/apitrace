@@ -154,9 +154,9 @@ class RetraceRender::StateOverride {
  public:
   StateOverride() {}
   void setState(const StateKey &item,
-                const std::string &value) {
-    m_overrides[item] = state_name_to_enum(value);
-  }
+                const std::vector<float> &value);
+  void setState(const StateKey &item,
+                GLint value);
   void saveState();
   void overrideState() const;
   void restoreState() const;
@@ -174,11 +174,80 @@ class RetraceRender::StateOverride {
       return offset < o.offset;
     }
   };
-  typedef std::map<StateKey, uint32_t> KeyMap;
+  enum Type {
+    kUnknown,
+    kBool,
+    kFloat,
+    kEnum
+  };
+
+  typedef std::map<StateKey, std::vector<uint32_t>> KeyMap;
   void enact_state(const KeyMap &m) const;
+  void enact_enabled_state(const StateKey &k,
+                           const std::vector<uint32_t> &v,
+                           GLint setting) const;
+  void enact_int_state(const StateKey &k, const std::vector<uint32_t> &v) const;
+  void save_enabled_state(const StateKey &k, GLint v);
+  void save_int_state(const StateKey &k, GLint v);
   KeyMap m_overrides;
   KeyMap m_saved_state;
+  std::map<StateKey, Type> m_data_types;
 };
+
+void
+RetraceRender::StateOverride::setState(const StateKey &item,
+                                       GLint value) {
+  auto &i = m_overrides[item];
+  if (i.empty()) {
+    i.push_back(value);
+    return;
+  }
+  assert(i.size() == 1);
+  i[0] = value;
+}
+
+void
+RetraceRender::StateOverride::setState(const StateKey &item,
+                                       const std::vector<float> &value) {
+  m_data_types[item] = kFloat;
+  auto &i = m_overrides[item];
+  if (i.empty())
+    i.resize(value.size());
+  assert(i.size() == value.size());
+
+  union {
+    uint32_t i;
+    float f;
+  } u;
+  for (int j = 0; j < value.size(); ++j) {
+    u.f = value[j];
+    i[j] = u.i;
+  }
+}
+
+void
+RetraceRender::StateOverride::save_enabled_state(const StateKey &k, GLint v) {
+  if (m_data_types[k] == kUnknown)
+    m_data_types[k] = kBool;
+  assert(m_data_types[k] == kBool);
+  assert(GL::GetError() == GL_NO_ERROR);
+  assert(m_saved_state[k].empty());
+  m_saved_state[k].push_back(static_cast<uint32_t>(GlFunctions::IsEnabled(v)));
+  assert(GL::GetError() == GL_NO_ERROR);
+}
+
+void
+RetraceRender::StateOverride::save_int_state(const StateKey &k, GLint v) {
+  if (m_data_types[k] == kUnknown)
+    m_data_types[k] = kEnum;
+  assert(m_data_types[k] == kEnum);
+  assert(GL::GetError() == GL_NO_ERROR);
+  assert(m_saved_state[k].empty());
+  GLint data;
+  GlFunctions::GetIntegerv(v, &data);
+  assert(GL::GetError() == GL_NO_ERROR);
+  m_saved_state[k].push_back(static_cast<uint32_t>(data));
+}
 
 void
 RetraceRender::StateOverride::saveState() {
@@ -188,34 +257,21 @@ RetraceRender::StateOverride::saveState() {
       continue;
     switch (glretrace::state_name_to_enum(i.first.name)) {
       case GL_CULL_FACE:
-        assert(GL::GetError() == GL_NO_ERROR);
-        m_saved_state[i.first] = GlFunctions::IsEnabled(GL_CULL_FACE);
-        assert(GL::GetError() == GL_NO_ERROR);
+        save_enabled_state(i.first, GL_CULL_FACE);
         break;
       case GL_CULL_FACE_MODE: {
-        assert(GL::GetError() == GL_NO_ERROR);
-        GLint cull;
-        GlFunctions::GetIntegerv(GL_CULL_FACE_MODE, &cull);
-        assert(GL::GetError() == GL_NO_ERROR);
-        m_saved_state[i.first] = cull;
+        save_int_state(i.first, GL_CULL_FACE_MODE);
         break;
       }
       case GL_BLEND:
-        m_saved_state[i.first] = GlFunctions::IsEnabled(GL_BLEND);
-        assert(GL::GetError() == GL_NO_ERROR);
+        save_enabled_state(i.first, GL_BLEND);
         break;
       case GL_BLEND_SRC: {
-        GLint s;
-        GlFunctions::GetIntegerv(GL_BLEND_SRC, &s);
-        assert(GL::GetError() == GL_NO_ERROR);
-        m_saved_state[i.first] = s;
+        save_int_state(i.first, GL_BLEND_SRC);
         break;
       }
       case GL_BLEND_DST: {
-        GLint s;
-        GlFunctions::GetIntegerv(GL_BLEND_DST, &s);
-        assert(GL::GetError() == GL_NO_ERROR);
-        m_saved_state[i.first] = s;
+        save_int_state(i.first, GL_BLEND_DST);
         break;
       }
       case GL_INVALID_ENUM:
@@ -237,36 +293,42 @@ RetraceRender::StateOverride::restoreState() const {
 }
 
 void
+RetraceRender::StateOverride::enact_enabled_state(
+    const StateKey &k,
+    const std::vector<uint32_t> &v,
+    GLint setting) const {
+  assert(m_data_types.find(k)->second == kBool);
+  assert(v.size() == 1);
+  if (v[0])
+    GlFunctions::Enable(setting);
+  else
+    GlFunctions::Disable(setting);
+  assert(GL::GetError() == GL_NO_ERROR);
+}
+
+void
 RetraceRender::StateOverride::enact_state(const KeyMap &m) const {
   GL::GetError();
   for (auto i : m) {
     switch (glretrace::state_name_to_enum(i.first.name)) {
       case GL_CULL_FACE: {
-        if (i.second)
-          GlFunctions::Enable(GL_CULL_FACE);
-        else
-          GlFunctions::Disable(GL_CULL_FACE);
-        assert(GL::GetError() == GL_NO_ERROR);
+        enact_enabled_state(i.first, i.second, GL_CULL_FACE);
         break;
       }
       case GL_CULL_FACE_MODE: {
-        GlFunctions::CullFace(i.second);
+        GlFunctions::CullFace(i.second[0]);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
       case GL_BLEND: {
-        if (i.second)
-          GlFunctions::Enable(GL_BLEND);
-        else
-          GlFunctions::Disable(GL_BLEND);
-        assert(GL::GetError() == GL_NO_ERROR);
+        enact_enabled_state(i.first, i.second, GL_BLEND);
         break;
       }
       case GL_BLEND_SRC: {
         GLint dst;
         GlFunctions::GetIntegerv(GL_BLEND_DST, &dst);
         assert(GL::GetError() == GL_NO_ERROR);
-        GlFunctions::BlendFunc(i.second, dst);
+        GlFunctions::BlendFunc(i.second[0], dst);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
@@ -274,7 +336,7 @@ RetraceRender::StateOverride::enact_state(const KeyMap &m) const {
         GLint src;
         GlFunctions::GetIntegerv(GL_BLEND_DST, &src);
         assert(GL::GetError() == GL_NO_ERROR);
-        GlFunctions::BlendFunc(src, i.second);
+        GlFunctions::BlendFunc(src, i.second[0]);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
@@ -592,7 +654,7 @@ RetraceRender::onState(SelectionId selId,
     if (e == GL_NO_ERROR) {
       callback->onState(selId, experimentCount, renderId,
                         StateKey("Rendering", "Cull State", "GL_CULL_FACE"),
-                        cull_enabled ? "true" : "false");
+                        {cull_enabled ? "true" : "false"});
     }
   }
   {
@@ -604,7 +666,7 @@ RetraceRender::onState(SelectionId selId,
       if (cull_str.size() > 0) {
         callback->onState(selId, experimentCount, renderId,
                           StateKey("Rendering", "Cull State",
-                                   "GL_CULL_FACE_MODE"), cull_str);
+                                   "GL_CULL_FACE_MODE"), {cull_str});
       }
     }
   }
@@ -615,7 +677,7 @@ RetraceRender::onState(SelectionId selId,
     if (e == GL_NO_ERROR) {
       callback->onState(selId, experimentCount, renderId,
                         StateKey("Rendering", "Blend State", "GL_BLEND"),
-                        enabled ? "true" : "false");
+                        {enabled ? "true" : "false"});
     }
   }
   {
@@ -627,7 +689,7 @@ RetraceRender::onState(SelectionId selId,
       if (state_str.size() > 0) {
         callback->onState(selId, experimentCount, renderId,
                           StateKey("Rendering", "Blend State",
-                                   "GL_BLEND_SRC"), state_str);
+                                   "GL_BLEND_SRC"), {state_str});
       }
     }
   }
@@ -640,14 +702,35 @@ RetraceRender::onState(SelectionId selId,
       if (state_str.size() > 0) {
         callback->onState(selId, experimentCount, renderId,
                           StateKey("Rendering", "Blend State",
-                                   "GL_BLEND_DST"), state_str);
+                                   "GL_BLEND_DST"), {state_str});
       }
+    }
+  }
+  {
+    GLfloat s[4];
+    GlFunctions::GetFloatv(GL_BLEND_COLOR, s);
+    GLenum e = GL::GetError();
+    if (e == GL_NO_ERROR) {
+      std::vector<std::string> color;
+      color.push_back(std::to_string(s[0]));
+      color.push_back(std::to_string(s[1]));
+      color.push_back(std::to_string(s[2]));
+      color.push_back(std::to_string(s[3]));
+      callback->onState(selId, experimentCount, renderId,
+                        StateKey("Rendering", "Blend State",
+                                 "GL_BLEND_COLOR"), color);
     }
   }
 }
 
 void
 RetraceRender::setState(const StateKey &item,
-                        const std::string &value) {
-  m_state_override->setState(item, value);
+                        const std::vector<std::string> &value) {
+  uint32_t e = state_name_to_enum(value[0]);
+  if (e != GL_INVALID_ENUM)
+    return m_state_override->setState(item, e);
+  std::vector<float> d;
+  for (auto i : value)
+    d.push_back(std::stof(i));
+  m_state_override->setState(item, d);
 }

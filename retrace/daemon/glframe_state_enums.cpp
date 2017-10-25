@@ -57,6 +57,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
     {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
     {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA},
+    {"GL_BLEND_COLOR", GL_BLEND_COLOR},
     {"true", 1},
     {"false", 0}
   };
@@ -144,8 +145,9 @@ glretrace::state_name_to_choices(const std::string &n) {
             "GL_CONSTANT_ALPHA",
             "GL_ONE_MINUS_CONSTANT_ALPHA"};
     case GL_INVALID_ENUM:
-    default:
       assert(false);
+    default:
+      return {};
   }
 }
 
