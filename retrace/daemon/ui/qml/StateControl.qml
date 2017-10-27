@@ -53,12 +53,79 @@ Item {
                     Row {
                         visible: (modelData.valueType == QStateValue.KglColor)
                         Text{
-                            text: "Color: "
+                            text: "Red: "
                         }
-                        Repeater{
-                            model: modelData.value
-                            Text{
-                                text: modelData
+                        TextInput {
+                            anchors.margins: 3
+                            validator: DoubleValidator{}
+                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[0] : ""
+                            Keys.onReturnPressed: {
+                                if (!acceptableInput) {
+                                    text = modelData.value[0];
+                                    return;
+                                }
+                                stateModel.setState(modelData.group,
+                                                    modelData.path,
+                                                    modelData.name,
+                                                    0,
+                                                    text);
+                            }
+                        }
+                        Text{
+                            text: "Blue: "
+                        }
+                        TextInput {
+                            anchors.margins: 3
+                            validator: DoubleValidator{}
+                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[1] : ""
+                            Keys.onReturnPressed: {
+                                if (!acceptableInput) {
+                                    text = modelData.value[1];
+                                    return;
+                                }
+                                stateModel.setState(modelData.group,
+                                                    modelData.path,
+                                                    modelData.name,
+                                                    1,
+                                                    text);
+                            }
+                        }
+                        Text{
+                            text: "Green: "
+                        }
+                        TextInput {
+                            anchors.margins: 3
+                            validator: DoubleValidator{}
+                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[2] : ""
+                            Keys.onReturnPressed: {
+                                if (!acceptableInput) {
+                                    text = modelData.value[2];
+                                    return;
+                                }
+                                stateModel.setState(modelData.group,
+                                                    modelData.path,
+                                                    modelData.name,
+                                                    2,
+                                                    text);
+                            }
+                        }
+                        Text{
+                            text: "Alpha: "
+                        }
+                        TextInput {
+                            validator: DoubleValidator{}
+                            anchors.margins: 3
+                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[3] : ""
+                            Keys.onReturnPressed: {
+                                if (!acceptableInput) {
+                                    text = modelData.value[3];
+                                    return;
+                                }
+                                stateModel.setState(modelData.group,
+                                                    modelData.path,
+                                                    modelData.name,
+                                                    3,
+                                                    text);
                             }
                         }
                     }
@@ -72,6 +139,7 @@ Item {
                             stateModel.setState(modelData.group,
                                                 modelData.path,
                                                 modelData.name,
+                                                0,
                                                 modelData.choices[currentIndex]);
                         }
                     }

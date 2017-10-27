@@ -117,6 +117,7 @@ class QStateModel : public QObject,
   Q_INVOKABLE void setState(const QString &group,
                             const QString &path,
                             const QString &name,
+                            int offset,
                             const QString &value);
   Q_INVOKABLE void collapse(const QString &path);
   Q_INVOKABLE void expand(const QString &path);

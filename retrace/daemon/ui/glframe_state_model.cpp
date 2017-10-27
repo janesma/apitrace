@@ -227,6 +227,7 @@ void
 QStateModel::setState(const QString &group,
                       const QString &path,
                       const QString &name,
+                      int offset,
                       const QString &value) {
   RenderSelection sel;
   sel.id = m_sel_count;
@@ -242,7 +243,7 @@ QStateModel::setState(const QString &group,
   }
 
   StateKey key(group.toStdString(), path.toStdString(), name.toStdString());
-  m_retrace->setState(sel, key, {value.toStdString()});
+  m_retrace->setState(sel, key, offset, value.toStdString());
   emit stateExperiment();
 }
 
@@ -314,3 +315,4 @@ QStateModel::refresh() {
   }
   emit stateChanged();
 }
+

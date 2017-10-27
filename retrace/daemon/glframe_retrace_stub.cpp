@@ -1021,9 +1021,11 @@ class SetStateRequest : public IRetraceRequest {
  public:
   SetStateRequest(const RenderSelection &selection,
                   StateKey item,
-                  const std::vector<std::string> &value)
+                  int offset,
+                  const std::string &value)
       : m_selection(selection),
         m_item(item),
+        m_offset(offset),
         m_value(value) {}
   void retrace(RetraceSocket *sock) {
     RetraceRequest msg;
@@ -1035,15 +1037,16 @@ class SetStateRequest : public IRetraceRequest {
     item->set_name(m_item.name);
     auto selection = req->mutable_selection();
     makeRenderSelection(m_selection, selection);
-    for (auto v : m_value)
-      req->add_value(v);
+    req->set_offset(m_offset);
+    req->set_value(m_value);
     sock->request(msg);
   }
 
  private:
   const RenderSelection m_selection;
   const StateKey m_item;
-  const std::vector<std::string> m_value;
+  const int m_offset;
+  const std::string m_value;
 };
 
 class NullRequest : public IRetraceRequest {
@@ -1326,6 +1329,7 @@ FrameRetraceStub::retraceState(const RenderSelection &selection,
 void
 FrameRetraceStub::setState(const RenderSelection &selection,
                            const StateKey &item,
-                           const std::vector<std::string> &value) {
-  m_thread->push(new SetStateRequest(selection, item, value));
+                           int offset,
+                           const std::string &value) {
+  m_thread->push(new SetStateRequest(selection, item, offset, value));
 }

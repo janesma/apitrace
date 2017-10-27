@@ -399,9 +399,10 @@ FrameRetrace::retraceState(const RenderSelection &selection,
 void
 FrameRetrace::setState(const RenderSelection &selection,
                        const StateKey &item,
-                       const std::vector<std::string> &value) {
+                       int offset,
+                       const std::string &value) {
   // reset to beginning of frame
   parser->setBookmark(frame_start.start);
   for (auto i : m_contexts)
-    i->setState(selection, item, value);
+    i->setState(selection, item, offset, value, m_tracker);
 }

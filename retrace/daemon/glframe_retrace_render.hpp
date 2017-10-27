@@ -48,6 +48,7 @@ class OnFrameRetrace;
 class ExperimentId;
 class MetricId;
 class PerfMetrics;
+class StateOverride;
 
 class RetraceRender {
  public:
@@ -90,7 +91,8 @@ class RetraceRender {
   void setUniform(const std::string &name, int index,
                   const std::string &data);
   void setState(const StateKey &item,
-                const std::vector<std::string> &value);
+                int offset,
+                const std::string &value);
 
   static bool isRender(const trace::Call &c);
   static bool changesContext(const trace::Call &c);
@@ -120,7 +122,6 @@ class RetraceRender {
   bool m_disabled, m_simple_shader;
   class UniformOverride;
   UniformOverride *m_uniform_override;
-  class StateOverride;
   StateOverride *m_state_override;
 };
 

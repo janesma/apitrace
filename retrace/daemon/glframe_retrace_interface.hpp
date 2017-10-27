@@ -392,7 +392,8 @@ class IFrameRetrace {
                             OnFrameRetrace *callback) = 0;
   virtual void setState(const RenderSelection &selection,
                         const StateKey &item,
-                        const std::vector<std::string> &value) = 0;
+                        int offset,
+                        const std::string &value) = 0;
 };
 
 class FrameState {

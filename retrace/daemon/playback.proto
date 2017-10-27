@@ -248,7 +248,8 @@ message StateResponse {
 message SetStateRequest {
   required RenderSelection selection = 1;
   required StateKey item = 2;
-  repeated string value = 3;
+  required uint32 offset = 3;
+  required string value = 4;
 }
 
 message RetraceRequest {

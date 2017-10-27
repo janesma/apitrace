@@ -112,7 +112,9 @@ class RetraceContext {
                     OnFrameRetrace *callback);
   void setState(const RenderSelection &selection,
                 const StateKey &item,
-                const std::vector<std::string> &value);
+                int offset,
+                const std::string &value,
+                const StateTrack &tracker);
 
  private:
   trace::AbstractParser *m_parser;

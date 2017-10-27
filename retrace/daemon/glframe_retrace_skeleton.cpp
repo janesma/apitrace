@@ -418,10 +418,7 @@ FrameRetraceSkeleton::Run() {
           glretrace::StateKey k(item.group(),
                                 item.path(),
                                 item.name());
-          std::vector<std::string> value;
-          for (auto v : state.value())
-            value.push_back(v);
-          m_frame->setState(selection, k, value);
+          m_frame->setState(selection, k, state.offset(), state.value());
           break;
         }
     }

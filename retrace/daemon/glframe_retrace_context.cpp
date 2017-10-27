@@ -505,9 +505,12 @@ RetraceContext::retraceState(const RenderSelection &selection,
 void
 RetraceContext::setState(const RenderSelection &selection,
                          const StateKey &item,
-                         const std::vector<std::string> &value) {
+                         int offset,
+                         const std::string &value,
+                         const StateTrack &tracker) {
   for (auto r : m_renders) {
+    r.second->retrace(tracker);
     if (isSelected(r.first, selection))
-      r.second->setState(item, value);
+      r.second->setState(item, offset, value);
   }
 }
