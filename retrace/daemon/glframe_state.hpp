@@ -145,6 +145,7 @@ class StateTrack {
   void trackBindAttribLocation(const trace::Call &);
   void trackGetAttribLocation(const trace::Call &);
   void trackGetUniformLocation(const trace::Call &);
+  void trackGetProgramResourceName(const trace::Call &);
   void trackGetUniformBlockIndex(const trace::Call &);
   void trackUniformBlockBinding(const trace::Call &);
   void trackBindFragDataLocation(const trace::Call &);

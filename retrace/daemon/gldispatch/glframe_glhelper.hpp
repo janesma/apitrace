@@ -112,6 +112,9 @@ class GlFunctions {
   static void GetProgramiv(GLuint program, GLenum pname, GLint *params);
   static void GetProgramInfoLog(GLuint program, GLsizei bufSize,
                                 GLsizei *length, GLchar *infoLog);
+  static void GetProgramResourceName(GLuint program, GLenum programInterface,
+                                     GLuint index, GLsizei bufSize,
+                                     GLsizei *length, GLchar *name);
 
   static void GetBooleanv(GLenum pname, GLboolean *params);
   static void GetFloatv(GLenum pname, GLfloat *params);

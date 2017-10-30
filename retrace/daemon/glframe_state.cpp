@@ -32,6 +32,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "GL/gl.h"
 #include "GL/glext.h"
@@ -74,6 +75,7 @@ StateTrack::TrackMap::TrackMap() {
   lookup["glBindAttribLocation"] = &StateTrack::trackBindAttribLocation;
   lookup["glGetAttribLocation"] = &StateTrack::trackGetAttribLocation;
   lookup["glGetUniformLocation"] = &StateTrack::trackGetUniformLocation;
+  lookup["glGetProgramResourceName"] = &StateTrack::trackGetProgramResourceName;
   lookup["glGetUniformBlockIndex"] = &StateTrack::trackGetUniformBlockIndex;
   lookup["glUniformBlockBinding"] = &StateTrack::trackUniformBlockBinding;
   lookup["glBindFragDataLocation"] = &StateTrack::trackBindFragDataLocation;
@@ -771,6 +773,25 @@ StateTrack::trackGetUniformLocation(const Call &call) {
   const int location = GlFunctions::GetUniformLocation(program,
                                                        name.c_str());
   m_program_to_uniform_name[program][location] = name;
+}
+
+void
+StateTrack::trackGetProgramResourceName(const Call &call) {
+  const int call_program = call.args[0].value->toDouble();
+  const int program = glretrace::getRetracedProgram(call_program);
+  const int programInterface = call.args[1].value->toDouble();
+  const int index = call.args[2].value->toDouble();
+  const int bufSize = call.args[3].value->toDouble();
+
+  GLsizei length;
+  std::vector<char> name(bufSize);
+  GlFunctions::GetProgramResourceName(program,
+                                      programInterface,
+                                      index,
+                                      bufSize,
+                                      &length,
+                                      name.data());
+  m_program_to_uniform_name[program][index] = name.data();
 }
 
 void

@@ -81,6 +81,7 @@ static void *pEndPerfQueryINTEL = NULL;
 static void *pGetPerfQueryDataINTEL = NULL;
 static void *pGetProgramiv = NULL;
 static void *pGetProgramInfoLog = NULL;
+static void *pGetProgramResourceName = NULL;
 static void *pGetBooleanv = NULL;
 static void *pGetFloatv = NULL;
 static void *pBlendColor = NULL;
@@ -251,6 +252,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetProgramiv);
   pGetProgramInfoLog = _GetProcAddress("glGetProgramInfoLog");
   assert(pGetProgramInfoLog);
+  pGetProgramResourceName = _GetProcAddress("glGetProgramResourceName");
+  assert(pGetProgramResourceName);
   pGetBooleanv = _GetProcAddress("glGetBooleanv");
   assert(pGetBooleanv);
   pGetFloatv = _GetProcAddress("glGetFloatv");
@@ -644,6 +647,21 @@ GlFunctions::GetProgramInfoLog(GLuint program, GLsizei bufSize,
   ((GETPROGRAMINFOLOG) pGetProgramInfoLog)(program, bufSize,
                                            length, infoLog);
 }
+
+void
+GlFunctions::GetProgramResourceName(GLuint program, GLenum programInterface,
+                                    GLuint index, GLsizei bufSize,
+                                    GLsizei *length, GLchar *name) {
+  typedef void (*GETPROGRAMRESOURCENAME)(GLuint program,
+                                         GLenum programInterface,
+                                         GLuint index, GLsizei bufSize,
+                                         GLsizei *length, GLchar *name);
+  ((GETPROGRAMRESOURCENAME) pGetProgramResourceName)(program,
+                                                     programInterface,
+                                                     index, bufSize,
+                                                     length, name);
+}
+
 
 void
 GlFunctions::GetBooleanv(GLenum pname, GLboolean *params) {
