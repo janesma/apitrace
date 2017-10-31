@@ -112,9 +112,12 @@ QStateValue::insert(const std::string &red,
 
   if (m_value != color) {
     // selected renders have different values
-    for (auto c : color)
-      c = "###";
-    m_value = color;
+    QStringList tmp = m_value.value<QStringList>();
+    for (int i = 0; i < 4; ++i) {
+      if (tmp[i] != color[i])
+        tmp[i] = "###";
+    }
+    m_value = tmp;
   }
 }
 
