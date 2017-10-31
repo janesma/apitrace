@@ -16,29 +16,34 @@ Item {
                 Row {
                     visible: modelData.visible
                     height: modelData.visible ? combo.height : 0
+                    spacing: 10
                     Rectangle {
                         id: indent
                         width: nameText.height * modelData.indent
                         height: 1
                         opacity: 0.0
                     }
-                    Rectangle {
+                    Image {
                         id: collapse
-                        anchors.bottom: nameText.bottom
-                        width: nameText.height
-                        height: nameText.height
+                        anchors.verticalCenter: nameText.verticalCenter
+                        width: nameText.height * 0.75
+                        height: nameText.height * 0.75
+                        source: "qrc:///qml/images/if_next_right_82215.png"
                         visible: (modelData.valueType == QStateValue.KglDirectory)
                         property var collapsed: false
-                        color: collapse.collapsed ? "red" : "green"
+                        transform: Rotation {
+                            origin.x: collapse.width / 2
+                            origin.y: collapse.width / 2
+                            angle: collapse.collapsed ? 0 : 90
+                        }
+
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
                                 if (collapse.collapsed) {
-                                    collapse.color = "green";
                                     stateModel.expand(modelData.path);
                                     collapse.collapsed = false
                                 } else {
-                                    collapse.color = "red";
                                     stateModel.collapse(modelData.path);
                                     collapse.collapsed = true
                                 }
@@ -51,6 +56,8 @@ Item {
                         text: modelData.name + " : "
                     }
                     Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 10
                         visible: (modelData.valueType == QStateValue.KglColor)
                         Text{
                             text: "Red: "
