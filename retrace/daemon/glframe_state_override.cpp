@@ -75,6 +75,7 @@ StateOverride::getState(const StateKey &item,
   const auto n = state_name_to_enum(item.name);
   switch (n) {
     case GL_CULL_FACE:
+    case GL_LINE_SMOOTH:
     case GL_BLEND: {
       get_enabled_state(n, data);
       break;
@@ -153,7 +154,8 @@ StateOverride::enact_state(const KeyMap &m) const {
     const auto n = state_name_to_enum(i.first.name);
     switch (n) {
       case GL_CULL_FACE:
-      case GL_BLEND: {
+      case GL_BLEND:
+      case GL_LINE_SMOOTH: {
         enact_enabled_state(n, i.second[0]);
         break;
       }
@@ -271,5 +273,11 @@ StateOverride::onState(SelectionId selId,
     std::string value;
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId, k, {value});
+  }
+  {
+    StateKey k("Rendering", "Line State", "GL_LINE_SMOOTH");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {data[0] ? "true" : "false"});
   }
 }
