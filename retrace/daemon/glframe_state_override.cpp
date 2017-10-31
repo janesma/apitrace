@@ -89,6 +89,10 @@ StateOverride::getState(const StateKey &item,
       get_float_state(n, data);
       break;
     }
+    case GL_LINE_WIDTH: {
+      get_float_state(n, data);
+      break;
+    }
   }
 }
 
@@ -185,6 +189,14 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_LINE_WIDTH: {
+        // assert(i.second.size() == 1);
+        IntFloat u;
+        u.i = i.second[0];
+        GlFunctions::LineWidth(u.f);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -196,14 +208,18 @@ StateOverride::enact_state(const KeyMap &m) const {
 void floatStrings(const std::vector<uint32_t> &i,
                   std::vector<std::string> *s) {
   s->clear();
-  union {
-    uint32_t i;
-    float f;
-  } u;
+  IntFloat u;
   for (auto d : i) {
     u.i = d;
     s->push_back(std::to_string(u.f));
   }
+}
+
+void floatString(const uint32_t i,
+                 std::string *s) {
+  IntFloat u;
+  u.i = i;
+  *s = std::to_string(u.f);
 }
 
 void
@@ -248,5 +264,12 @@ StateOverride::onState(SelectionId selId,
     std::vector<std::string> color;
     floatStrings(data, &color);
     callback->onState(selId, experimentCount, renderId, k, color);
+  }
+  {
+    StateKey k("Rendering", "Line State", "GL_LINE_WIDTH");
+    getState(k, &data);
+    std::string value;
+    floatString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId, k, {value});
   }
 }

@@ -60,6 +60,9 @@ QStateValue::QStateValue(QObject *parent,
       m_visible(true),
       m_type(QStateValue::KglDirectory) {
   moveToThread(parent->thread());
+  if (!_choices.empty())
+    m_type = QStateValue::KglEnum;
+
   for (auto c : _choices)
     m_choices.append(QVariant(c.c_str()));
   m_indent = static_cast<int>(std::count(_path.begin(), _path.end(), '/')) +
@@ -70,26 +73,38 @@ QStateValue::QStateValue(QObject *parent,
 
 void
 QStateValue::insert(const std::string &value) {
-  m_type = QStateValue::KglEnum;
   int value_index = 0;
   QVariant qvalue(value.c_str());
-  for (auto c : m_choices) {
-    if (qvalue == c)
-      break;
-    ++value_index;
-  }
-  // value must be found
-  assert(value_index < m_choices.size());
+  if (m_type == QStateValue::KglEnum) {
+    for (auto c : m_choices) {
+      if (qvalue == c)
+        break;
+      ++value_index;
+    }
+    // value must be found
+    assert(value_index < m_choices.size());
+    if (m_value == kUninitializedValue) {
+      // first render, display the value
+      m_value = value_index;
+      return;
+    }
 
-  if (m_value == kUninitializedValue) {
-    // first render, display the value
-    m_value = value_index;
+    if (m_value != value_index)
+      // selected renders have different values
+      m_value = kMixedValue;
+
     return;
   }
 
-  if (m_value != value_index)
-    // selected renders have different values
-    m_value = kMixedValue;
+  // else
+  m_type = QStateValue::KglFloat;
+  const QString new_val = QString::fromStdString(value);
+  if (m_value == kUninitializedValue) {
+    m_value = new_val;
+    return;
+  }
+  if (m_value != new_val)
+    m_value = "###";
 }
 
 void

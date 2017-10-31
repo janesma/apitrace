@@ -176,6 +176,7 @@ class GlFunctions {
                                  GLboolean transpose, const GLfloat *value);
   static void Finish();
   static void CullFace(GLenum mode);
+  static void LineWidth(GLfloat width);
 
  private:
   GlFunctions();

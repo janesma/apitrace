@@ -121,6 +121,7 @@ static void *pUniformMatrix4x2fv = NULL;
 static void *pUniformMatrix4x3fv = NULL;
 static void *pFinish = NULL;
 static void *pCullFace = NULL;
+static void *pLineWidth = NULL;
 
 }  // namespace
 
@@ -333,6 +334,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pFinish);
   pCullFace = _GetProcAddress("glCullFace");
   assert(pCullFace);
+  pLineWidth = _GetProcAddress("glLineWidth");
+  assert(pLineWidth);
 }
 
 GLuint
@@ -958,4 +961,10 @@ void
 GlFunctions::CullFace(GLenum mode) {
   typedef void (*CULLFACE)(GLenum mode);
   return ((CULLFACE)pCullFace)(mode);
+}
+
+void
+GlFunctions::LineWidth(GLfloat width) {
+  typedef void (*LINEWIDTH)(GLfloat width);
+  return ((LINEWIDTH)pLineWidth)(width);
 }

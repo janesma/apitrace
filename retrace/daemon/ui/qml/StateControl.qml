@@ -55,6 +55,24 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: modelData.name + " : "
                     }
+                    TextInput {
+                        anchors.margins: 3
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: (modelData.valueType == QStateValue.KglFloat)
+                        validator: DoubleValidator{}
+                        text: (modelData.valueType == QStateValue.KglFloat) ? modelData.value : ""
+                        Keys.onReturnPressed: {
+                            if (!acceptableInput) {
+                                text = modelData.value;
+                                return;
+                            }
+                            stateModel.setState(modelData.group,
+                                                modelData.path,
+                                                modelData.name,
+                                                0,
+                                                text);
+                        }
+                    }
                     Row {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 10
