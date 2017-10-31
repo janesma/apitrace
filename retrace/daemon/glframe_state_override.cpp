@@ -82,7 +82,11 @@ StateOverride::getState(const StateKey &item,
     }
     case GL_CULL_FACE_MODE:
     case GL_BLEND_SRC:
-    case GL_BLEND_DST: {
+    case GL_BLEND_SRC_ALPHA:
+    case GL_BLEND_SRC_RGB:
+    case GL_BLEND_DST:
+    case GL_BLEND_DST_ALPHA:
+    case GL_BLEND_DST_RGB: {
       get_integer_state(n, data);
       break;
     }
@@ -180,6 +184,23 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_BLEND_SRC_RGB:
+      case GL_BLEND_DST_RGB:
+      case GL_BLEND_SRC_ALPHA:
+      case GL_BLEND_DST_ALPHA:
+        {
+          GLint src_rgb, dst_rgb, src_alpha, dst_alpha;
+          GlFunctions::GetIntegerv(GL_BLEND_SRC_RGB, &src_rgb);
+          GlFunctions::GetIntegerv(GL_BLEND_DST_RGB, &dst_rgb);
+          GlFunctions::GetIntegerv(GL_BLEND_SRC_ALPHA, &src_alpha);
+          GlFunctions::GetIntegerv(GL_BLEND_DST_ALPHA, &dst_alpha);
+          GlFunctions::BlendFuncSeparate(
+              n == GL_BLEND_SRC_RGB ? i.second[0] : src_rgb,
+              n == GL_BLEND_DST_RGB ? i.second[0] : dst_rgb,
+              n == GL_BLEND_SRC_ALPHA ? i.second[0] : src_alpha,
+              n == GL_BLEND_DST_ALPHA ? i.second[0] : dst_alpha);
+          break;
+        }
       case GL_BLEND_COLOR: {
         std::vector<float> f(4);
         IntFloat u;
@@ -255,7 +276,31 @@ StateOverride::onState(SelectionId selId,
                       k, {state_enum_to_name(data[0])});
   }
   {
+    StateKey k("Rendering", "Blend State", "GL_BLEND_SRC_ALPHA");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Rendering", "Blend State", "GL_BLEND_SRC_RGB");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
     StateKey k("Rendering", "Blend State", "GL_BLEND_DST");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Rendering", "Blend State", "GL_BLEND_DST_ALPHA");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Rendering", "Blend State", "GL_BLEND_DST_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});

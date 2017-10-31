@@ -28,6 +28,8 @@
 #include "glframe_state_enums.hpp"
 
 #include <assert.h>
+#include <GL/glext.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -42,7 +44,11 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
     {"GL_BLEND", GL_BLEND},
     {"GL_BLEND_SRC", GL_BLEND_SRC},
+    {"GL_BLEND_SRC_ALPHA", GL_BLEND_SRC_ALPHA},
+    {"GL_BLEND_SRC_RGB", GL_BLEND_SRC_RGB},
     {"GL_BLEND_DST", GL_BLEND_DST},
+    {"GL_BLEND_DST_ALPHA", GL_BLEND_DST_ALPHA},
+    {"GL_BLEND_DST_RGB", GL_BLEND_DST_RGB},
     {"GL_ZERO", GL_ZERO},
     {"GL_ONE", GL_ONE},
     {"GL_SRC_COLOR", GL_SRC_COLOR},
@@ -57,6 +63,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
     {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
     {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA},
+    {"GL_SRC_ALPHA_SATURATE", GL_SRC_ALPHA_SATURATE},
     {"GL_BLEND_COLOR", GL_BLEND_COLOR},
     {"GL_LINE_WIDTH", GL_LINE_WIDTH},
     {"GL_LINE_SMOOTH", GL_LINE_SMOOTH},
@@ -117,6 +124,8 @@ glretrace::state_enum_to_name(GLint value) {
       return std::string("GL_CONSTANT_ALPHA");
     case GL_ONE_MINUS_CONSTANT_ALPHA:
       return std::string("GL_ONE_MINUS_CONSTANT_ALPHA");
+    case GL_SRC_ALPHA_SATURATE:
+      return std::string("GL_SRC_ALPHA_SATURATE");
     default:
       assert(false);
   }
@@ -132,7 +141,11 @@ glretrace::state_name_to_choices(const std::string &n) {
     case GL_CULL_FACE_MODE:
       return {"GL_FRONT", "GL_BACK", "GL_FRONT_AND_BACK"};
     case GL_BLEND_SRC:
+    case GL_BLEND_SRC_ALPHA:
+    case GL_BLEND_SRC_RGB:
     case GL_BLEND_DST:
+    case GL_BLEND_DST_ALPHA:
+    case GL_BLEND_DST_RGB:
       return {"GL_ZERO",
             "GL_ONE",
             "GL_SRC_COLOR",
@@ -146,7 +159,9 @@ glretrace::state_name_to_choices(const std::string &n) {
             "GL_CONSTANT_COLOR",
             "GL_ONE_MINUS_CONSTANT_COLOR",
             "GL_CONSTANT_ALPHA",
-            "GL_ONE_MINUS_CONSTANT_ALPHA"};
+            "GL_ONE_MINUS_CONSTANT_ALPHA",
+            "GL_SRC_ALPHA_SATURATE"
+            };
     case GL_INVALID_ENUM:
       assert(false);
     default:
