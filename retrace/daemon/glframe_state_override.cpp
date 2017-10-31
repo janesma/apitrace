@@ -168,19 +168,15 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
-      case GL_BLEND_SRC: {
-        GLint dst;
-        GlFunctions::GetIntegerv(GL_BLEND_DST, &dst);
-        assert(GL::GetError() == GL_NO_ERROR);
-        GlFunctions::BlendFunc(i.second[0], dst);
-        assert(GL::GetError() == GL_NO_ERROR);
-        break;
-      }
+      case GL_BLEND_SRC:
       case GL_BLEND_DST: {
-        GLint src;
-        GlFunctions::GetIntegerv(GL_BLEND_DST, &src);
+        GLint src, dst;
+        GlFunctions::GetIntegerv(GL_BLEND_DST, &dst);
+        GlFunctions::GetIntegerv(GL_BLEND_SRC, &src);
         assert(GL::GetError() == GL_NO_ERROR);
-        GlFunctions::BlendFunc(src, i.second[0]);
+        GlFunctions::BlendFunc(
+            n == GL_BLEND_SRC ? i.second[0] : src,
+            n == GL_BLEND_DST ? i.second[0] : dst);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
