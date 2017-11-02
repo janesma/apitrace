@@ -93,6 +93,7 @@ StateOverride::getState(const StateKey &item,
       break;
     }
     case GL_BLEND_COLOR:
+    case GL_COLOR_CLEAR_VALUE:
     case GL_LINE_WIDTH: {
       get_float_state(n, data);
       break;
@@ -215,6 +216,17 @@ StateOverride::enact_state(const KeyMap &m) const {
           f[j] = u.f;
         }
         GlFunctions::BlendColor(f[0], f[1], f[2], f[3]);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
+      case GL_COLOR_CLEAR_VALUE: {
+        std::vector<float> f(4);
+        IntFloat u;
+        for (int j = 0; j < 4; ++j) {
+          u.i = i.second[j];
+          f[j] = u.f;
+        }
+        GlFunctions::ClearColor(f[0], f[1], f[2], f[3]);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
@@ -342,5 +354,12 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Rendering", "Clear State", "GL_COLOR_CLEAR_VALUE");
+    getState(k, &data);
+    std::vector<std::string> color;
+    floatStrings(data, &color);
+    callback->onState(selId, experimentCount, renderId, k, color);
   }
 }
