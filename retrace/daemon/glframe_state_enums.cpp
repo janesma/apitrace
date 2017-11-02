@@ -37,36 +37,43 @@
 uint32_t
 glretrace::state_name_to_enum(const std::string &value) {
   static const std::map<std::string, uint32_t> names {
-    {"GL_CULL_FACE", GL_CULL_FACE},
-    {"GL_CULL_FACE_MODE", GL_CULL_FACE_MODE},
-    {"GL_FRONT", GL_FRONT},
     {"GL_BACK", GL_BACK},
-    {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
     {"GL_BLEND", GL_BLEND},
-    {"GL_BLEND_SRC", GL_BLEND_SRC},
-    {"GL_BLEND_SRC_ALPHA", GL_BLEND_SRC_ALPHA},
-    {"GL_BLEND_SRC_RGB", GL_BLEND_SRC_RGB},
+    {"GL_BLEND_COLOR", GL_BLEND_COLOR},
     {"GL_BLEND_DST", GL_BLEND_DST},
     {"GL_BLEND_DST_ALPHA", GL_BLEND_DST_ALPHA},
     {"GL_BLEND_DST_RGB", GL_BLEND_DST_RGB},
-    {"GL_ZERO", GL_ZERO},
-    {"GL_ONE", GL_ONE},
-    {"GL_SRC_COLOR", GL_SRC_COLOR},
-    {"GL_ONE_MINUS_SRC_COLOR", GL_ONE_MINUS_SRC_COLOR},
-    {"GL_DST_COLOR", GL_DST_COLOR},
-    {"GL_ONE_MINUS_DST_COLOR", GL_ONE_MINUS_DST_COLOR},
-    {"GL_SRC_ALPHA", GL_SRC_ALPHA},
-    {"GL_ONE_MINUS_SRC_ALPHA", GL_ONE_MINUS_SRC_ALPHA},
-    {"GL_DST_ALPHA", GL_DST_ALPHA},
-    {"GL_ONE_MINUS_DST_ALPHA", GL_ONE_MINUS_DST_ALPHA},
-    {"GL_CONSTANT_COLOR", GL_CONSTANT_COLOR},
-    {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
+    {"GL_BLEND_EQUATION_ALPHA", GL_BLEND_EQUATION_ALPHA},
+    {"GL_BLEND_EQUATION_RGB", GL_BLEND_EQUATION_RGB},
+    {"GL_BLEND_SRC", GL_BLEND_SRC},
+    {"GL_BLEND_SRC_ALPHA", GL_BLEND_SRC_ALPHA},
+    {"GL_BLEND_SRC_RGB", GL_BLEND_SRC_RGB},
     {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
-    {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA},
-    {"GL_SRC_ALPHA_SATURATE", GL_SRC_ALPHA_SATURATE},
-    {"GL_BLEND_COLOR", GL_BLEND_COLOR},
-    {"GL_LINE_WIDTH", GL_LINE_WIDTH},
+    {"GL_CONSTANT_COLOR", GL_CONSTANT_COLOR},
+    {"GL_CULL_FACE", GL_CULL_FACE},
+    {"GL_CULL_FACE_MODE", GL_CULL_FACE_MODE},
+    {"GL_DST_ALPHA", GL_DST_ALPHA},
+    {"GL_DST_COLOR", GL_DST_COLOR},
+    {"GL_FRONT", GL_FRONT},
+    {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
+    {"GL_FUNC_ADD", GL_FUNC_ADD},
+    {"GL_FUNC_REVERSE_SUBTRACT", GL_FUNC_REVERSE_SUBTRACT},
+    {"GL_FUNC_SUBTRACT", GL_FUNC_SUBTRACT},
     {"GL_LINE_SMOOTH", GL_LINE_SMOOTH},
+    {"GL_LINE_WIDTH", GL_LINE_WIDTH},
+    {"GL_MAX", GL_MAX},
+    {"GL_MIN", GL_MIN},
+    {"GL_ONE", GL_ONE},
+    {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA},
+    {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
+    {"GL_ONE_MINUS_DST_ALPHA", GL_ONE_MINUS_DST_ALPHA},
+    {"GL_ONE_MINUS_DST_COLOR", GL_ONE_MINUS_DST_COLOR},
+    {"GL_ONE_MINUS_SRC_ALPHA", GL_ONE_MINUS_SRC_ALPHA},
+    {"GL_ONE_MINUS_SRC_COLOR", GL_ONE_MINUS_SRC_COLOR},
+    {"GL_SRC_ALPHA", GL_SRC_ALPHA},
+    {"GL_SRC_ALPHA_SATURATE", GL_SRC_ALPHA_SATURATE},
+    {"GL_SRC_COLOR", GL_SRC_COLOR},
+    {"GL_ZERO", GL_ZERO},
     {"true", 1},
     {"false", 0}
   };
@@ -126,6 +133,16 @@ glretrace::state_enum_to_name(GLint value) {
       return std::string("GL_ONE_MINUS_CONSTANT_ALPHA");
     case GL_SRC_ALPHA_SATURATE:
       return std::string("GL_SRC_ALPHA_SATURATE");
+    case GL_FUNC_ADD:
+      return std::string("GL_FUNC_ADD");
+    case GL_FUNC_SUBTRACT:
+      return std::string("GL_FUNC_SUBTRACT");
+    case GL_FUNC_REVERSE_SUBTRACT:
+      return std::string("GL_FUNC_REVERSE_SUBTRACT");
+    case GL_MIN:
+      return std::string("GL_MIN");
+    case GL_MAX:
+      return std::string("GL_MAX");
     default:
       assert(false);
   }
@@ -161,6 +178,14 @@ glretrace::state_name_to_choices(const std::string &n) {
             "GL_CONSTANT_ALPHA",
             "GL_ONE_MINUS_CONSTANT_ALPHA",
             "GL_SRC_ALPHA_SATURATE"
+            };
+    case GL_BLEND_EQUATION_RGB:
+    case GL_BLEND_EQUATION_ALPHA:
+      return {"GL_FUNC_ADD",
+            "GL_FUNC_SUBTRACT",
+            "GL_FUNC_REVERSE_SUBTRACT",
+            "GL_MIN",
+            "GL_MAX"
             };
     case GL_INVALID_ENUM:
       assert(false);

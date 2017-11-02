@@ -74,26 +74,25 @@ StateOverride::getState(const StateKey &item,
                         std::vector<uint32_t> *data) {
   const auto n = state_name_to_enum(item.name);
   switch (n) {
+    case GL_BLEND:
     case GL_CULL_FACE:
-    case GL_LINE_SMOOTH:
-    case GL_BLEND: {
+    case GL_LINE_SMOOTH: {
       get_enabled_state(n, data);
       break;
     }
-    case GL_CULL_FACE_MODE:
+    case GL_BLEND_DST:
+    case GL_BLEND_DST_ALPHA:
+    case GL_BLEND_DST_RGB:
+    case GL_BLEND_EQUATION_ALPHA:
+    case GL_BLEND_EQUATION_RGB:
     case GL_BLEND_SRC:
     case GL_BLEND_SRC_ALPHA:
     case GL_BLEND_SRC_RGB:
-    case GL_BLEND_DST:
-    case GL_BLEND_DST_ALPHA:
-    case GL_BLEND_DST_RGB: {
+    case GL_CULL_FACE_MODE: {
       get_integer_state(n, data);
       break;
     }
-    case GL_BLEND_COLOR: {
-      get_float_state(n, data);
-      break;
-    }
+    case GL_BLEND_COLOR:
     case GL_LINE_WIDTH: {
       get_float_state(n, data);
       break;
@@ -165,6 +164,17 @@ StateOverride::enact_state(const KeyMap &m) const {
       }
       case GL_CULL_FACE_MODE: {
         GlFunctions::CullFace(i.second[0]);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
+      case GL_BLEND_EQUATION_RGB:
+      case GL_BLEND_EQUATION_ALPHA: {
+        GLint modeRGB, modeAlpha;
+        GlFunctions::GetIntegerv(GL_BLEND_EQUATION_RGB, &modeRGB);
+        GlFunctions::GetIntegerv(GL_BLEND_EQUATION_ALPHA, &modeAlpha);
+        GlFunctions::BlendEquationSeparate(
+            n == GL_BLEND_EQUATION_RGB ? i.second[0] : modeRGB,
+            n == GL_BLEND_EQUATION_ALPHA ? i.second[0] : modeAlpha);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
@@ -320,5 +330,17 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Rendering", "Blend State", "GL_BLEND_EQUATION_RGB");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Rendering", "Blend State", "GL_BLEND_EQUATION_ALPHA");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
   }
 }
