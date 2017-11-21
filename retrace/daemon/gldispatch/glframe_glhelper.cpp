@@ -123,6 +123,8 @@ static void *pFinish = NULL;
 static void *pCullFace = NULL;
 static void *pLineWidth = NULL;
 static void *pColorMask = NULL;
+static void *pClearDepthf = NULL;
+
 }  // namespace
 
 static void * _GetProcAddress(const char *name) {
@@ -338,6 +340,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pLineWidth);
   pColorMask = _GetProcAddress("glColorMask");
   assert(pColorMask);;
+  pClearDepthf = _GetProcAddress("glClearDepthf");
+  assert(pClearDepthf);
 }
 
 GLuint
@@ -978,4 +982,11 @@ GlFunctions::ColorMask(GLboolean red, GLboolean green,
   typedef void (*COLORMASK)(GLboolean red, GLboolean green,
                             GLboolean blue, GLboolean alpha);
   return ((COLORMASK)pColorMask)(red, green, blue, alpha);
+}
+
+
+void
+GlFunctions::ClearDepthf(GLfloat d) {
+  typedef void (*CLEARDEPTHF)(GLfloat d);
+  return ((CLEARDEPTHF)pClearDepthf)(d);
 }

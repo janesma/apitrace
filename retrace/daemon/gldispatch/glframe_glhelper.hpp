@@ -179,6 +179,7 @@ class GlFunctions {
   static void LineWidth(GLfloat width);
   static void ColorMask(GLboolean red, GLboolean green,
                         GLboolean blue, GLboolean alpha);
+  static void ClearDepthf(GLfloat d);
 
  private:
   GlFunctions();

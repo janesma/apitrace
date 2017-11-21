@@ -126,6 +126,7 @@ StateOverride::interpret_value(const StateKey &item,
 
     // float values
     case GL_BLEND_COLOR:
+    case GL_DEPTH_CLEAR_VALUE:
     case GL_COLOR_CLEAR_VALUE:
     case GL_LINE_WIDTH: {
       IntFloat i_f;
@@ -176,6 +177,7 @@ StateOverride::getState(const StateKey &item,
       data->resize(4);
       get_float_state(n, data);
       break;
+    case GL_DEPTH_CLEAR_VALUE:
     case GL_LINE_WIDTH: {
       data->resize(1);
       get_float_state(n, data);
@@ -327,6 +329,12 @@ StateOverride::enact_state(const KeyMap &m) const {
                                i.second[1],
                                i.second[2],
                                i.second[3]);
+        break;
+      }
+      case GL_DEPTH_CLEAR_VALUE: {
+        IntFloat u;
+        u.i = i.second[0];
+        GlFunctions::ClearDepthf(u.f);
         break;
       }
       case GL_LINE_WIDTH: {
@@ -485,5 +493,12 @@ StateOverride::onState(SelectionId selId,
       callback->onState(selId, experimentCount, renderId, k,
                         {data[3] ? "true" : "false"});
     }
+  }
+  {
+    StateKey k("Rendering", "Depth State", "GL_DEPTH_CLEAR_VALUE");
+    getState(k, &data);
+    std::string value;
+    floatString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId, k, {value});
   }
 }

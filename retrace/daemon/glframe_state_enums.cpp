@@ -54,6 +54,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_CONSTANT_COLOR", GL_CONSTANT_COLOR},
     {"GL_CULL_FACE", GL_CULL_FACE},
     {"GL_CULL_FACE_MODE", GL_CULL_FACE_MODE},
+    {"GL_DEPTH_CLEAR_VALUE", GL_DEPTH_CLEAR_VALUE},
     {"GL_DST_ALPHA", GL_DST_ALPHA},
     {"GL_DST_COLOR", GL_DST_COLOR},
     {"GL_FRONT", GL_FRONT},
