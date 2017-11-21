@@ -77,8 +77,8 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_SRC_ALPHA_SATURATE", GL_SRC_ALPHA_SATURATE},
     {"GL_SRC_COLOR", GL_SRC_COLOR},
     {"GL_ZERO", GL_ZERO},
+    {"false", 0},
     {"true", 1},
-    {"false", 0}
   };
   const auto i = names.find(value);
   if (i == names.end())
@@ -90,62 +90,62 @@ glretrace::state_name_to_enum(const std::string &value) {
 std::string
 glretrace::state_enum_to_name(GLint value) {
   switch (value) {
+    case GL_BACK:
+      return std::string("GL_BACK");
+    case GL_BLEND:
+      return std::string("GL_BLEND");
+    case GL_BLEND_DST:
+      return std::string("GL_BLEND_DST");
+    case GL_BLEND_SRC:
+      return std::string("GL_BLEND_SRC");
+    case GL_CONSTANT_ALPHA:
+      return std::string("GL_CONSTANT_ALPHA");
+    case GL_CONSTANT_COLOR:
+      return std::string("GL_CONSTANT_COLOR");
     case GL_CULL_FACE:
       return std::string("CULL_FACE");
     case GL_CULL_FACE_MODE:
       return std::string("CULL_FACE_MODE");
-    case GL_FRONT:
-      return std::string("GL_FRONT");
-    case GL_BACK:
-      return std::string("GL_BACK");
-    case GL_FRONT_AND_BACK:
-      return std::string("GL_FRONT_AND_BACK");
-    case GL_BLEND:
-      return std::string("GL_BLEND");
-    case GL_BLEND_SRC:
-      return std::string("GL_BLEND_SRC");
-    case GL_BLEND_DST:
-      return std::string("GL_BLEND_DST");
-    case GL_ZERO:
-      return std::string("GL_ZERO");
-    case GL_ONE:
-      return std::string("GL_ONE");
-    case GL_SRC_COLOR:
-      return std::string("GL_SRC_COLOR");
-    case GL_ONE_MINUS_SRC_COLOR:
-      return std::string("GL_ONE_MINUS_SRC_COLOR");
-    case GL_DST_COLOR:
-      return std::string("GL_DST_COLOR");
-    case GL_ONE_MINUS_DST_COLOR:
-      return std::string("GL_ONE_MINUS_DST_COLOR");
-    case GL_SRC_ALPHA:
-      return std::string("GL_SRC_ALPHA");
-    case GL_ONE_MINUS_SRC_ALPHA:
-      return std::string("GL_ONE_MINUS_SRC_ALPHA");
     case GL_DST_ALPHA:
       return std::string("GL_DST_ALPHA");
-    case GL_ONE_MINUS_DST_ALPHA:
-      return std::string("GL_ONE_MINUS_DST_ALPHA");
-    case GL_CONSTANT_COLOR:
-      return std::string("GL_CONSTANT_COLOR");
-    case GL_ONE_MINUS_CONSTANT_COLOR:
-      return std::string("GL_ONE_MINUS_CONSTANT_COLOR");
-    case GL_CONSTANT_ALPHA:
-      return std::string("GL_CONSTANT_ALPHA");
-    case GL_ONE_MINUS_CONSTANT_ALPHA:
-      return std::string("GL_ONE_MINUS_CONSTANT_ALPHA");
-    case GL_SRC_ALPHA_SATURATE:
-      return std::string("GL_SRC_ALPHA_SATURATE");
+    case GL_DST_COLOR:
+      return std::string("GL_DST_COLOR");
+    case GL_FRONT:
+      return std::string("GL_FRONT");
+    case GL_FRONT_AND_BACK:
+      return std::string("GL_FRONT_AND_BACK");
     case GL_FUNC_ADD:
       return std::string("GL_FUNC_ADD");
-    case GL_FUNC_SUBTRACT:
-      return std::string("GL_FUNC_SUBTRACT");
     case GL_FUNC_REVERSE_SUBTRACT:
       return std::string("GL_FUNC_REVERSE_SUBTRACT");
-    case GL_MIN:
-      return std::string("GL_MIN");
+    case GL_FUNC_SUBTRACT:
+      return std::string("GL_FUNC_SUBTRACT");
     case GL_MAX:
       return std::string("GL_MAX");
+    case GL_MIN:
+      return std::string("GL_MIN");
+    case GL_ONE:
+      return std::string("GL_ONE");
+    case GL_ONE_MINUS_CONSTANT_ALPHA:
+      return std::string("GL_ONE_MINUS_CONSTANT_ALPHA");
+    case GL_ONE_MINUS_CONSTANT_COLOR:
+      return std::string("GL_ONE_MINUS_CONSTANT_COLOR");
+    case GL_ONE_MINUS_DST_ALPHA:
+      return std::string("GL_ONE_MINUS_DST_ALPHA");
+    case GL_ONE_MINUS_DST_COLOR:
+      return std::string("GL_ONE_MINUS_DST_COLOR");
+    case GL_ONE_MINUS_SRC_ALPHA:
+      return std::string("GL_ONE_MINUS_SRC_ALPHA");
+    case GL_ONE_MINUS_SRC_COLOR:
+      return std::string("GL_ONE_MINUS_SRC_COLOR");
+    case GL_SRC_ALPHA:
+      return std::string("GL_SRC_ALPHA");
+    case GL_SRC_ALPHA_SATURATE:
+      return std::string("GL_SRC_ALPHA_SATURATE");
+    case GL_SRC_COLOR:
+      return std::string("GL_SRC_COLOR");
+    case GL_ZERO:
+      return std::string("GL_ZERO");
     default:
       assert(false);
   }
@@ -159,14 +159,12 @@ glretrace::state_name_to_choices(const std::string &n) {
     case GL_CULL_FACE:
     case GL_LINE_SMOOTH:
       return {"true", "false"};
-    case GL_CULL_FACE_MODE:
-      return {"GL_FRONT", "GL_BACK", "GL_FRONT_AND_BACK"};
-    case GL_BLEND_SRC:
-    case GL_BLEND_SRC_ALPHA:
-    case GL_BLEND_SRC_RGB:
     case GL_BLEND_DST:
     case GL_BLEND_DST_ALPHA:
     case GL_BLEND_DST_RGB:
+    case GL_BLEND_SRC:
+    case GL_BLEND_SRC_ALPHA:
+    case GL_BLEND_SRC_RGB:
       return {"GL_ZERO",
             "GL_ONE",
             "GL_SRC_COLOR",
@@ -183,14 +181,16 @@ glretrace::state_name_to_choices(const std::string &n) {
             "GL_ONE_MINUS_CONSTANT_ALPHA",
             "GL_SRC_ALPHA_SATURATE"
             };
-    case GL_BLEND_EQUATION_RGB:
     case GL_BLEND_EQUATION_ALPHA:
+    case GL_BLEND_EQUATION_RGB:
       return {"GL_FUNC_ADD",
             "GL_FUNC_SUBTRACT",
             "GL_FUNC_REVERSE_SUBTRACT",
             "GL_MIN",
             "GL_MAX"
             };
+    case GL_CULL_FACE_MODE:
+      return {"GL_FRONT", "GL_BACK", "GL_FRONT_AND_BACK"};
     case GL_INVALID_ENUM:
       assert(false);
     default:
