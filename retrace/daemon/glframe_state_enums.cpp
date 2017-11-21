@@ -49,6 +49,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_BLEND_SRC_ALPHA", GL_BLEND_SRC_ALPHA},
     {"GL_BLEND_SRC_RGB", GL_BLEND_SRC_RGB},
     {"GL_COLOR_CLEAR_VALUE", GL_COLOR_CLEAR_VALUE},
+    {"GL_COLOR_WRITEMASK", GL_COLOR_WRITEMASK},
     {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
     {"GL_CONSTANT_COLOR", GL_CONSTANT_COLOR},
     {"GL_CULL_FACE", GL_CULL_FACE},
@@ -152,8 +153,9 @@ glretrace::state_enum_to_name(GLint value) {
 std::vector<std::string>
 glretrace::state_name_to_choices(const std::string &n) {
   switch (state_name_to_enum(n)) {
-    case GL_CULL_FACE:
     case GL_BLEND:
+    case GL_COLOR_WRITEMASK:
+    case GL_CULL_FACE:
     case GL_LINE_SMOOTH:
       return {"true", "false"};
     case GL_CULL_FACE_MODE:

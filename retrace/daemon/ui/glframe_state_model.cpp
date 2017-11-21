@@ -65,8 +65,9 @@ QStateValue::QStateValue(QObject *parent,
 
   for (auto c : _choices)
     m_choices.append(QVariant(c.c_str()));
-  m_indent = static_cast<int>(std::count(_path.begin(), _path.end(), '/')) +
-             _name.length() > 0;
+  const int path_count = std::count(_path.begin(), _path.end(), '/');
+  const int indent =  path_count + (_name.length() > 0 ? 1 : 0);
+  m_indent = indent;
   if (_name.length() == 0)
     m_name = _path.substr(_path.find_last_of("/") + 1).c_str();
 }
@@ -210,7 +211,7 @@ void QStateModel::onState(SelectionId selectionCount,
                                        std::vector<std::string>());
       StateKey k(item.group, path_comp, "");
       m_state_by_name[k] = i;
-      m_known_paths[item.path] = true;
+      m_known_paths[path_comp] = true;
     } else {
       break;
     }

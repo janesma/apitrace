@@ -122,7 +122,7 @@ static void *pUniformMatrix4x3fv = NULL;
 static void *pFinish = NULL;
 static void *pCullFace = NULL;
 static void *pLineWidth = NULL;
-
+static void *pColorMask = NULL;
 }  // namespace
 
 static void * _GetProcAddress(const char *name) {
@@ -336,6 +336,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pCullFace);
   pLineWidth = _GetProcAddress("glLineWidth");
   assert(pLineWidth);
+  pColorMask = _GetProcAddress("glColorMask");
+  assert(pColorMask);;
 }
 
 GLuint
@@ -967,4 +969,13 @@ void
 GlFunctions::LineWidth(GLfloat width) {
   typedef void (*LINEWIDTH)(GLfloat width);
   return ((LINEWIDTH)pLineWidth)(width);
+}
+
+
+void
+GlFunctions::ColorMask(GLboolean red, GLboolean green,
+                       GLboolean blue, GLboolean alpha) {
+  typedef void (*COLORMASK)(GLboolean red, GLboolean green,
+                            GLboolean blue, GLboolean alpha);
+  return ((COLORMASK)pColorMask)(red, green, blue, alpha);
 }

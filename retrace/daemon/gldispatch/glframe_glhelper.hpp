@@ -177,6 +177,8 @@ class GlFunctions {
   static void Finish();
   static void CullFace(GLenum mode);
   static void LineWidth(GLfloat width);
+  static void ColorMask(GLboolean red, GLboolean green,
+                        GLboolean blue, GLboolean alpha);
 
  private:
   GlFunctions();

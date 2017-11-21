@@ -27,6 +27,7 @@
 
 #include "glframe_state_override.hpp"
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -42,41 +43,113 @@ union IntFloat {
 
 void
 StateOverride::setState(const StateKey &item,
-                        GLint value) {
-  auto &i = m_overrides[item];
+                        int offset,
+                        const std::string &value) {
+  StateKey adjusted_item(item);
+  adjust_item(&adjusted_item);
+  auto &i = m_overrides[adjusted_item];
   if (i.empty()) {
     // save the prior state so we can restore it
-    getState(item, &i);
-    m_saved_state[item] = i;
+    getState(adjusted_item, &i);
+    m_saved_state[adjusted_item] = i;
   }
-  assert(i.size() == 1);
-  i[0] = value;
+  adjust_offset(item, &offset);
+  const uint32_t data_value = interpret_value(item, value);
+  i[offset] = data_value;
 }
 
+// Not all StateKey items from the UI will match the data model for
+// state overrides during retrace.  For example, GL_COLOR_WRITEMASK is
+// stored in 4 separate items in the UI, but a single override in this
+// model.  The reason for this discrepancy is to allow mapping of
+// model offsets to UI colors (0->red, 1->green, etc).  This method
+// interprets a StateKey from the UI and adjusts it to match the
+// model.
 void
-StateOverride::setState(const StateKey &item,
-                        int offset,
-                        float value) {
-  m_data_types[item] = kFloat;
-  auto &i = m_overrides[item];
-  if (i.empty()) {
-    // save the prior state so we can restore it
-    getState(item, &i);
-    m_saved_state[item] = i;
+StateOverride::adjust_item(StateKey *item) const {
+  switch (state_name_to_enum(item->name)) {
+    case GL_COLOR_WRITEMASK: {
+      item->path = "";
+      break;
+    }
+    default:
+      break;
   }
-  IntFloat u;
-  u.f = value;
-  i[offset] = u.i;
+}
+
+// As with adjust_item, offsets from the UI do not always match the
+// model used by this override.  This method interprets an offset from
+// the UI, and adjusts it to match the model implementation.
+void
+StateOverride::adjust_offset(const StateKey &item,
+                             int *offset) const {
+  switch (state_name_to_enum(item.name)) {
+    case GL_COLOR_WRITEMASK: {
+      static const std::map<std::string, int> writemask_offsets {
+        { "FrameBuffer State/Red Enabled", 0 },
+        { "FrameBuffer State/Green Enabled", 1  },
+        { "FrameBuffer State/Blue Enabled", 2  },
+        { "FrameBuffer State/Alpha Enabled", 3 },
+            };
+      const auto i = writemask_offsets.find(item.path);
+      assert(i != writemask_offsets.end());
+      *offset = i->second;
+      return;
+    }
+    default:
+      return;
+  }
+}
+
+// The UI uses strings for all state values.  The override model
+// stores all data types in a vector of uint32_t.
+uint32_t
+StateOverride::interpret_value(const StateKey &item,
+                               const std::string &value) {
+  switch (state_name_to_enum(item.name)) {
+    // enumeration values
+    // true/false values
+    case GL_BLEND:
+    case GL_BLEND_DST:
+    case GL_BLEND_DST_ALPHA:
+    case GL_BLEND_DST_RGB:
+    case GL_BLEND_EQUATION_ALPHA:
+    case GL_BLEND_EQUATION_RGB:
+    case GL_BLEND_SRC:
+    case GL_BLEND_SRC_ALPHA:
+    case GL_BLEND_SRC_RGB:
+    case GL_COLOR_WRITEMASK:
+    case GL_CULL_FACE:
+    case GL_CULL_FACE_MODE:
+    case GL_LINE_SMOOTH:
+      return state_name_to_enum(value);
+
+    // float values
+    case GL_BLEND_COLOR:
+    case GL_COLOR_CLEAR_VALUE:
+    case GL_LINE_WIDTH: {
+      IntFloat i_f;
+      i_f.f = std::stof(value);
+      return i_f.i;
+    }
+
+    // int values
+    default:
+      assert(false);
+      return 0;
+  }
 }
 
 void
 StateOverride::getState(const StateKey &item,
                         std::vector<uint32_t> *data) {
   const auto n = state_name_to_enum(item.name);
+  data->clear();
   switch (n) {
     case GL_BLEND:
     case GL_CULL_FACE:
     case GL_LINE_SMOOTH: {
+      data->resize(1);
       get_enabled_state(n, data);
       break;
     }
@@ -89,12 +162,22 @@ StateOverride::getState(const StateKey &item,
     case GL_BLEND_SRC_ALPHA:
     case GL_BLEND_SRC_RGB:
     case GL_CULL_FACE_MODE: {
+      data->resize(1);
       get_integer_state(n, data);
+      break;
+    }
+    case GL_COLOR_WRITEMASK: {
+      data->resize(4);
+      get_bool_state(n, data);
       break;
     }
     case GL_BLEND_COLOR:
     case GL_COLOR_CLEAR_VALUE:
+      data->resize(4);
+      get_float_state(n, data);
+      break;
     case GL_LINE_WIDTH: {
+      data->resize(1);
       get_float_state(n, data);
       break;
     }
@@ -105,8 +188,7 @@ void
 StateOverride::get_enabled_state(GLint k,
                                  std::vector<uint32_t> *data) {
   GL::GetError();
-  data->clear();
-  data->resize(1);
+  assert(data->size() == 1);
   (*data)[0] = GlFunctions::IsEnabled(k);
   assert(!GL::GetError());
 }
@@ -116,17 +198,27 @@ void
 StateOverride::get_integer_state(GLint k,
                                  std::vector<uint32_t> *data) {
   GL::GetError();
-  data->clear();
-  data->resize(1);
   GlFunctions::GetIntegerv(k, reinterpret_cast<GLint*>(data->data()));
+  assert(!GL::GetError());
+}
+
+void
+StateOverride::get_bool_state(GLint k,
+                              std::vector<uint32_t> *data) {
+  GL::GetError();
+  std::vector<GLboolean> b(data->size());
+  GlFunctions::GetBooleanv(k, b.data());
+  auto d = data->begin();
+  for (auto v : b) {
+    *d = v ? 1 : 0;
+    ++d;
+  }
   assert(!GL::GetError());
 }
 
 void
 StateOverride::get_float_state(GLint k, std::vector<uint32_t> *data) {
   GL::GetError();
-  data->clear();
-  data->resize(4);
   GlFunctions::GetFloatv(k, reinterpret_cast<GLfloat*>(data->data()));
   assert(!GL::GetError());
 }
@@ -230,8 +322,15 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_COLOR_WRITEMASK: {
+        GlFunctions::ColorMask(i.second[0],
+                               i.second[1],
+                               i.second[2],
+                               i.second[3]);
+        break;
+      }
       case GL_LINE_WIDTH: {
-        // assert(i.second.size() == 1);
+        assert(i.second.size() == 1);
         IntFloat u;
         u.i = i.second[0];
         GlFunctions::LineWidth(u.f);
@@ -361,5 +460,30 @@ StateOverride::onState(SelectionId selId,
     std::vector<std::string> color;
     floatStrings(data, &color);
     callback->onState(selId, experimentCount, renderId, k, color);
+  }
+  {
+    StateKey k("Rendering", "FrameBuffer State/Red Enabled",
+               "GL_COLOR_WRITEMASK");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId, k,
+                      {data[0] ? "true" : "false"});
+    {
+      StateKey k("Rendering", "FrameBuffer State/Green Enabled",
+                 "GL_COLOR_WRITEMASK");
+      callback->onState(selId, experimentCount, renderId, k,
+                        {data[1] ? "true" : "false"});
+    }
+    {
+      StateKey k("Rendering", "FrameBuffer State/Blue Enabled",
+                 "GL_COLOR_WRITEMASK");
+      callback->onState(selId, experimentCount, renderId, k,
+                        {data[2] ? "true" : "false"});
+    }
+    {
+      StateKey k("Rendering", "FrameBuffer State/Alpha Enabled",
+                 "GL_COLOR_WRITEMASK");
+      callback->onState(selId, experimentCount, renderId, k,
+                        {data[3] ? "true" : "false"});
+    }
   }
 }

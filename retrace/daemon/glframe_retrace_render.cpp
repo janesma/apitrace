@@ -457,10 +457,5 @@ void
 RetraceRender::setState(const StateKey &item,
                         int offset,
                         const std::string &value) {
-  uint32_t e = state_name_to_enum(value);
-  if (e != GL_INVALID_ENUM) {
-    assert(offset == 0);
-    return m_state_override->setState(item, e);
-  }
-  m_state_override->setState(item, offset, std::stof(value));
+  m_state_override->setState(item, offset, value);
 }

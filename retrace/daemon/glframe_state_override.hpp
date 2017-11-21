@@ -28,6 +28,7 @@
 #include <GL/gl.h>
 
 #include <map>
+#include <string>
 #include <vector>
 
 #include "glframe_retrace_interface.hpp"
@@ -40,10 +41,7 @@ class StateOverride {
   StateOverride() {}
   void setState(const StateKey &item,
                 int offset,
-                float value);
-  void setState(const StateKey &item,
-                GLint value);
-  void saveState();
+                const std::string &value);
   void overrideState() const;
   void restoreState() const;
 
@@ -66,13 +64,16 @@ class StateOverride {
   typedef std::map<StateKey, std::vector<uint32_t>> KeyMap;
   void enact_state(const KeyMap &m) const;
   void enact_enabled_state(GLint setting, bool v) const;
-  void enact_int_state(uint32_t k, const std::vector<uint32_t> &v) const;
-  void save_enabled_state(const StateKey &k, GLint v);
-  void save_int_state(const StateKey &k, GLint v);
   void get_enabled_state(GLint k, std::vector<uint32_t> *data);
   void get_integer_state(GLint k, std::vector<uint32_t> *data);
   void get_float_state(GLint k, std::vector<uint32_t> *data);
+  void get_bool_state(GLint k, std::vector<uint32_t> *data);
 
+  void adjust_item(StateKey *item) const;
+  void adjust_offset(const StateKey &item,
+                     int *offset) const;
+  uint32_t interpret_value(const StateKey &item,
+                           const std::string &value);
 
   KeyMap m_overrides;
   KeyMap m_saved_state;
