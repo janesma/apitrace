@@ -126,8 +126,8 @@ StateOverride::interpret_value(const StateKey &item,
 
     // float values
     case GL_BLEND_COLOR:
-    case GL_DEPTH_CLEAR_VALUE:
     case GL_COLOR_CLEAR_VALUE:
+    case GL_DEPTH_CLEAR_VALUE:
     case GL_LINE_WIDTH: {
       IntFloat i_f;
       i_f.f = std::stof(value);
@@ -251,19 +251,25 @@ StateOverride::enact_state(const KeyMap &m) const {
     GL::GetError();
     const auto n = state_name_to_enum(i.first.name);
     switch (n) {
-      case GL_CULL_FACE:
       case GL_BLEND:
+      case GL_CULL_FACE:
       case GL_LINE_SMOOTH: {
         enact_enabled_state(n, i.second[0]);
         break;
       }
-      case GL_CULL_FACE_MODE: {
-        GlFunctions::CullFace(i.second[0]);
+      case GL_BLEND_COLOR: {
+        std::vector<float> f(4);
+        IntFloat u;
+        for (int j = 0; j < 4; ++j) {
+          u.i = i.second[j];
+          f[j] = u.f;
+        }
+        GlFunctions::BlendColor(f[0], f[1], f[2], f[3]);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
-      case GL_BLEND_EQUATION_RGB:
-      case GL_BLEND_EQUATION_ALPHA: {
+      case GL_BLEND_EQUATION_ALPHA:
+      case GL_BLEND_EQUATION_RGB: {
         GLint modeRGB, modeAlpha;
         GlFunctions::GetIntegerv(GL_BLEND_EQUATION_RGB, &modeRGB);
         GlFunctions::GetIntegerv(GL_BLEND_EQUATION_ALPHA, &modeAlpha);
@@ -285,11 +291,10 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
-      case GL_BLEND_SRC_RGB:
+      case GL_BLEND_DST_ALPHA:
       case GL_BLEND_DST_RGB:
       case GL_BLEND_SRC_ALPHA:
-      case GL_BLEND_DST_ALPHA:
-        {
+      case GL_BLEND_SRC_RGB: {
           GLint src_rgb, dst_rgb, src_alpha, dst_alpha;
           GlFunctions::GetIntegerv(GL_BLEND_SRC_RGB, &src_rgb);
           GlFunctions::GetIntegerv(GL_BLEND_DST_RGB, &dst_rgb);
@@ -302,17 +307,6 @@ StateOverride::enact_state(const KeyMap &m) const {
               n == GL_BLEND_DST_ALPHA ? i.second[0] : dst_alpha);
           break;
         }
-      case GL_BLEND_COLOR: {
-        std::vector<float> f(4);
-        IntFloat u;
-        for (int j = 0; j < 4; ++j) {
-          u.i = i.second[j];
-          f[j] = u.f;
-        }
-        GlFunctions::BlendColor(f[0], f[1], f[2], f[3]);
-        assert(GL::GetError() == GL_NO_ERROR);
-        break;
-      }
       case GL_COLOR_CLEAR_VALUE: {
         std::vector<float> f(4);
         IntFloat u;
@@ -329,6 +323,11 @@ StateOverride::enact_state(const KeyMap &m) const {
                                i.second[1],
                                i.second[2],
                                i.second[3]);
+        break;
+      }
+      case GL_CULL_FACE_MODE: {
+        GlFunctions::CullFace(i.second[0]);
+        assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
       case GL_DEPTH_CLEAR_VALUE: {
@@ -376,6 +375,10 @@ StateOverride::onState(SelectionId selId,
                        RenderId renderId,
                        OnFrameRetrace *callback) {
   std::vector<uint32_t> data;
+
+  // these entries are roughly in the order of the items in the glGet
+  // man page:
+  // https://www.khronos.org/registry/OpenGL-Refpages/es3.1/html/glGet.xhtml
   {
     StateKey k("Rendering", "Cull State", "GL_CULL_FACE");
     getState(k, &data);
