@@ -180,6 +180,7 @@ class GlFunctions {
   static void ColorMask(GLboolean red, GLboolean green,
                         GLboolean blue, GLboolean alpha);
   static void ClearDepthf(GLfloat d);
+  static void DepthFunc(GLenum func);
 
  private:
   GlFunctions();

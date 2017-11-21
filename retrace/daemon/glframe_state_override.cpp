@@ -122,6 +122,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_CULL_FACE:
     case GL_CULL_FACE_MODE:
     case GL_LINE_SMOOTH:
+    case GL_DEPTH_FUNC:
       return state_name_to_enum(value);
 
     // float values
@@ -162,7 +163,8 @@ StateOverride::getState(const StateKey &item,
     case GL_BLEND_SRC:
     case GL_BLEND_SRC_ALPHA:
     case GL_BLEND_SRC_RGB:
-    case GL_CULL_FACE_MODE: {
+    case GL_CULL_FACE_MODE:
+    case GL_DEPTH_FUNC: {
       data->resize(1);
       get_integer_state(n, data);
       break;
@@ -336,6 +338,10 @@ StateOverride::enact_state(const KeyMap &m) const {
         GlFunctions::ClearDepthf(u.f);
         break;
       }
+      case GL_DEPTH_FUNC: {
+        GlFunctions::DepthFunc(i.second[0]);
+        break;
+      }
       case GL_LINE_WIDTH: {
         assert(i.second.size() == 1);
         IntFloat u;
@@ -503,5 +509,11 @@ StateOverride::onState(SelectionId selId,
     std::string value;
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId, k, {value});
+  }
+  {
+    StateKey k("Rendering", "Depth State", "GL_DEPTH_FUNC");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
   }
 }

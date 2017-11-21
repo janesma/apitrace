@@ -37,6 +37,7 @@
 uint32_t
 glretrace::state_name_to_enum(const std::string &value) {
   static const std::map<std::string, uint32_t> names {
+    {"GL_ALWAYS", GL_ALWAYS},
     {"GL_BACK", GL_BACK},
     {"GL_BLEND", GL_BLEND},
     {"GL_BLEND_COLOR", GL_BLEND_COLOR},
@@ -55,17 +56,25 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_CULL_FACE", GL_CULL_FACE},
     {"GL_CULL_FACE_MODE", GL_CULL_FACE_MODE},
     {"GL_DEPTH_CLEAR_VALUE", GL_DEPTH_CLEAR_VALUE},
+    {"GL_DEPTH_FUNC", GL_DEPTH_FUNC},
     {"GL_DST_ALPHA", GL_DST_ALPHA},
     {"GL_DST_COLOR", GL_DST_COLOR},
+    {"GL_EQUAL", GL_EQUAL},
     {"GL_FRONT", GL_FRONT},
     {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
     {"GL_FUNC_ADD", GL_FUNC_ADD},
     {"GL_FUNC_REVERSE_SUBTRACT", GL_FUNC_REVERSE_SUBTRACT},
     {"GL_FUNC_SUBTRACT", GL_FUNC_SUBTRACT},
+    {"GL_GEQUAL", GL_GEQUAL},
+    {"GL_GREATER", GL_GREATER},
+    {"GL_LEQUAL", GL_LEQUAL},
+    {"GL_LESS", GL_LESS},
     {"GL_LINE_SMOOTH", GL_LINE_SMOOTH},
     {"GL_LINE_WIDTH", GL_LINE_WIDTH},
     {"GL_MAX", GL_MAX},
     {"GL_MIN", GL_MIN},
+    {"GL_NEVER", GL_NEVER},
+    {"GL_NOTEQUAL", GL_NOTEQUAL},
     {"GL_ONE", GL_ONE},
     {"GL_ONE_MINUS_CONSTANT_ALPHA", GL_ONE_MINUS_CONSTANT_ALPHA},
     {"GL_ONE_MINUS_CONSTANT_COLOR", GL_ONE_MINUS_CONSTANT_COLOR},
@@ -89,66 +98,63 @@ glretrace::state_name_to_enum(const std::string &value) {
 
 std::string
 glretrace::state_enum_to_name(GLint value) {
-  switch (value) {
-    case GL_BACK:
-      return std::string("GL_BACK");
-    case GL_BLEND:
-      return std::string("GL_BLEND");
-    case GL_BLEND_DST:
-      return std::string("GL_BLEND_DST");
-    case GL_BLEND_SRC:
-      return std::string("GL_BLEND_SRC");
-    case GL_CONSTANT_ALPHA:
-      return std::string("GL_CONSTANT_ALPHA");
-    case GL_CONSTANT_COLOR:
-      return std::string("GL_CONSTANT_COLOR");
-    case GL_CULL_FACE:
-      return std::string("CULL_FACE");
-    case GL_CULL_FACE_MODE:
-      return std::string("CULL_FACE_MODE");
-    case GL_DST_ALPHA:
-      return std::string("GL_DST_ALPHA");
-    case GL_DST_COLOR:
-      return std::string("GL_DST_COLOR");
-    case GL_FRONT:
-      return std::string("GL_FRONT");
-    case GL_FRONT_AND_BACK:
-      return std::string("GL_FRONT_AND_BACK");
-    case GL_FUNC_ADD:
-      return std::string("GL_FUNC_ADD");
-    case GL_FUNC_REVERSE_SUBTRACT:
-      return std::string("GL_FUNC_REVERSE_SUBTRACT");
-    case GL_FUNC_SUBTRACT:
-      return std::string("GL_FUNC_SUBTRACT");
-    case GL_MAX:
-      return std::string("GL_MAX");
-    case GL_MIN:
-      return std::string("GL_MIN");
-    case GL_ONE:
-      return std::string("GL_ONE");
-    case GL_ONE_MINUS_CONSTANT_ALPHA:
-      return std::string("GL_ONE_MINUS_CONSTANT_ALPHA");
-    case GL_ONE_MINUS_CONSTANT_COLOR:
-      return std::string("GL_ONE_MINUS_CONSTANT_COLOR");
-    case GL_ONE_MINUS_DST_ALPHA:
-      return std::string("GL_ONE_MINUS_DST_ALPHA");
-    case GL_ONE_MINUS_DST_COLOR:
-      return std::string("GL_ONE_MINUS_DST_COLOR");
-    case GL_ONE_MINUS_SRC_ALPHA:
-      return std::string("GL_ONE_MINUS_SRC_ALPHA");
-    case GL_ONE_MINUS_SRC_COLOR:
-      return std::string("GL_ONE_MINUS_SRC_COLOR");
-    case GL_SRC_ALPHA:
-      return std::string("GL_SRC_ALPHA");
-    case GL_SRC_ALPHA_SATURATE:
-      return std::string("GL_SRC_ALPHA_SATURATE");
-    case GL_SRC_COLOR:
-      return std::string("GL_SRC_COLOR");
-    case GL_ZERO:
-      return std::string("GL_ZERO");
-    default:
-      assert(false);
+  static const std::map<uint32_t, std::string> names {
+    {GL_ALWAYS, "GL_ALWAYS"},
+    {GL_BACK, "GL_BACK"},
+    {GL_BLEND, "GL_BLEND"},
+    {GL_BLEND_COLOR, "GL_BLEND_COLOR"},
+    {GL_BLEND_DST, "GL_BLEND_DST"},
+    {GL_BLEND_DST_ALPHA, "GL_BLEND_DST_ALPHA"},
+    {GL_BLEND_DST_RGB, "GL_BLEND_DST_RGB"},
+    {GL_BLEND_EQUATION_ALPHA, "GL_BLEND_EQUATION_ALPHA"},
+    {GL_BLEND_EQUATION_RGB, "GL_BLEND_EQUATION_RGB"},
+    {GL_BLEND_SRC, "GL_BLEND_SRC"},
+    {GL_BLEND_SRC_ALPHA, "GL_BLEND_SRC_ALPHA"},
+    {GL_BLEND_SRC_RGB, "GL_BLEND_SRC_RGB"},
+    {GL_COLOR_CLEAR_VALUE, "GL_COLOR_CLEAR_VALUE"},
+    {GL_COLOR_WRITEMASK, "GL_COLOR_WRITEMASK"},
+    {GL_CONSTANT_ALPHA, "GL_CONSTANT_ALPHA"},
+    {GL_CONSTANT_COLOR, "GL_CONSTANT_COLOR"},
+    {GL_CULL_FACE, "GL_CULL_FACE"},
+    {GL_CULL_FACE_MODE, "GL_CULL_FACE_MODE"},
+    {GL_DEPTH_CLEAR_VALUE, "GL_DEPTH_CLEAR_VALUE"},
+    {GL_DEPTH_FUNC, "GL_DEPTH_FUNC"},
+    {GL_DST_ALPHA, "GL_DST_ALPHA"},
+    {GL_DST_COLOR, "GL_DST_COLOR"},
+    {GL_EQUAL, "GL_EQUAL"},
+    {GL_FRONT, "GL_FRONT"},
+    {GL_FRONT_AND_BACK, "GL_FRONT_AND_BACK"},
+    {GL_FUNC_ADD, "GL_FUNC_ADD"},
+    {GL_FUNC_REVERSE_SUBTRACT, "GL_FUNC_REVERSE_SUBTRACT"},
+    {GL_FUNC_SUBTRACT, "GL_FUNC_SUBTRACT"},
+    {GL_GEQUAL, "GL_GEQUAL"},
+    {GL_GREATER, "GL_GREATER"},
+    {GL_LEQUAL, "GL_LEQUAL"},
+    {GL_LESS, "GL_LESS"},
+    {GL_LINE_SMOOTH, "GL_LINE_SMOOTH"},
+    {GL_LINE_WIDTH, "GL_LINE_WIDTH"},
+    {GL_MAX, "GL_MAX"},
+    {GL_MIN, "GL_MIN"},
+    {GL_NEVER, "GL_NEVER"},
+    {GL_NOTEQUAL, "GL_NOTEQUAL"},
+    {GL_ONE, "GL_ONE"},
+    {GL_ONE_MINUS_CONSTANT_ALPHA, "GL_ONE_MINUS_CONSTANT_ALPHA"},
+    {GL_ONE_MINUS_CONSTANT_COLOR, "GL_ONE_MINUS_CONSTANT_COLOR"},
+    {GL_ONE_MINUS_DST_ALPHA, "GL_ONE_MINUS_DST_ALPHA"},
+    {GL_ONE_MINUS_DST_COLOR, "GL_ONE_MINUS_DST_COLOR"},
+    {GL_ONE_MINUS_SRC_ALPHA, "GL_ONE_MINUS_SRC_ALPHA"},
+    {GL_ONE_MINUS_SRC_COLOR, "GL_ONE_MINUS_SRC_COLOR"},
+    {GL_SRC_ALPHA, "GL_SRC_ALPHA"},
+    {GL_SRC_ALPHA_SATURATE, "GL_SRC_ALPHA_SATURATE"},
+    {GL_SRC_COLOR, "GL_SRC_COLOR"},
+    {GL_ZERO, "GL_ZERO"},
+        };
+  const auto i = names.find(value);
+  if (i == names.end()) {
+    assert(false);
+    return "GL_INVALID_ENUM";
   }
+  return i->second;
 }
 
 std::vector<std::string>
@@ -191,6 +197,9 @@ glretrace::state_name_to_choices(const std::string &n) {
             };
     case GL_CULL_FACE_MODE:
       return {"GL_FRONT", "GL_BACK", "GL_FRONT_AND_BACK"};
+    case GL_DEPTH_FUNC:
+      return {"GL_NEVER", "GL_LESS", "GL_EQUAL", "GL_LEQUAL",
+            "GL_GREATER", "GL_NOTEQUAL", "GL_GEQUAL", "GL_ALWAYS"};
     case GL_INVALID_ENUM:
       assert(false);
     default:
