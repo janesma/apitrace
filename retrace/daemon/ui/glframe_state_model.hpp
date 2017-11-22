@@ -121,6 +121,7 @@ class QStateModel : public QObject,
                             const QString &value);
   Q_INVOKABLE void collapse(const QString &path);
   Q_INVOKABLE void expand(const QString &path);
+  Q_INVOKABLE void search(const QString &_search);
 
  signals:
   void stateExperiment();
@@ -128,6 +129,7 @@ class QStateModel : public QObject,
 
  private:
   void refresh();
+  void set_visible();
 
   IFrameRetrace *m_retrace;
   SelectionId m_sel_count;
@@ -139,6 +141,7 @@ class QStateModel : public QObject,
   QList<QStateValue*> m_states;
   std::vector<QStateValue*> m_for_deletion;
   std::vector<RenderId> m_renders;
+  QString m_search;
   mutable std::mutex m_protect;
 };
 

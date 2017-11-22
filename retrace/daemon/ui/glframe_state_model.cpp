@@ -317,21 +317,40 @@ QStateModel::refresh() {
     ScopedLock s(m_protect);
     m_states.clear();
     for (auto i : m_state_by_name) {
-      bool visible = true;
-      for (auto f : m_filter_paths) {
-        if (strncmp(f.first.c_str(), i.first.path.c_str(),
-                    f.first.length()) == 0) {
-          // do not filter the collapsed directories themselves
-          if ((i.first.path == f.first) && (i.first.name.length() == 0))
-            visible = true;
-          else
-            visible = false;
-        }
-      }
-      i.second->setVisible(visible);
       m_states.push_back(i.second);
     }
+    set_visible();
   }
   emit stateChanged();
 }
 
+void
+QStateModel::set_visible() {
+  for (auto i : m_state_by_name) {
+    bool visible = true;
+    for (auto f : m_filter_paths) {
+      if (strncmp(f.first.c_str(), i.first.path.c_str(),
+                  f.first.length()) == 0) {
+        // do not filter the collapsed directories themselves
+        if ((i.first.path == f.first) && (i.first.name.length() == 0)) {
+          visible = true;
+        } else {
+          visible = false;
+          break;
+        }
+      }
+    }
+    if (visible && m_search.length() > 0) {
+      if ((!i.second->path().contains(m_search, Qt::CaseInsensitive)) &&
+          (!i.second->name().contains(m_search, Qt::CaseInsensitive)))
+        visible = false;
+    }
+    i.second->setVisible(visible);
+  }
+}
+
+void
+QStateModel::search(const QString &_search) {
+  m_search = _search;
+  set_visible();
+}

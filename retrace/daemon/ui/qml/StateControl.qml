@@ -6,8 +6,49 @@ import ApiTrace 1.0
 Item {
     property QStateModel stateModel
 
+    Item {
+        id: searchItem
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        height: textRect.height
+        
+        Text {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.topMargin: 5
+            id: searchText
+            text: "Search:"
+        }
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: searchText.right
+            anchors.leftMargin: 20
+            height: searchText.height * 1.5
+            border.width: 1
+            width: searchItem.width/2
+            id: textRect
+            TextInput {
+                height: searchText.height
+                width: parent.width
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 4
+                id: stateSearch
+                text: ""
+                onDisplayTextChanged: {
+                    stateModel.search(displayText)
+                }
+            }
+        }
+    }
+
     ScrollView {
-        anchors.fill: parent
+        anchors.top: searchItem.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
         ListView {
             id: stateList
             model: stateModel.state
