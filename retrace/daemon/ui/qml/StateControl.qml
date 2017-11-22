@@ -107,8 +107,7 @@ Item {
                                 text = modelData.value;
                                 return;
                             }
-                            stateModel.setState(modelData.group,
-                                                modelData.path,
+                            stateModel.setState(modelData.path,
                                                 modelData.name,
                                                 0,
                                                 text);
@@ -130,8 +129,7 @@ Item {
                                     text = modelData.value[0];
                                     return;
                                 }
-                                stateModel.setState(modelData.group,
-                                                    modelData.path,
+                                stateModel.setState(modelData.path,
                                                     modelData.name,
                                                     0,
                                                     text);
@@ -149,8 +147,7 @@ Item {
                                     text = modelData.value[1];
                                     return;
                                 }
-                                stateModel.setState(modelData.group,
-                                                    modelData.path,
+                                stateModel.setState(modelData.path,
                                                     modelData.name,
                                                     1,
                                                     text);
@@ -168,8 +165,7 @@ Item {
                                     text = modelData.value[2];
                                     return;
                                 }
-                                stateModel.setState(modelData.group,
-                                                    modelData.path,
+                                stateModel.setState(modelData.path,
                                                     modelData.name,
                                                     2,
                                                     text);
@@ -187,8 +183,7 @@ Item {
                                     text = modelData.value[3];
                                     return;
                                 }
-                                stateModel.setState(modelData.group,
-                                                    modelData.path,
+                                stateModel.setState(modelData.path,
                                                     modelData.name,
                                                     3,
                                                     text);
@@ -202,8 +197,7 @@ Item {
                         currentIndex: (modelData.valueType == QStateValue.KglEnum ? modelData.value : 0)
                         visible: (modelData.valueType == QStateValue.KglEnum)
                         onActivated: {
-                            stateModel.setState(modelData.group,
-                                                modelData.path,
+                            stateModel.setState(modelData.path,
                                                 modelData.name,
                                                 0,
                                                 modelData.choices[currentIndex]);

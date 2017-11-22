@@ -49,12 +49,10 @@ QStateValue::QStateValue(QObject *parent) {
 }
 
 QStateValue::QStateValue(QObject *parent,
-                         const std::string &_group,
                          const std::string &_path,
                          const std::string &_name,
                          const std::vector<std::string> &_choices)
-    : m_group(_group.c_str()),
-      m_path(_path.c_str()),
+    : m_path(_path.c_str()),
       m_name(_name.c_str()),
       m_value(kUninitializedValue),
       m_visible(true),
@@ -205,11 +203,10 @@ void QStateModel::onState(SelectionId selectionCount,
     if (known == m_known_paths.end()) {
       // create an empty item to serve as the directory
       QStateValue *i = new QStateValue(this,
-                                       item.group,
                                        path_comp,
                                        "",
-                                       std::vector<std::string>());
-      StateKey k(item.group, path_comp, "");
+                                       {});
+      StateKey k(path_comp, "");
       m_state_by_name[k] = i;
       m_known_paths[path_comp] = true;
     } else {
@@ -222,7 +219,6 @@ void QStateModel::onState(SelectionId selectionCount,
   auto state_value = m_state_by_name.find(item);
   if (state_value == m_state_by_name.end()) {
     QStateValue *i = new QStateValue(this,
-                                     item.group,
                                      item.path,
                                      name,
                                      state_name_to_choices(name));
@@ -243,8 +239,7 @@ void QStateModel::onState(SelectionId selectionCount,
 }
 
 void
-QStateModel::setState(const QString &group,
-                      const QString &path,
+QStateModel::setState(const QString &path,
                       const QString &name,
                       int offset,
                       const QString &value) {
@@ -261,7 +256,7 @@ QStateModel::setState(const QString &group,
     ++r;
   }
 
-  StateKey key(group.toStdString(), path.toStdString(), name.toStdString());
+  StateKey key(path.toStdString(), name.toStdString());
   m_retrace->setState(sel, key, offset, value.toStdString());
   emit stateExperiment();
 }

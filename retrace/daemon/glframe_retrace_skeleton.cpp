@@ -402,7 +402,6 @@ FrameRetraceSkeleton::Run() {
           state_resp->set_experiment_count(-1);
           state_resp->add_value("");
           auto r_item = state_resp->mutable_item();
-          r_item->set_group("");
           r_item->set_path("");
           r_item->set_name("");
           writeResponse(m_socket, proto_response, &m_buf);
@@ -415,8 +414,7 @@ FrameRetraceSkeleton::Run() {
           RenderSelection selection;
           makeRenderSelection(state.selection(), &selection);
           auto &item = state.item();
-          glretrace::StateKey k(item.group(),
-                                item.path(),
+          glretrace::StateKey k(item.path(),
                                 item.name());
           m_frame->setState(selection, k, state.offset(), state.value());
           break;
@@ -651,7 +649,6 @@ FrameRetraceSkeleton::onState(SelectionId selectionCount,
   response->set_selection_count(selectionCount());
   response->set_experiment_count(experimentCount.count());
   auto r_item = response->mutable_item();
-  r_item->set_group(item.group);
   r_item->set_path(item.path);
   r_item->set_name(item.name);
   for (auto i : value)

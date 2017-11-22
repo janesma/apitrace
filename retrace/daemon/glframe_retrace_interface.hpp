@@ -260,25 +260,19 @@ enum UniformDimension {
 };
 
 struct StateKey {
-  std::string group;
   std::string path;
   std::string name;
 
   StateKey() {}
-  StateKey(const std::string _group,
-           const std::string _path,
+  StateKey(const std::string _path,
            const std::string _name)
-      : group(_group), path(_path), name(_name) {}
+      : path(_path), name(_name) {}
   bool operator<(const StateKey &o) const {
     if (path < o.path)
       return true;
     if (path > o.path)
       return false;
-    if (name < o.name)
-      return true;
-    if (name > o.name)
-      return false;
-    return group < o.group;
+    return (name < o.name);
   }
 };
 

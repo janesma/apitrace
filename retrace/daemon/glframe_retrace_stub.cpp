@@ -1000,7 +1000,7 @@ class StateRequest : public IRetraceRequest {
       }
       const RenderId rid(state_response.render_id());
       auto &item = state_response.item();
-      glretrace::StateKey k(item.group(), item.path(), item.name());
+      glretrace::StateKey k(item.path(), item.name());
       std::vector<std::string> value;
       for (auto v : state_response.value())
         value.push_back(v);
@@ -1032,7 +1032,6 @@ class SetStateRequest : public IRetraceRequest {
     msg.set_requesttype(ApiTrace::SET_STATE_REQUEST);
     auto req = msg.mutable_set_state();
     auto item = req->mutable_item();
-    item->set_group(m_item.group);
     item->set_path(m_item.path);
     item->set_name(m_item.name);
     auto selection = req->mutable_selection();

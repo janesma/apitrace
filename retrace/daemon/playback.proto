@@ -232,7 +232,6 @@ message StateRequest {
 }
 
 message StateKey {
-  required string group = 1;
   required string path = 2;
   required string name = 3;
 }

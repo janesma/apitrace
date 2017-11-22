@@ -386,132 +386,132 @@ StateOverride::onState(SelectionId selId,
   // man page:
   // https://www.khronos.org/registry/OpenGL-Refpages/es3.1/html/glGet.xhtml
   {
-    StateKey k("Rendering", "Cull State", "GL_CULL_FACE");
+    StateKey k("Cull State", "GL_CULL_FACE");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
   {
-    StateKey k("Rendering", "Cull State", "GL_CULL_FACE_MODE");
+    StateKey k("Cull State", "GL_CULL_FACE_MODE");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND");
+    StateKey k("Blend State", "GL_BLEND");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_SRC");
+    StateKey k("Blend State", "GL_BLEND_SRC");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_SRC_ALPHA");
+    StateKey k("Blend State", "GL_BLEND_SRC_ALPHA");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_SRC_RGB");
+    StateKey k("Blend State", "GL_BLEND_SRC_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_DST");
+    StateKey k("Blend State", "GL_BLEND_DST");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_DST_ALPHA");
+    StateKey k("Blend State", "GL_BLEND_DST_ALPHA");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_DST_RGB");
+    StateKey k("Blend State", "GL_BLEND_DST_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_COLOR");
+    StateKey k("Blend State", "GL_BLEND_COLOR");
     getState(k, &data);
     std::vector<std::string> color;
     floatStrings(data, &color);
     callback->onState(selId, experimentCount, renderId, k, color);
   }
   {
-    StateKey k("Rendering", "Line State", "GL_LINE_WIDTH");
+    StateKey k("Line State", "GL_LINE_WIDTH");
     getState(k, &data);
     std::string value;
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId, k, {value});
   }
   {
-    StateKey k("Rendering", "Line State", "GL_LINE_SMOOTH");
+    StateKey k("Line State", "GL_LINE_SMOOTH");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_EQUATION_RGB");
+    StateKey k("Blend State", "GL_BLEND_EQUATION_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Blend State", "GL_BLEND_EQUATION_ALPHA");
+    StateKey k("Blend State", "GL_BLEND_EQUATION_ALPHA");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
   {
-    StateKey k("Rendering", "Clear State", "GL_COLOR_CLEAR_VALUE");
+    StateKey k("Clear State", "GL_COLOR_CLEAR_VALUE");
     getState(k, &data);
     std::vector<std::string> color;
     floatStrings(data, &color);
     callback->onState(selId, experimentCount, renderId, k, color);
   }
   {
-    StateKey k("Rendering", "FrameBuffer State/Red Enabled",
+    StateKey k("FrameBuffer State/Red Enabled",
                "GL_COLOR_WRITEMASK");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
                       {data[0] ? "true" : "false"});
     {
-      StateKey k("Rendering", "FrameBuffer State/Green Enabled",
+      StateKey k("FrameBuffer State/Green Enabled",
                  "GL_COLOR_WRITEMASK");
       callback->onState(selId, experimentCount, renderId, k,
                         {data[1] ? "true" : "false"});
     }
     {
-      StateKey k("Rendering", "FrameBuffer State/Blue Enabled",
+      StateKey k("FrameBuffer State/Blue Enabled",
                  "GL_COLOR_WRITEMASK");
       callback->onState(selId, experimentCount, renderId, k,
                         {data[2] ? "true" : "false"});
     }
     {
-      StateKey k("Rendering", "FrameBuffer State/Alpha Enabled",
+      StateKey k("FrameBuffer State/Alpha Enabled",
                  "GL_COLOR_WRITEMASK");
       callback->onState(selId, experimentCount, renderId, k,
                         {data[3] ? "true" : "false"});
     }
   }
   {
-    StateKey k("Rendering", "Depth State", "GL_DEPTH_CLEAR_VALUE");
+    StateKey k("Depth State", "GL_DEPTH_CLEAR_VALUE");
     getState(k, &data);
     std::string value;
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId, k, {value});
   }
   {
-    StateKey k("Rendering", "Depth State", "GL_DEPTH_FUNC");
+    StateKey k("Depth State", "GL_DEPTH_FUNC");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
