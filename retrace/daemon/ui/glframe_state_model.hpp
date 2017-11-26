@@ -49,50 +49,46 @@ class QStateValue : public QObject, NoCopy, NoAssign, NoMove {
 
   Q_PROPERTY(QString path READ path CONSTANT)
   Q_PROPERTY(QString name READ name CONSTANT)
-  Q_PROPERTY(QVariant value READ value CONSTANT)
+  Q_PROPERTY(QStringList value READ value NOTIFY valueChanged)
   Q_PROPERTY(QVariant indent READ indent CONSTANT)
-  Q_PROPERTY(QStateType valueType READ valueType CONSTANT)
   Q_PROPERTY(QVariant visible
              READ visible
              WRITE setVisible
              NOTIFY visibleChanged)
-  Q_PROPERTY(QList<QVariant> choices READ choices CONSTANT)
+  Q_PROPERTY(QStringList choices READ choices CONSTANT)
+  Q_PROPERTY(QStringList indices READ indices CONSTANT)
 
  public:
-  enum QStateType {
-    KglDirectory,
-    KglEnum,
-    KglFloat,
-    KglColor
-  };
-  Q_ENUMS(QStateType);
-
   explicit QStateValue(QObject *parent = 0);
   QStateValue(QObject *parent,
               const std::string &_path,
               const std::string &_name,
-              const std::vector<std::string> &_choices);
-  void insert(const std::string &value);
-  void insert(const std::string &red, const std::string &blue,
-              const std::string &green, const std::string &alpha);
+              const std::vector<std::string> &_choices,
+              const std::vector<std::string> &_indices);
+  void insert(const std::vector<std::string> &value);
 
   QString path() const { return m_path; }
   QString name() const { return m_name; }
-  QStateType valueType() const { return m_type; }
-  QVariant value() const { return m_value; }
+  QStringList value() const { return m_value; }
   QVariant indent() const { return m_indent; }
   QVariant visible() const { return m_visible; }
   void setVisible(QVariant v) { m_visible = v; emit visibleChanged(); }
-  QList<QVariant> choices() const { return m_choices; }
+  QStringList choices() const { return m_choices; }
+  QStringList indices() const { return m_indices; }
+  void clear() { m_value.clear(); emit valueChanged(); }
 
  signals:
   void visibleChanged();
+  void valueChanged();
 
  private:
+  QString value_to_choice(const std::string &_value);
+
   QString m_path, m_name;
-  QVariant m_value, m_indent, m_visible;
-  QStateType m_type;
-  QList<QVariant> m_choices;
+  QStringList m_value;
+  QVariant m_indent, m_visible;
+  QStringList m_choices;
+  QStringList m_indices;
 };
 
 class QStateModel : public QObject,
@@ -130,12 +126,10 @@ class QStateModel : public QObject,
   IFrameRetrace *m_retrace;
   SelectionId m_sel_count;
   ExperimentId m_experiment_count;
-  // typedef QList<QStateValue*> StateList;
   std::map<StateKey, QStateValue*> m_state_by_name;
   std::map<std::string, bool> m_filter_paths;
   std::map<std::string, bool> m_known_paths;
   QList<QStateValue*> m_states;
-  std::vector<QStateValue*> m_for_deletion;
   std::vector<RenderId> m_renders;
   QString m_search;
   mutable std::mutex m_protect;

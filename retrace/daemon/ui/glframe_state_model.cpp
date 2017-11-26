@@ -51,18 +51,19 @@ QStateValue::QStateValue(QObject *parent) {
 QStateValue::QStateValue(QObject *parent,
                          const std::string &_path,
                          const std::string &_name,
-                         const std::vector<std::string> &_choices)
+                         const std::vector<std::string> &_choices,
+                         const std::vector<std::string> &_indices)
     : m_path(_path.c_str()),
       m_name(_name.c_str()),
-      m_value(kUninitializedValue),
-      m_visible(true),
-      m_type(QStateValue::KglDirectory) {
+      m_value({}),
+      m_visible(true) {
   moveToThread(parent->thread());
-  if (!_choices.empty())
-    m_type = QStateValue::KglEnum;
 
   for (auto c : _choices)
-    m_choices.append(QVariant(c.c_str()));
+    m_choices.append(QString(c.c_str()));
+  for (auto i : _indices)
+    m_indices.append(QString(i.c_str()));
+
   const int path_count = std::count(_path.begin(), _path.end(), '/');
   const int indent =  path_count + (_name.length() > 0 ? 1 : 0);
   m_indent = indent;
@@ -71,75 +72,44 @@ QStateValue::QStateValue(QObject *parent,
 }
 
 void
-QStateValue::insert(const std::string &value) {
-  int value_index = 0;
-  QVariant qvalue(value.c_str());
-  if (m_type == QStateValue::KglEnum) {
-    for (auto c : m_choices) {
-      if (qvalue == c)
-        break;
-      ++value_index;
-    }
-    // value must be found
-    assert(value_index < m_choices.size());
-    if (m_value == kUninitializedValue) {
-      // first render, display the value
-      m_value = value_index;
-      return;
-    }
+QStateValue::insert(const std::vector<std::string> &value) {
+  QStringList new_value;
+  for (auto i : value) {
+    new_value.append(m_choices.length() ?
+                     value_to_choice(i) :
+                     QString::fromStdString(i));
+  }
 
-    if (m_value != value_index)
-      // selected renders have different values
-      m_value = kMixedValue;
-
+  if (m_value.length() == 0) {
+    m_value = new_value;
+    emit valueChanged();
     return;
   }
 
-  // else
-  m_type = QStateValue::KglFloat;
-  const QString new_val = QString::fromStdString(value);
-  if (m_value == kUninitializedValue) {
-    m_value = new_val;
+  // else we are appending values from a multiple-render selection to
+  // an existing value.
+  if (m_value == new_value)
     return;
-  }
-  if (m_value != new_val)
-    m_value = "###";
-}
 
-void
-QStateValue::insert(const std::string &red,
-                    const std::string &blue,
-                    const std::string &green,
-                    const std::string &alpha) {
-  m_type = QStateValue::KglColor;
-  QStringList color;
-  color.append(QString::fromStdString(red));
-  color.append(QString::fromStdString(blue));
-  color.append(QString::fromStdString(green));
-  color.append(QString::fromStdString(alpha));
-
-  if (m_value == kUninitializedValue) {
-    // selected renders have different values
-    m_value = color;
-    return;
+  QStringList tmp = m_value;
+  for (int i = 0; i < tmp.size(); ++i) {
+    if (tmp[i] != new_value[i])
+      tmp[i] = "###";
   }
-
-  if (m_value != color) {
-    // selected renders have different values
-    QStringList tmp = m_value.value<QStringList>();
-    for (int i = 0; i < 4; ++i) {
-      if (tmp[i] != color[i])
-        tmp[i] = "###";
-    }
-    m_value = tmp;
-  }
+  m_value = tmp;
+  emit valueChanged();
 }
 
 QStateModel::QStateModel() {}
 
 QStateModel::QStateModel(IFrameRetrace *retrace) : m_retrace(retrace) {}
 
-QStateModel::~QStateModel() {}
+QStateModel::~QStateModel() {
+  for (auto i : m_states)
+    delete i;
+  m_states.clear();
+  m_state_by_name.clear();
+}
 
 QQmlListProperty<QStateValue> QStateModel::state() {
   ScopedLock s(m_protect);
@@ -148,27 +118,10 @@ QQmlListProperty<QStateValue> QStateModel::state() {
 
 void
 QStateModel::clear() {
-  // QObjects being displayed in the UI must be cleared from the UI
-  // before being deleted.  This routine is invoked in the UI thread
-  // (as opposed to the retrace thread).  The emit with the empty
-  // states calls down into ::state() to retrieve the new empty list
-  // within a single thread.  After emit, it is safe to delete the
-  // objects.  Conversely, if these objects were cleaned up after an
-  // emit in the retrace thread, the request for updated state would
-  // be enqueued.  The result is an asynchronous crash.
   {
     ScopedLock s(m_protect);
-    m_states.clear();
-  }
-  emit stateChanged();
-  {
-    ScopedLock s(m_protect);
-    m_state_by_name.clear();
-    m_renders.clear();
-    m_known_paths.clear();
-    for (auto i : m_for_deletion)
-      delete i;
-    m_for_deletion.clear();
+    for (auto i : m_states)
+      i->clear();
   }
 }
 
@@ -178,13 +131,16 @@ void QStateModel::onState(SelectionId selectionCount,
                           StateKey item,
                           const std::vector<std::string> &value) {
   if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION)) {
-    refresh();
     return;
   }
 
   if ((selectionCount > m_sel_count) ||
-      (experimentCount > m_experiment_count))
+      (experimentCount > m_experiment_count)) {
+    // state values for a new selection/experiment.  Discard existing
+    // values.
     clear();
+    m_renders.clear();
+  }
 
   ScopedLock s(m_protect);
   if ((selectionCount > m_sel_count) ||
@@ -197,6 +153,16 @@ void QStateModel::onState(SelectionId selectionCount,
   }
   if (m_renders.empty() || renderId != m_renders.back())
     m_renders.push_back(renderId);
+
+  auto state_value = m_state_by_name.find(item);
+  if (state_value != m_state_by_name.end()) {
+    // update existing value
+    state_value->second->insert(value);
+    return;
+  }
+
+  // else this is a state value that has not been seen before.  Create
+  // QStateValue objects for the directory tree and the value itself.
   std::string path_comp = item.path;
   while (path_comp.length() > 0) {
     auto known = m_known_paths.find(path_comp);
@@ -205,7 +171,7 @@ void QStateModel::onState(SelectionId selectionCount,
       QStateValue *i = new QStateValue(this,
                                        path_comp,
                                        "",
-                                       {});
+                                       {}, {});
       StateKey k(path_comp, "");
       m_state_by_name[k] = i;
       m_known_paths[path_comp] = true;
@@ -216,26 +182,21 @@ void QStateModel::onState(SelectionId selectionCount,
   }
 
   auto &name = item.name;
-  auto state_value = m_state_by_name.find(item);
-  if (state_value == m_state_by_name.end()) {
-    QStateValue *i = new QStateValue(this,
-                                     item.path,
-                                     name,
-                                     state_name_to_choices(name));
-    m_state_by_name[item] = i;
-    state_value = m_state_by_name.find(item);
-    m_for_deletion.push_back(i);
-  }
-  if (value.size() == 1) {
-    state_value->second->insert(value[0]);
-    return;
-  }
-  if (value.size() == 4) {
-    // color value
-    state_value->second->insert(value[0], value[1], value[2], value[3]);
-    return;
-  }
-  assert(false);
+  QStateValue *i = new QStateValue(this,
+                                   item.path,
+                                   name,
+                                   state_name_to_choices(name),
+                                   state_name_to_indices(name));
+  m_state_by_name[item] = i;
+  state_value = m_state_by_name.find(item);
+  i->insert(value);
+
+  // the list of QStateValue objects has changed, resort and redraw
+  // the ListView displaying them.
+  m_states.clear();
+  for (auto i : m_state_by_name)
+    m_states.push_back(i.second);
+  emit stateChanged();
 }
 
 void
@@ -255,8 +216,7 @@ QStateModel::setState(const QString &path,
       sel.series.push_back(RenderSequence(*r, RenderId(r->index() + 1)));
     ++r;
   }
-
-  StateKey key(path.toStdString(), name.toStdString());
+  const StateKey key(path.toStdString(), name.toStdString());
   m_retrace->setState(sel, key, offset, value.toStdString());
   emit stateExperiment();
 }
@@ -348,4 +308,18 @@ void
 QStateModel::search(const QString &_search) {
   m_search = _search;
   set_visible();
+}
+
+QString
+QStateValue::value_to_choice(const std::string &_value) {
+  assert(m_choices.length() > 0);
+  int c = 0;
+  const QString v(_value.c_str());
+  for (const auto &i : m_choices) {
+    if (i == v)
+      return QString().setNum(c);
+    ++c;
+  }
+  assert(false);
+  return QString();
 }

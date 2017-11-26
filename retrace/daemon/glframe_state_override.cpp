@@ -67,14 +67,9 @@ StateOverride::setState(const StateKey &item,
 // model.
 void
 StateOverride::adjust_item(StateKey *item) const {
-  switch (state_name_to_enum(item->name)) {
-    case GL_COLOR_WRITEMASK: {
-      item->path = "";
-      break;
-    }
-    default:
-      break;
-  }
+  // initially required by GL_COLOR_WRITEMASK, which can now be
+  // implemented within the generic pattern.
+  return;
 }
 
 // As with adjust_item, offsets from the UI do not always match the
@@ -83,22 +78,9 @@ StateOverride::adjust_item(StateKey *item) const {
 void
 StateOverride::adjust_offset(const StateKey &item,
                              int *offset) const {
-  switch (state_name_to_enum(item.name)) {
-    case GL_COLOR_WRITEMASK: {
-      static const std::map<std::string, int> writemask_offsets {
-        { "FrameBuffer State/Red Enabled", 0 },
-        { "FrameBuffer State/Green Enabled", 1  },
-        { "FrameBuffer State/Blue Enabled", 2  },
-        { "FrameBuffer State/Alpha Enabled", 3 },
-            };
-      const auto i = writemask_offsets.find(item.path);
-      assert(i != writemask_offsets.end());
-      *offset = i->second;
-      return;
-    }
-    default:
-      return;
-  }
+  // initially required by GL_COLOR_WRITEMASK, which can now be
+  // implemented within the generic pattern.
+  return;
 }
 
 // The UI uses strings for all state values.  The override model
@@ -479,29 +461,13 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId, k, color);
   }
   {
-    StateKey k("FrameBuffer State/Red Enabled",
-               "GL_COLOR_WRITEMASK");
+    StateKey k("FrameBuffer State", "GL_COLOR_WRITEMASK");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
-                      {data[0] ? "true" : "false"});
-    {
-      StateKey k("FrameBuffer State/Green Enabled",
-                 "GL_COLOR_WRITEMASK");
-      callback->onState(selId, experimentCount, renderId, k,
-                        {data[1] ? "true" : "false"});
-    }
-    {
-      StateKey k("FrameBuffer State/Blue Enabled",
-                 "GL_COLOR_WRITEMASK");
-      callback->onState(selId, experimentCount, renderId, k,
-                        {data[2] ? "true" : "false"});
-    }
-    {
-      StateKey k("FrameBuffer State/Alpha Enabled",
-                 "GL_COLOR_WRITEMASK");
-      callback->onState(selId, experimentCount, renderId, k,
-                        {data[3] ? "true" : "false"});
-    }
+                      {data[0] ? "true" : "false",
+                      data[1] ? "true" : "false",
+                      data[2] ? "true" : "false",
+                      data[3] ? "true" : "false"});
   }
   {
     StateKey k("Depth State", "GL_DEPTH_CLEAR_VALUE");

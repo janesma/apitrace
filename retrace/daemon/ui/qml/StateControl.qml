@@ -54,9 +54,10 @@ Item {
             model: stateModel.state
             anchors.fill: parent
             delegate: Component {
+                id: currentDelegate
                 Row {
                     visible: modelData.visible
-                    height: modelData.visible ? combo.height : 0
+                    height: modelData.visible ? choices.height : 0
                     spacing: 10
                     Rectangle {
                         id: indent
@@ -70,7 +71,7 @@ Item {
                         width: nameText.height * 0.75
                         height: nameText.height * 0.75
                         source: "qrc:///qml/images/if_next_right_82215.png"
-                        visible: (modelData.valueType == QStateValue.KglDirectory)
+                        visible: (modelData.value.length == 0)
                         property var collapsed: false
                         transform: Rotation {
                             origin.x: collapse.width / 2
@@ -96,111 +97,56 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: modelData.name + " : "
                     }
-                    TextInput {
-                        anchors.margins: 3
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: (modelData.valueType == QStateValue.KglFloat)
-                        validator: DoubleValidator{}
-                        text: (modelData.valueType == QStateValue.KglFloat) ? modelData.value : ""
-                        Keys.onReturnPressed: {
-                            if (!acceptableInput) {
-                                text = modelData.value;
-                                return;
-                            }
-                            stateModel.setState(modelData.path,
-                                                modelData.name,
-                                                0,
-                                                text);
-                        }
-                    }
                     Row {
-                        anchors.verticalCenter: parent.verticalCenter
+                        id: dataRow
                         spacing: 10
-                        visible: (modelData.valueType == QStateValue.KglColor)
-                        Text{
-                            text: "Red: "
-                        }
-                        TextInput {
-                            anchors.margins: 3
-                            validator: DoubleValidator{}
-                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[0] : ""
-                            Keys.onReturnPressed: {
-                                if (!acceptableInput) {
-                                    text = modelData.value[0];
-                                    return;
+                        property var rowModel: currentDelegate.modelData
+                        Repeater {
+                            model: modelData.value.length;
+                            property var indices: modelData.indices
+                            property var value: modelData.value
+                            property var path: modelData.path
+                            property var name: modelData.name
+                            property var choices: modelData.choices
+                            Row {
+                                property var offset: index
+                                spacing: 10
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    visible: indices.length > 0
+                                    text: visible ? indices[offset] : ""
                                 }
-                                stateModel.setState(modelData.path,
-                                                    modelData.name,
-                                                    0,
-                                                    text);
-                            }
-                        }
-                        Text{
-                            text: "Blue: "
-                        }
-                        TextInput {
-                            anchors.margins: 3
-                            validator: DoubleValidator{}
-                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[1] : ""
-                            Keys.onReturnPressed: {
-                                if (!acceptableInput) {
-                                    text = modelData.value[1];
-                                    return;
+                                TextInput {
+                                    anchors.margins: 3
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    visible: choices.length == 0
+                                    validator: DoubleValidator{}
+                                    text: value[offset]
+                                    Keys.onReturnPressed: {
+                                        if (!acceptableInput) {
+                                            text = modelData.value[0];
+                                            return;
+                                        }
+                                        stateModel.setState(path,
+                                                            name,
+                                                            offset,
+                                                            text);
+                                    }
                                 }
-                                stateModel.setState(modelData.path,
-                                                    modelData.name,
-                                                    1,
-                                                    text);
-                            }
-                        }
-                        Text{
-                            text: "Green: "
-                        }
-                        TextInput {
-                            anchors.margins: 3
-                            validator: DoubleValidator{}
-                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[2] : ""
-                            Keys.onReturnPressed: {
-                                if (!acceptableInput) {
-                                    text = modelData.value[2];
-                                    return;
+                                ComboBoxFitContents {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    model: choices
+                                    currentIndex: parseInt(value[offset])
+                                    visible: choices.length > 0
+                                    onActivated: {
+                                        stateModel.setState(path,
+                                                            name,
+                                                            offset,
+                                                            choices[currentIndex]);
+                                    }
                                 }
-                                stateModel.setState(modelData.path,
-                                                    modelData.name,
-                                                    2,
-                                                    text);
+
                             }
-                        }
-                        Text{
-                            text: "Alpha: "
-                        }
-                        TextInput {
-                            validator: DoubleValidator{}
-                            anchors.margins: 3
-                            text: (modelData.valueType == QStateValue.KglColor) ? modelData.value[3] : ""
-                            Keys.onReturnPressed: {
-                                if (!acceptableInput) {
-                                    text = modelData.value[3];
-                                    return;
-                                }
-                                stateModel.setState(modelData.path,
-                                                    modelData.name,
-                                                    3,
-                                                    text);
-                            }
-                        }
-                    }
-                    ComboBoxFitContents {
-                        id: combo
-                        anchors.verticalCenter: parent.verticalCenter
-                        model: modelData.choices
-                        currentIndex: (modelData.valueType == QStateValue.KglEnum ? modelData.value : 0)
-                        visible: (modelData.valueType == QStateValue.KglEnum)
-                        onActivated: {
-                            stateModel.setState(modelData.path,
-                                                modelData.name,
-                                                0,
-                                                modelData.choices[currentIndex]);
                         }
                     }
                 }

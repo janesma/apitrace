@@ -207,3 +207,15 @@ glretrace::state_name_to_choices(const std::string &n) {
   }
 }
 
+std::vector<std::string>
+glretrace::state_name_to_indices(const std::string &n) {
+  switch (state_name_to_enum(n)) {
+    case GL_COLOR_WRITEMASK:
+      return {"Red Enabled", "Green Enabled", "Blue Enabled", "Alpha Enabled"};
+    case GL_BLEND_COLOR:
+    case GL_COLOR_CLEAR_VALUE:
+      return {"Red", "Green", "Blue", "Alpha"};
+    default:
+      return {};
+  }
+}

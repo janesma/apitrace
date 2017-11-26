@@ -39,6 +39,7 @@ namespace glretrace {
 uint32_t state_name_to_enum(const std::string &value);
 std::string state_enum_to_name(GLint value);
 std::vector<std::string> state_name_to_choices(const std::string &n);
+std::vector<std::string> state_name_to_indices(const std::string &n);
 
 }  // namespace glretrace
 
