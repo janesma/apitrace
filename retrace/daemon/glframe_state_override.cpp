@@ -111,6 +111,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_BLEND_COLOR:
     case GL_COLOR_CLEAR_VALUE:
     case GL_DEPTH_CLEAR_VALUE:
+    case GL_DEPTH_RANGE:
     case GL_LINE_WIDTH: {
       IntFloat i_f;
       i_f.f = std::stof(value);
@@ -164,6 +165,11 @@ StateOverride::getState(const StateKey &item,
     case GL_DEPTH_CLEAR_VALUE:
     case GL_LINE_WIDTH: {
       data->resize(1);
+      get_float_state(n, data);
+      break;
+    }
+    case GL_DEPTH_RANGE: {
+      data->resize(2);
       get_float_state(n, data);
       break;
     }
@@ -332,6 +338,15 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_DEPTH_RANGE: {
+        assert(i.second.size() == 2);
+        IntFloat near, far;
+        near.i = i.second[0];
+        far.i = i.second[1];
+        GlFunctions::DepthRangef(near.f, far.f);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -481,5 +496,13 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Depth State", "GL_DEPTH_RANGE");
+    getState(k, &data);
+    std::vector<std::string> range;
+    floatStrings(data, &range);
+    callback->onState(selId, experimentCount, renderId,
+                      k, range);
   }
 }

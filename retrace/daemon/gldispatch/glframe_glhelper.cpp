@@ -125,6 +125,7 @@ static void *pLineWidth = NULL;
 static void *pColorMask = NULL;
 static void *pClearDepthf = NULL;
 static void *pDepthFunc = NULL;
+static void *pDepthRangef = NULL;
 
 }  // namespace
 
@@ -345,6 +346,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pClearDepthf);
   pDepthFunc = _GetProcAddress("glDepthFunc");
   assert(pDepthFunc);
+  pDepthRangef = _GetProcAddress("glDepthRangef");
+  assert(pDepthRangef);
 }
 
 GLuint
@@ -998,4 +1001,10 @@ void
 GlFunctions::DepthFunc(GLenum func) {
   typedef void (*DEPTHFUNC)(GLenum func);
   return ((DEPTHFUNC)pDepthFunc)(func);
+}
+
+void
+GlFunctions::DepthRangef(GLfloat n, GLfloat f) {
+  typedef void (*DEPTHRANGEF)(GLfloat n, GLfloat f);
+  return ((DEPTHRANGEF)pDepthRangef)(n, f);
 }
