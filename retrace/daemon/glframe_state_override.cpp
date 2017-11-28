@@ -108,6 +108,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_DEPTH_TEST:
     case GL_DEPTH_WRITEMASK:
     case GL_DITHER:
+    case GL_FRONT_FACE:
       return state_name_to_enum(value);
 
     // float values
@@ -152,7 +153,8 @@ StateOverride::getState(const StateKey &item,
     case GL_BLEND_SRC_ALPHA:
     case GL_BLEND_SRC_RGB:
     case GL_CULL_FACE_MODE:
-    case GL_DEPTH_FUNC: {
+    case GL_DEPTH_FUNC:
+    case GL_FRONT_FACE: {
       data->resize(1);
       get_integer_state(n, data);
       break;
@@ -360,6 +362,11 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_FRONT_FACE: {
+        GlFunctions::FrontFace(i.second[0]);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -535,5 +542,11 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
                       {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Primitive", "GL_FRONT_FACE");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
   }
 }

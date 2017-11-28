@@ -49,6 +49,8 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_BLEND_SRC", GL_BLEND_SRC},
     {"GL_BLEND_SRC_ALPHA", GL_BLEND_SRC_ALPHA},
     {"GL_BLEND_SRC_RGB", GL_BLEND_SRC_RGB},
+    {"GL_CCW", GL_CCW},
+    {"GL_CW", GL_CW},
     {"GL_COLOR_CLEAR_VALUE", GL_COLOR_CLEAR_VALUE},
     {"GL_COLOR_WRITEMASK", GL_COLOR_WRITEMASK},
     {"GL_CONSTANT_ALPHA", GL_CONSTANT_ALPHA},
@@ -65,6 +67,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_DST_COLOR", GL_DST_COLOR},
     {"GL_EQUAL", GL_EQUAL},
     {"GL_FRONT", GL_FRONT},
+    {"GL_FRONT_FACE", GL_FRONT_FACE},
     {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
     {"GL_FUNC_ADD", GL_FUNC_ADD},
     {"GL_FUNC_REVERSE_SUBTRACT", GL_FUNC_REVERSE_SUBTRACT},
@@ -115,6 +118,8 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_BLEND_SRC, "GL_BLEND_SRC"},
     {GL_BLEND_SRC_ALPHA, "GL_BLEND_SRC_ALPHA"},
     {GL_BLEND_SRC_RGB, "GL_BLEND_SRC_RGB"},
+    {GL_CCW, "GL_CCW"},
+    {GL_CW, "GL_CW"},
     {GL_COLOR_CLEAR_VALUE, "GL_COLOR_CLEAR_VALUE"},
     {GL_COLOR_WRITEMASK, "GL_COLOR_WRITEMASK"},
     {GL_CONSTANT_ALPHA, "GL_CONSTANT_ALPHA"},
@@ -131,6 +136,7 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_DST_COLOR, "GL_DST_COLOR"},
     {GL_EQUAL, "GL_EQUAL"},
     {GL_FRONT, "GL_FRONT"},
+    {GL_FRONT_FACE, "GL_FRONT_FACE"},
     {GL_FRONT_AND_BACK, "GL_FRONT_AND_BACK"},
     {GL_FUNC_ADD, "GL_FUNC_ADD"},
     {GL_FUNC_REVERSE_SUBTRACT, "GL_FUNC_REVERSE_SUBTRACT"},
@@ -211,6 +217,8 @@ glretrace::state_name_to_choices(const std::string &n) {
     case GL_DEPTH_FUNC:
       return {"GL_NEVER", "GL_LESS", "GL_EQUAL", "GL_LEQUAL",
             "GL_GREATER", "GL_NOTEQUAL", "GL_GEQUAL", "GL_ALWAYS"};
+    case GL_FRONT_FACE:
+      return {"GL_CW", "GL_CCW"};
     case GL_INVALID_ENUM:
       assert(false);
     default:
