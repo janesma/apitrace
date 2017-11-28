@@ -128,6 +128,7 @@ static void *pDepthFunc = NULL;
 static void *pDepthRangef = NULL;
 static void *pDepthMask = NULL;
 static void *pFrontFace = NULL;
+static void *pPolygonOffset = NULL;
 
 }  // namespace
 
@@ -354,6 +355,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pDepthMask);
   pFrontFace = _GetProcAddress("glFrontFace");
   assert(pFrontFace);
+  pPolygonOffset = _GetProcAddress("glPolygonOffset");
+  assert(pPolygonOffset);
 }
 
 GLuint
@@ -1025,4 +1028,10 @@ void
 GlFunctions::FrontFace(GLenum mode) {
   typedef void (*FRONTFACE)(GLenum mode);
   return  ((FRONTFACE)pFrontFace)(mode);
+}
+
+void
+GlFunctions::PolygonOffset(GLfloat factor, GLfloat units) {
+  typedef void (*POLYGONOFFSET)(GLfloat factor, GLfloat units);
+  return  ((POLYGONOFFSET)pPolygonOffset)(factor, units);
 }

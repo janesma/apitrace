@@ -184,6 +184,7 @@ class GlFunctions {
   static void DepthRangef(GLfloat n, GLfloat f);
   static void DepthMask(GLboolean flag);
   static void FrontFace(GLenum mode);
+  static void PolygonOffset(GLfloat factor, GLfloat units);
 
  private:
   GlFunctions();

@@ -89,6 +89,9 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_ONE_MINUS_DST_COLOR", GL_ONE_MINUS_DST_COLOR},
     {"GL_ONE_MINUS_SRC_ALPHA", GL_ONE_MINUS_SRC_ALPHA},
     {"GL_ONE_MINUS_SRC_COLOR", GL_ONE_MINUS_SRC_COLOR},
+    {"GL_POLYGON_OFFSET_FACTOR", GL_POLYGON_OFFSET_FACTOR},
+    {"GL_POLYGON_OFFSET_FILL", GL_POLYGON_OFFSET_FILL},
+    {"GL_POLYGON_OFFSET_UNITS", GL_POLYGON_OFFSET_UNITS},
     {"GL_SRC_ALPHA", GL_SRC_ALPHA},
     {"GL_SRC_ALPHA_SATURATE", GL_SRC_ALPHA_SATURATE},
     {"GL_SRC_COLOR", GL_SRC_COLOR},
@@ -158,6 +161,9 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_ONE_MINUS_DST_COLOR, "GL_ONE_MINUS_DST_COLOR"},
     {GL_ONE_MINUS_SRC_ALPHA, "GL_ONE_MINUS_SRC_ALPHA"},
     {GL_ONE_MINUS_SRC_COLOR, "GL_ONE_MINUS_SRC_COLOR"},
+    {GL_POLYGON_OFFSET_FACTOR, "GL_POLYGON_OFFSET_FACTOR"},
+    {GL_POLYGON_OFFSET_FILL, "GL_POLYGON_OFFSET_FILL"},
+    {GL_POLYGON_OFFSET_UNITS, "GL_POLYGON_OFFSET_UNITS"},
     {GL_SRC_ALPHA, "GL_SRC_ALPHA"},
     {GL_SRC_ALPHA_SATURATE, "GL_SRC_ALPHA_SATURATE"},
     {GL_SRC_COLOR, "GL_SRC_COLOR"},
@@ -181,6 +187,7 @@ glretrace::state_name_to_choices(const std::string &n) {
     case GL_DEPTH_WRITEMASK:
     case GL_DITHER:
     case GL_LINE_SMOOTH:
+    case GL_POLYGON_OFFSET_FILL:
       return {"true", "false"};
     case GL_BLEND_DST:
     case GL_BLEND_DST_ALPHA:
@@ -242,6 +249,7 @@ glretrace::state_name_to_indices(const std::string &n) {
     case GL_DEPTH_WRITEMASK:
     case GL_DITHER:
     case GL_LINE_SMOOTH:
+    case GL_POLYGON_OFFSET_FILL:
       return {"Enabled"};
     default:
       return {};

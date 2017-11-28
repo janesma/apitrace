@@ -109,6 +109,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_DEPTH_WRITEMASK:
     case GL_DITHER:
     case GL_FRONT_FACE:
+    case GL_POLYGON_OFFSET_FILL:
       return state_name_to_enum(value);
 
     // float values
@@ -116,7 +117,9 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_COLOR_CLEAR_VALUE:
     case GL_DEPTH_CLEAR_VALUE:
     case GL_DEPTH_RANGE:
-    case GL_LINE_WIDTH: {
+    case GL_LINE_WIDTH:
+    case GL_POLYGON_OFFSET_FACTOR:
+    case GL_POLYGON_OFFSET_UNITS: {
       IntFloat i_f;
       i_f.f = std::stof(value);
       return i_f.i;
@@ -139,7 +142,8 @@ StateOverride::getState(const StateKey &item,
     case GL_CULL_FACE:
     case GL_DEPTH_TEST:
     case GL_DITHER:
-    case GL_LINE_SMOOTH: {
+    case GL_LINE_SMOOTH:
+    case GL_POLYGON_OFFSET_FILL: {
       data->resize(1);
       get_enabled_state(n, data);
       break;
@@ -171,7 +175,9 @@ StateOverride::getState(const StateKey &item,
       get_float_state(n, data);
       break;
     case GL_DEPTH_CLEAR_VALUE:
-    case GL_LINE_WIDTH: {
+    case GL_LINE_WIDTH:
+    case GL_POLYGON_OFFSET_FACTOR:
+    case GL_POLYGON_OFFSET_UNITS: {
       data->resize(1);
       get_float_state(n, data);
       break;
@@ -253,7 +259,8 @@ StateOverride::enact_state(const KeyMap &m) const {
       case GL_CULL_FACE:
       case GL_DEPTH_TEST:
       case GL_DITHER:
-      case GL_LINE_SMOOTH: {
+      case GL_LINE_SMOOTH:
+      case GL_POLYGON_OFFSET_FILL: {
         enact_enabled_state(n, i.second[0]);
         break;
       }
@@ -364,6 +371,19 @@ StateOverride::enact_state(const KeyMap &m) const {
       }
       case GL_FRONT_FACE: {
         GlFunctions::FrontFace(i.second[0]);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
+      case GL_POLYGON_OFFSET_FACTOR:
+      case GL_POLYGON_OFFSET_UNITS: {
+        GLfloat factor, units;
+        GlFunctions::GetFloatv(GL_POLYGON_OFFSET_FACTOR, &factor);
+        GlFunctions::GetFloatv(GL_POLYGON_OFFSET_UNITS, &units);
+        IntFloat convert;
+        convert.i = i.second[0];
+        GlFunctions::PolygonOffset(
+            n == GL_POLYGON_OFFSET_FACTOR ? convert.f : factor,
+            n == GL_POLYGON_OFFSET_UNITS ? convert.f : units);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
@@ -548,5 +568,27 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_FACTOR");
+    getState(k, &data);
+    std::string value;
+    floatString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_FILL");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_UNITS");
+    getState(k, &data);
+    std::string value;
+    floatString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
   }
 }
