@@ -110,6 +110,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_DITHER:
     case GL_FRONT_FACE:
     case GL_POLYGON_OFFSET_FILL:
+    case GL_SAMPLE_COVERAGE_INVERT:
       return state_name_to_enum(value);
 
     // float values
@@ -119,7 +120,9 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_DEPTH_RANGE:
     case GL_LINE_WIDTH:
     case GL_POLYGON_OFFSET_FACTOR:
-    case GL_POLYGON_OFFSET_UNITS: {
+    case GL_POLYGON_OFFSET_UNITS:
+    case GL_SAMPLE_COVERAGE_VALUE:
+      {
       IntFloat i_f;
       i_f.f = std::stof(value);
       return i_f.i;
@@ -164,11 +167,18 @@ StateOverride::getState(const StateKey &item,
       break;
     }
     case GL_COLOR_WRITEMASK:
-    case GL_DEPTH_WRITEMASK: {
-      data->resize(4);
-      get_bool_state(n, data);
-      break;
-    }
+      {
+        data->resize(4);
+        get_bool_state(n, data);
+        break;
+      }
+    case GL_DEPTH_WRITEMASK:
+    case GL_SAMPLE_COVERAGE_INVERT:
+      {
+        data->resize(1);
+        get_bool_state(n, data);
+        break;
+      }
     case GL_BLEND_COLOR:
     case GL_COLOR_CLEAR_VALUE:
       data->resize(4);
@@ -177,11 +187,13 @@ StateOverride::getState(const StateKey &item,
     case GL_DEPTH_CLEAR_VALUE:
     case GL_LINE_WIDTH:
     case GL_POLYGON_OFFSET_FACTOR:
-    case GL_POLYGON_OFFSET_UNITS: {
-      data->resize(1);
-      get_float_state(n, data);
-      break;
-    }
+    case GL_POLYGON_OFFSET_UNITS:
+    case GL_SAMPLE_COVERAGE_VALUE:
+      {
+        data->resize(1);
+        get_float_state(n, data);
+        break;
+      }
     case GL_DEPTH_RANGE: {
       data->resize(2);
       get_float_state(n, data);
@@ -387,6 +399,19 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_SAMPLE_COVERAGE_INVERT:
+      case GL_SAMPLE_COVERAGE_VALUE: {
+        GLfloat value;
+        GLboolean invert;
+        GlFunctions::GetFloatv(GL_SAMPLE_COVERAGE_VALUE, &value);
+        GlFunctions::GetBooleanv(GL_SAMPLE_COVERAGE_INVERT, &invert);
+        IntFloat convert;
+        convert.i = i.second[0];
+        GlFunctions::SampleCoverage(
+            n == GL_SAMPLE_COVERAGE_VALUE ? convert.f : value,
+            n == GL_SAMPLE_COVERAGE_INVERT ? i.second[0] : invert);
+        break;
+      }
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -590,5 +615,19 @@ StateOverride::onState(SelectionId selId,
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
+  }
+  {
+    StateKey k("Fragment/Multisample", "GL_SAMPLE_COVERAGE_VALUE");
+    getState(k, &data);
+    std::string value;
+    floatString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Fragment/Multisample", "GL_SAMPLE_COVERAGE_INVERT");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {data[0] ? "true" : "false"});
   }
 }

@@ -129,6 +129,7 @@ static void *pDepthRangef = NULL;
 static void *pDepthMask = NULL;
 static void *pFrontFace = NULL;
 static void *pPolygonOffset = NULL;
+static void *pSampleCoverage = NULL;
 
 }  // namespace
 
@@ -357,6 +358,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pFrontFace);
   pPolygonOffset = _GetProcAddress("glPolygonOffset");
   assert(pPolygonOffset);
+  pSampleCoverage = _GetProcAddress("glSampleCoverage");
+  assert(pSampleCoverage);
 }
 
 GLuint
@@ -1034,4 +1037,10 @@ void
 GlFunctions::PolygonOffset(GLfloat factor, GLfloat units) {
   typedef void (*POLYGONOFFSET)(GLfloat factor, GLfloat units);
   return  ((POLYGONOFFSET)pPolygonOffset)(factor, units);
+}
+
+void
+GlFunctions::SampleCoverage(GLfloat value, GLboolean invert) {
+  typedef void (*SAMPLECOVERAGE)(GLfloat value, GLboolean invert);
+  return ((SAMPLECOVERAGE)pSampleCoverage)(value, invert);
 }
