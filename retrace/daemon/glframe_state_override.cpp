@@ -107,6 +107,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_DEPTH_FUNC:
     case GL_DEPTH_TEST:
     case GL_DEPTH_WRITEMASK:
+    case GL_DITHER:
       return state_name_to_enum(value);
 
     // float values
@@ -136,6 +137,7 @@ StateOverride::getState(const StateKey &item,
     case GL_BLEND:
     case GL_CULL_FACE:
     case GL_DEPTH_TEST:
+    case GL_DITHER:
     case GL_LINE_SMOOTH: {
       data->resize(1);
       get_enabled_state(n, data);
@@ -248,6 +250,7 @@ StateOverride::enact_state(const KeyMap &m) const {
       case GL_BLEND:
       case GL_CULL_FACE:
       case GL_DEPTH_TEST:
+      case GL_DITHER:
       case GL_LINE_SMOOTH: {
         enact_enabled_state(n, i.second[0]);
         break;
@@ -523,6 +526,12 @@ StateOverride::onState(SelectionId selId,
   }
   {
     StateKey k("Depth State", "GL_DEPTH_WRITEMASK");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId, k,
+                      {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Dithering State", "GL_DITHER");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
                       {data[0] ? "true" : "false"});
