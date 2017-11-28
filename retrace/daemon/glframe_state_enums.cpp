@@ -58,6 +58,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_DEPTH_CLEAR_VALUE", GL_DEPTH_CLEAR_VALUE},
     {"GL_DEPTH_FUNC", GL_DEPTH_FUNC},
     {"GL_DEPTH_RANGE", GL_DEPTH_RANGE},
+    {"GL_DEPTH_TEST", GL_DEPTH_TEST},
     {"GL_DST_ALPHA", GL_DST_ALPHA},
     {"GL_DST_COLOR", GL_DST_COLOR},
     {"GL_EQUAL", GL_EQUAL},
@@ -121,6 +122,7 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_DEPTH_CLEAR_VALUE, "GL_DEPTH_CLEAR_VALUE"},
     {GL_DEPTH_FUNC, "GL_DEPTH_FUNC"},
     {GL_DEPTH_RANGE, "GL_DEPTH_RANGE"},
+    {GL_DEPTH_TEST, "GL_DEPTH_TEST"},
     {GL_DST_ALPHA, "GL_DST_ALPHA"},
     {GL_DST_COLOR, "GL_DST_COLOR"},
     {GL_EQUAL, "GL_EQUAL"},
@@ -165,6 +167,7 @@ glretrace::state_name_to_choices(const std::string &n) {
     case GL_BLEND:
     case GL_COLOR_WRITEMASK:
     case GL_CULL_FACE:
+    case GL_DEPTH_TEST:
     case GL_LINE_SMOOTH:
       return {"true", "false"};
     case GL_BLEND_DST:
