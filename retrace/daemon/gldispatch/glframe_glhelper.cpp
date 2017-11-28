@@ -126,6 +126,7 @@ static void *pColorMask = NULL;
 static void *pClearDepthf = NULL;
 static void *pDepthFunc = NULL;
 static void *pDepthRangef = NULL;
+static void *pDepthMask = NULL;
 
 }  // namespace
 
@@ -348,6 +349,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pDepthFunc);
   pDepthRangef = _GetProcAddress("glDepthRangef");
   assert(pDepthRangef);
+  pDepthMask = _GetProcAddress("glDepthMask");
+  assert(pDepthMask);
 }
 
 GLuint
@@ -1007,4 +1010,10 @@ void
 GlFunctions::DepthRangef(GLfloat n, GLfloat f) {
   typedef void (*DEPTHRANGEF)(GLfloat n, GLfloat f);
   return ((DEPTHRANGEF)pDepthRangef)(n, f);
+}
+
+void
+GlFunctions::DepthMask(GLboolean flag) {
+  typedef void (*DEPTHMASK)(GLboolean flag);
+  return ((DEPTHMASK)pDepthMask)(flag);
 }

@@ -182,6 +182,7 @@ class GlFunctions {
   static void ClearDepthf(GLfloat d);
   static void DepthFunc(GLenum func);
   static void DepthRangef(GLfloat n, GLfloat f);
+  static void DepthMask(GLboolean flag);
 
  private:
   GlFunctions();

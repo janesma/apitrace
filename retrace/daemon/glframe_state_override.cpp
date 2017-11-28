@@ -106,6 +106,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_LINE_SMOOTH:
     case GL_DEPTH_FUNC:
     case GL_DEPTH_TEST:
+    case GL_DEPTH_WRITEMASK:
       return state_name_to_enum(value);
 
     // float values
@@ -154,7 +155,8 @@ StateOverride::getState(const StateKey &item,
       get_integer_state(n, data);
       break;
     }
-    case GL_COLOR_WRITEMASK: {
+    case GL_COLOR_WRITEMASK:
+    case GL_DEPTH_WRITEMASK: {
       data->resize(4);
       get_bool_state(n, data);
       break;
@@ -350,6 +352,11 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_DEPTH_WRITEMASK: {
+        GlFunctions::DepthMask(i.second[0]);
+        assert(GL::GetError() == GL_NO_ERROR);
+        break;
+      }
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -513,5 +520,11 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Depth State", "GL_DEPTH_WRITEMASK");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId, k,
+                      {data[0] ? "true" : "false"});
   }
 }
