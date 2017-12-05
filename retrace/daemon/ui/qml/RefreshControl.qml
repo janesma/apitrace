@@ -6,6 +6,7 @@ import ApiTrace 1.0
 
 Item {
     property FrameRetrace metricsModel
+    height: refreshButton.height
     Item {
         id: metricsItem
         anchors.left: parent.left
