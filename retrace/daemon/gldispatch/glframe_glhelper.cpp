@@ -130,6 +130,9 @@ static void *pDepthMask = NULL;
 static void *pFrontFace = NULL;
 static void *pPolygonOffset = NULL;
 static void *pSampleCoverage = NULL;
+static void *pGetBufferParameteriv = NULL;
+static void *pMapBufferRange = NULL;
+static void *pUnmapBuffer = NULL;
 
 }  // namespace
 
@@ -360,6 +363,12 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pPolygonOffset);
   pSampleCoverage = _GetProcAddress("glSampleCoverage");
   assert(pSampleCoverage);
+  pGetBufferParameteriv = _GetProcAddress("glGetBufferParameteriv");
+  assert(pGetBufferParameteriv);
+  pMapBufferRange = _GetProcAddress("glMapBufferRange");
+  assert(pMapBufferRange);
+  pUnmapBuffer = _GetProcAddress("glUnmapBuffer");
+  assert(pUnmapBuffer);
 }
 
 GLuint
@@ -993,7 +1002,6 @@ GlFunctions::LineWidth(GLfloat width) {
   return ((LINEWIDTH)pLineWidth)(width);
 }
 
-
 void
 GlFunctions::ColorMask(GLboolean red, GLboolean green,
                        GLboolean blue, GLboolean alpha) {
@@ -1043,4 +1051,25 @@ void
 GlFunctions::SampleCoverage(GLfloat value, GLboolean invert) {
   typedef void (*SAMPLECOVERAGE)(GLfloat value, GLboolean invert);
   return ((SAMPLECOVERAGE)pSampleCoverage)(value, invert);
+}
+
+void
+GlFunctions::GetBufferParameteriv(GLenum target, GLenum pname, GLint *params) {
+  typedef void (*GETBUFFERPARAMETERIV)(GLenum target, GLenum pname,
+                                       GLint *params);
+  return ((GETBUFFERPARAMETERIV)pGetBufferParameteriv)(target, pname, params);
+}
+
+void *
+GlFunctions::MapBufferRange(GLenum target, GLintptr offset,
+                            GLsizeiptr length, GLbitfield access) {
+  typedef void *(*MAPBUFFERRANGE)(GLenum target, GLintptr offset,
+                                  GLsizeiptr length, GLbitfield access);
+  return ((MAPBUFFERRANGE)pMapBufferRange)(target, offset, length, access);
+}
+
+GLboolean
+GlFunctions::UnmapBuffer(GLenum target) {
+  typedef GLboolean (*UNMAPBUFFER)(GLenum target);
+  return  ((UNMAPBUFFER)pUnmapBuffer)(target);
 }

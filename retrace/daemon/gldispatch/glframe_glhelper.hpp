@@ -186,6 +186,10 @@ class GlFunctions {
   static void FrontFace(GLenum mode);
   static void PolygonOffset(GLfloat factor, GLfloat units);
   static void SampleCoverage(GLfloat value, GLboolean invert);
+  static void GetBufferParameteriv(GLenum target, GLenum pname, GLint *params);
+  static void *MapBufferRange(GLenum target, GLintptr offset,
+                              GLsizeiptr length, GLbitfield access);
+  static GLboolean UnmapBuffer(GLenum target);
 
  private:
   GlFunctions();
