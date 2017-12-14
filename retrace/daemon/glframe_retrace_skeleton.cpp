@@ -55,6 +55,7 @@ using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
 using glretrace::Socket;
+using glretrace::StateKey;
 using glretrace::UniformDimension;
 using glretrace::UniformType;
 using glretrace::application_cache_directory;

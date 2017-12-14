@@ -44,10 +44,12 @@
 #include "glframe_state_override.hpp"
 
 using glretrace::DEBUG;
+using glretrace::ExperimentId;
 using glretrace::GlFunctions;
 using glretrace::PerfMetrics;
 using glretrace::RetraceRender;
 using glretrace::SelectionId;
+using glretrace::StateKey;
 using glretrace::StateTrack;
 using glretrace::RenderTargetType;
 using glretrace::RenderId;

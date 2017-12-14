@@ -70,6 +70,7 @@ using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
+using glretrace::StateKey;
 using glretrace::StateTrack;
 using glretrace::StdErrRedirect;
 using glretrace::WARN;

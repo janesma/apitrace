@@ -36,8 +36,13 @@
 #include "glframe_retrace_render.hpp"
 #include "glframe_state_enums.hpp"
 
+using glretrace::ExperimentId;
+using glretrace::IFrameRetrace;
 using glretrace::QStateModel;
 using glretrace::QStateValue;
+using glretrace::RenderId;
+using glretrace::SelectionId;
+using glretrace::StateKey;
 using glretrace::state_name_to_enum;
 
 static const int kUninitializedValue = -2;

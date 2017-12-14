@@ -34,7 +34,12 @@
 #include "glframe_glhelper.hpp"
 #include "glframe_state_enums.hpp"
 
+using glretrace::ExperimentId;
+using glretrace::OnFrameRetrace;
+using glretrace::RenderId;
+using glretrace::SelectionId;
 using glretrace::StateOverride;
+using glretrace::StateKey;
 
 union IntFloat {
   uint32_t i;
@@ -369,10 +374,10 @@ StateOverride::enact_state(const KeyMap &m) const {
       }
       case GL_DEPTH_RANGE: {
         assert(i.second.size() == 2);
-        IntFloat near, far;
-        near.i = i.second[0];
-        far.i = i.second[1];
-        GlFunctions::DepthRangef(near.f, far.f);
+        IntFloat _near, _far;
+        _near.i = i.second[0];
+        _far.i = i.second[1];
+        GlFunctions::DepthRangef(_near.f, _far.f);
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }

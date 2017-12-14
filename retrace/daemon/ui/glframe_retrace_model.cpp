@@ -59,6 +59,7 @@ using glretrace::RenderId;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ServerSocket;
+using glretrace::StateKey;
 using glretrace::ShaderAssembly;
 using glretrace::UniformType;
 using glretrace::UniformDimension;

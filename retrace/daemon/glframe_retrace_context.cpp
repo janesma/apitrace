@@ -51,6 +51,7 @@ using glretrace::RenderOptions;
 using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
 using glretrace::RetraceContext;
+using glretrace::StateKey;
 using glretrace::StateTrack;
 using glretrace::WARN;
 using image::Image;
