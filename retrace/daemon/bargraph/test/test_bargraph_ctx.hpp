@@ -31,7 +31,7 @@
 #ifndef WIN32
 #include <waffle-1/waffle.h>
 #endif
-#include <GLES2/gl2.h>
+#include <GL/gl.h>
 
 namespace glretrace {
 class TestContext {

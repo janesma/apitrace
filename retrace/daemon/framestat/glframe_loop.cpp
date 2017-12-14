@@ -27,7 +27,7 @@
 
 #include "glframe_loop.hpp"
 
-#include <GLES2/gl2.h>
+#include <GL/gl.h>
 
 #include <sstream>
 #include <string>

@@ -27,7 +27,8 @@
 
 #include "glframe_retrace.hpp"
 
-#include <GLES2/gl2.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
 #include <fcntl.h>
 #include <stdio.h>
 

@@ -30,8 +30,8 @@
 
 #include <stdio.h>
 
-#include <GLES2/gl2.h>
 #include <GL/gl.h>
+#include <GL/glext.h>
 
 #include <string>
 #include <vector>
