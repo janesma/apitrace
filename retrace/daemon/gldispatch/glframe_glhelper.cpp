@@ -147,6 +147,17 @@ static void *pGenTextures = NULL;
 static void *pTexParameteri = NULL;
 static void *pTexImage2D = NULL;
 
+static void *pGetPerfMonitorGroupsAMD = NULL;
+static void *pGetPerfMonitorCountersAMD = NULL;
+static void *pGetPerfMonitorGroupStringAMD = NULL;
+static void *pGetPerfMonitorCounterStringAMD = NULL;
+static void *pGetPerfMonitorCounterInfoAMD = NULL;
+static void *pGenPerfMonitorsAMD = NULL;
+static void *pDeletePerfMonitorsAMD = NULL;
+static void *pSelectPerfMonitorCountersAMD = NULL;
+static void *pBeginPerfMonitorAMD = NULL;
+static void *pEndPerfMonitorAMD = NULL;
+static void *pGetPerfMonitorCounterDataAMD = NULL;
 }  // namespace
 
 static void * _GetProcAddress(const char *name) {
@@ -408,6 +419,37 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pTexParameteri);
   pTexImage2D = _GetProcAddress("glTexImage2D");
   assert(pTexImage2D);
+  pGetPerfMonitorGroupsAMD = _GetProcAddress("glGetPerfMonitorGroupsAMD");
+  assert(pGetPerfMonitorGroupsAMD);
+  pGetPerfMonitorCountersAMD = _GetProcAddress("glGetPerfMonitorCountersAMD");
+  assert(pGetPerfMonitorCountersAMD);
+  pGetPerfMonitorGroupStringAMD =
+      _GetProcAddress("glGetPerfMonitorGroupStringAMD");
+  assert(pGetPerfMonitorGroupStringAMD);
+  pGetPerfMonitorCounterStringAMD =
+      _GetProcAddress("glGetPerfMonitorCounterStringAMD");
+  assert(pGetPerfMonitorCounterStringAMD);
+  pGetPerfMonitorCounterInfoAMD =
+      _GetProcAddress("glGetPerfMonitorCounterInfoAMD");
+  assert(pGetPerfMonitorCounterInfoAMD);
+  pGenPerfMonitorsAMD =
+      _GetProcAddress("glGenPerfMonitorsAMD");
+  assert(pGenPerfMonitorsAMD);
+  pDeletePerfMonitorsAMD =
+      _GetProcAddress("glDeletePerfMonitorsAMD");
+  assert(pDeletePerfMonitorsAMD);
+  pSelectPerfMonitorCountersAMD =
+      _GetProcAddress("glSelectPerfMonitorCountersAMD");
+  assert(pSelectPerfMonitorCountersAMD);
+  pBeginPerfMonitorAMD =
+      _GetProcAddress("glBeginPerfMonitorAMD");
+  assert(pBeginPerfMonitorAMD);
+  pEndPerfMonitorAMD =
+      _GetProcAddress("glEndPerfMonitorAMD");
+  assert(pEndPerfMonitorAMD);
+  pGetPerfMonitorCounterDataAMD =
+      _GetProcAddress("glGetPerfMonitorCounterDataAMD");
+  assert(pGetPerfMonitorCounterDataAMD);
 }
 
 GLuint
@@ -833,8 +875,8 @@ GlFunctions::BindFragDataLocation(GLuint program, GLuint colorNumber,
   typedef void (*BINDFRAGDATALOCATION)(GLuint program, GLuint colorNumber,
                                        const char * name);
   return ((BINDFRAGDATALOCATION) pBindFragDataLocation)(program,
-                                                       colorNumber,
-                                                       name);
+                                                        colorNumber,
+                                                        name);
 }
 
 void
@@ -1195,3 +1237,100 @@ void GlFunctions::TexImage2D(GLenum target, GLint level, GLint internalformat,
                                    width, height, border,
                                    format, type, pixels);
 }
+void
+GlFunctions::GetPerfMonitorGroupsAMD(
+    GLint *numGroups, GLsizei groupsSize, GLuint *groups) {
+  typedef void (*GETPERFMONITORGROUPSAMD)(GLint *numGroups, GLsizei groupsSize,
+                                          GLuint *groups);
+  return ((GETPERFMONITORGROUPSAMD)pGetPerfMonitorGroupsAMD)(
+      numGroups, groupsSize, groups);
+}
+
+void
+GlFunctions::GetPerfMonitorCountersAMD(
+    GLuint group, GLint *numCounters, GLint *maxActiveCounters,
+    GLsizei counterSize, GLuint *counters) {
+  typedef void (*GETPERFMONITORCOUNTERSAMD)(GLuint group, GLint *numCounters,
+                                            GLint *maxActiveCounters,
+                                            GLsizei counterSize,
+                                            GLuint *counters);
+  return ((GETPERFMONITORCOUNTERSAMD)pGetPerfMonitorCountersAMD)(
+      group, numCounters, maxActiveCounters, counterSize, counters);
+}
+
+void
+GlFunctions::GetPerfMonitorGroupStringAMD(
+    GLuint group, GLsizei bufSize, GLsizei *length, GLchar *groupString) {
+  typedef void (*GETPERFMONITORGROUPSTRINGAMD)(GLuint group, GLsizei bufSize,
+                                               GLsizei *length,
+                                               GLchar *groupString);
+  return ((GETPERFMONITORGROUPSTRINGAMD)pGetPerfMonitorGroupStringAMD)(
+      group, bufSize, length, groupString);
+}
+
+void
+GlFunctions::GetPerfMonitorCounterStringAMD(
+    GLuint group, GLuint counter, GLsizei bufSize,
+    GLsizei *length, GLchar *counterString) {
+  typedef void (*GETPERFMONITORCOUNTERSTRINGAMD)(
+      GLuint group, GLuint counter, GLsizei bufSize, GLsizei *length,
+      GLchar *counterString);
+  return ((GETPERFMONITORCOUNTERSTRINGAMD)pGetPerfMonitorCounterStringAMD)(
+      group, counter, bufSize, length, counterString);
+}
+
+void
+GlFunctions::GetPerfMonitorCounterInfoAMD(GLuint group, GLuint counter,
+                                          GLenum pname, void *data) {
+  typedef void (*GETPERFMONITORCOUNTERINFOAMD)(
+      GLuint group, GLuint counter, GLenum pname, void *data);
+  return ((GETPERFMONITORCOUNTERINFOAMD)pGetPerfMonitorCounterInfoAMD)(
+      group, counter, pname, data);
+}
+
+void
+GlFunctions::GenPerfMonitorsAMD(GLsizei n, GLuint *monitors) {
+  typedef void (*GENPERFMONITORSAMD)(GLsizei n, GLuint *monitors);
+  return ((GENPERFMONITORSAMD)pGenPerfMonitorsAMD)(n, monitors);
+}
+
+void
+GlFunctions::DeletePerfMonitorsAMD(GLsizei n, GLuint *monitors) {
+  typedef void (*DELETEPERFMONITORSAMD)(GLsizei n, GLuint *monitors);
+  return ((DELETEPERFMONITORSAMD)pDeletePerfMonitorsAMD)(n, monitors);
+}
+
+void
+GlFunctions::SelectPerfMonitorCountersAMD(
+    GLuint monitor, GLboolean enable, GLuint group,
+    GLint numCounters, GLuint *counterList) {
+  typedef void (*SELECTPERFMONITORCOUNTERSAMD)(
+      GLuint monitor, GLboolean enable, GLuint group,
+      GLint numCounters, GLuint *counterList);
+  return ((SELECTPERFMONITORCOUNTERSAMD)pSelectPerfMonitorCountersAMD)(
+      monitor, enable, group, numCounters, counterList);
+}
+
+void
+GlFunctions::BeginPerfMonitorAMD(GLuint monitor) {
+  typedef void (*BEGINPERFMONITORAMD)(GLuint monitor);
+  return ((BEGINPERFMONITORAMD)pBeginPerfMonitorAMD)(monitor);
+}
+
+void
+GlFunctions::EndPerfMonitorAMD(GLuint monitor) {
+  typedef void (*ENDPERFMONITORAMD)(GLuint monitor);
+  return ((ENDPERFMONITORAMD)pEndPerfMonitorAMD)(monitor);
+}
+
+void
+GlFunctions::GetPerfMonitorCounterDataAMD(
+    GLuint monitor, GLenum pname, GLsizei dataSize,
+    GLuint *data, GLint *bytesWritten) {
+  typedef void (*GETPERFMONITORCOUNTERDATAAMD)(
+      GLuint monitor, GLenum pname, GLsizei dataSize,
+      GLuint *data, GLint *bytesWritten);
+  return ((GETPERFMONITORCOUNTERDATAAMD)pGetPerfMonitorCounterDataAMD)(
+      monitor, pname, dataSize, data, bytesWritten);
+}
+

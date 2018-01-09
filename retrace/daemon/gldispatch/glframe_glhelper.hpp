@@ -211,6 +211,28 @@ class GlFunctions {
   static void TexImage2D(GLenum target, GLint level, GLint internalformat,
                          GLsizei width, GLsizei height, GLint border,
                          GLenum format, GLenum type, const void *pixels);
+  static void GetPerfMonitorGroupsAMD(
+      GLint *numGroups, GLsizei groupsSize, GLuint *groups);
+  static void GetPerfMonitorCountersAMD(
+      GLuint group, GLint *numCounters, GLint *maxActiveCounters,
+      GLsizei counterSize, GLuint *counters);
+  static void GetPerfMonitorGroupStringAMD(
+      GLuint group, GLsizei bufSize, GLsizei *length, GLchar *groupString);
+  static void GetPerfMonitorCounterStringAMD(
+      GLuint group, GLuint counter, GLsizei bufSize, GLsizei *length,
+      GLchar *counterString);
+  static void GetPerfMonitorCounterInfoAMD(
+      GLuint group, GLuint counter, GLenum pname, void *data);
+  static void GenPerfMonitorsAMD(GLsizei n, GLuint *monitors);
+  static void DeletePerfMonitorsAMD(GLsizei n, GLuint *monitors);
+  static void SelectPerfMonitorCountersAMD(
+      GLuint monitor, GLboolean enable, GLuint group,
+      GLint numCounters, GLuint *counterList);
+  static void BeginPerfMonitorAMD(GLuint monitor);
+  static void EndPerfMonitorAMD(GLuint monitor);
+  static void GetPerfMonitorCounterDataAMD(
+      GLuint monitor, GLenum pname, GLsizei dataSize,
+      GLuint *data, GLint *bytesWritten);
 
  private:
   GlFunctions();
