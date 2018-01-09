@@ -79,6 +79,18 @@ class MetricsCallback : public OnFrameRetrace {
                ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) {}
+  void onUniform(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 const std::string &name,
+                 UniformType type,
+                 UniformDimension dimension,
+                 const std::vector<unsigned char> &data) {}
+  void onState(SelectionId selectionCount,
+               ExperimentId experimentCount,
+               RenderId renderId,
+               StateKey item,
+               const std::vector<std::string> &value) {}
   std::vector<MetricId> ids;
   std::vector<std::string> names;
   std::vector<MetricSeries> data;
@@ -90,7 +102,7 @@ TEST_F(RetraceTest, ReadMetrics) {
   TestContext c;
 
   MetricsCallback cb;
-  PerfMetrics p(&cb);
+  PerfMetrics *p = PerfMetrics::Create(&cb);
   EXPECT_EQ(cb.ids.size(), cb.names.size());
   // check ids are unique
   std::set<MetricId> mets;
@@ -98,6 +110,7 @@ TEST_F(RetraceTest, ReadMetrics) {
     EXPECT_EQ(mets.find(id), mets.end());
     mets.insert(id);
   }
+  delete p;
 }
 
 static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.trace";
@@ -107,14 +120,14 @@ TEST_F(RetraceTest, SingleMetricData) {
   GlFunctions::Init();
   TestContext c;
   MetricsCallback cb;
-  PerfMetrics p(&cb);
+  PerfMetrics *p = PerfMetrics::Create(&cb);
   if (!cb.ids.size())
     return;
   bool found = false;
   for (int i = 0; i < cb.ids.size(); ++i) {
     if (cb.names[i] == "GPU Time Elapsed") {
       found = true;
-      p.selectMetric(cb.ids[i]);
+      p->selectMetric(cb.ids[i]);
       break;
     }
   }
@@ -122,20 +135,21 @@ TEST_F(RetraceTest, SingleMetricData) {
 
   FrameRetrace rt;
   rt.openFile(test_file, md5, fileSize, 7, &cb);
-  p.begin(RenderId(0));
+  p->begin(RenderId(0));
   RenderSelection s;
   s.id = SelectionId(0);
   s.series.push_back(RenderSequence(RenderId(0), RenderId(1)));
   rt.retraceRenderTarget(ExperimentId(0), s,
                          glretrace::NORMAL_RENDER,
                          glretrace::STOP_AT_RENDER, &cb);
-  p.end();
-  p.publish(ExperimentId(1), SelectionId(0), &cb);
+  p->end();
+  p->publish(ExperimentId(1), SelectionId(0), &cb);
   EXPECT_EQ(cb.experiment_count.count(), 1);
   EXPECT_EQ(cb.data.size(), 1);
   for (float d : cb.data[0].data) {
     EXPECT_GT(d, 0.0);
   }
+  delete p;
   retrace::cleanUp();
 }
 

@@ -52,6 +52,9 @@ using glretrace::RenderSequence;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
+using glretrace::StateKey;
+using glretrace::UniformDimension;
+using glretrace::UniformType;
 
 TEST(Build, Cmake) {
 }
@@ -103,6 +106,18 @@ class NullCallback : public OnFrameRetrace {
                ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) {}
+  void onUniform(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 const std::string &name,
+                 UniformType type,
+                 UniformDimension dimension,
+                 const std::vector<unsigned char> &data) {}
+  void onState(SelectionId selectionCount,
+               ExperimentId experimentCount,
+               RenderId renderId,
+               StateKey item,
+               const std::vector<std::string> &value) {}
   int renderTargetCount;
   SelectionId last_selection;
   std::string compile_error;

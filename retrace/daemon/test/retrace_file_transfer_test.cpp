@@ -55,7 +55,10 @@ using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
+using glretrace::StateKey;
 using glretrace::Socket;
+using glretrace::UniformDimension;
+using glretrace::UniformType;
 
 class FileTransfer : public IFrameRetrace {
   void openFile(const std::string &filename,
@@ -97,6 +100,20 @@ class FileTransfer : public IFrameRetrace {
   void retraceBatch(const RenderSelection &selection,
                     ExperimentId experimentCount,
                     OnFrameRetrace *callback) {}
+  void retraceUniform(const RenderSelection &selection,
+                      ExperimentId experimentCount,
+                      OnFrameRetrace *callback) {}
+  void setUniform(const RenderSelection &selection,
+                  const std::string &name,
+                  int index,
+                  const std::string &data) {}
+  void retraceState(const RenderSelection &selection,
+                    ExperimentId experimentCount,
+                    OnFrameRetrace *callback) {}
+  void setState(const RenderSelection &selection,
+                const StateKey &item,
+                int offset,
+                const std::string &value) {}
 };
 
 class FileTransferCB : public OnFrameRetrace {
@@ -137,6 +154,18 @@ class FileTransferCB : public OnFrameRetrace {
                ExperimentId experimentCount,
                RenderId renderId,
                const std::string &batch) {}
+  void onUniform(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 const std::string &name,
+                 UniformType type,
+                 UniformDimension dimension,
+                 const std::vector<unsigned char> &data) {}
+  void onState(SelectionId selectionCount,
+               ExperimentId experimentCount,
+               RenderId renderId,
+               StateKey item,
+               const std::vector<std::string> &value) {}
   bool m_needUpload;
 };
 
