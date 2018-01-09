@@ -25,11 +25,23 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#include "glframe_metrics.hpp"
 #include "glframe_metrics_intel.hpp"
+#include "glframe_metrics_amd.hpp"
+#include "glframe_glhelper.hpp"
 
 using glretrace::PerfMetrics;
 using glretrace::OnFrameRetrace;
 
 PerfMetrics *PerfMetrics::Create(OnFrameRetrace *callback) {
-  return new PerfMetricsIntel(callback);
+  GLint count;
+  GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
+  for (int i = 0; i < count; ++i) {
+    const GLubyte *name = GlFunctions::GetStringi(GL_EXTENSIONS, i);
+    if (strcmp((const char*)name, "GL_AMD_performance_monitor") == 0)
+      return new PerfMetricsAMD(callback);
+    if (strcmp((const char*)name, "GL_INTEL_performance_query") == 0)
+      return new PerfMetricsIntel(callback);
+  }
+  return new glretrace::DummyMetrics();
 }

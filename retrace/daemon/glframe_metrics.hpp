@@ -74,6 +74,21 @@ class PerfMetrics {
   virtual void beginContext() = 0;
 };
 
+class DummyMetrics : public PerfMetrics {
+ public:
+  ~DummyMetrics() {}
+  virtual int groupCount() const { return 0; }
+  virtual void selectGroup(int index) {}
+  virtual void selectMetric(MetricId metric) {}
+  virtual void begin(RenderId render) {}
+  virtual void end() {}
+  virtual void publish(ExperimentId experimentCount,
+               SelectionId selectionCount,
+               OnFrameRetrace *callback) {}
+  virtual void endContext() {}
+  virtual void beginContext() {}
+};
+
 }  // namespace glretrace
 
 #endif /* _GLFRAME_METRICS_HPP__ */
