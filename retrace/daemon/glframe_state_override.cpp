@@ -25,6 +25,40 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+
+// **********************************************************************/
+// Checklist for enabling state overrides:
+//  - in dispatch/glframe_glhelper.hpp
+//    - add entry point for required GL calls in the header
+//    - glframe_glhelper.cpp
+//      - declare static pointer to GL function
+//      - look up function pointer in ::Init
+//      - implement entry point to call GL function at the pointer
+//  - in glframe_state_enums.cpp:
+//    - for overrides with choices, add all possibilities to
+//      state_name_to_choices (including true/false state)
+//    - add all enum values in state_name_to_enum
+//    - add all enum values in state_enum_to_name
+//    - if state item has multiple values (eg ClearColor value is
+//      RGBA), define the indices that should be displayed for each
+//      value in state_name_to_indices.
+//  - in glframe_state_override.cpp
+//    - add entries to ::interpret_value, which converts a string
+//      representation of the items value into the bytes sent to the
+//      GL.  Internally, StateOverride holds the data as uint32_t, and
+//      converts them to the appropriate type before calling the GL.
+//    - add entries to ::getState, calling the GL to get the current
+//      state of the item, and converting into bytes uint32_t.
+//    - add entries to ::enact_state, which calls the GL to set state
+//      according to what is stored in StateOverride.  Convert the
+//      bytes from uint32_t to whatever is required by the GL api
+//      before calling the GL entry point.
+//    - add entries to ::onState, which queries current state from the
+//      GL and makes the onState callback to pass data back to the UI.
+//      For each entry, choose a hierarchical path to help organize
+//      the state in the UI.
+// **********************************************************************/
+
 #include "glframe_state_override.hpp"
 
 #include <map>
@@ -116,6 +150,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_FRONT_FACE:
     case GL_POLYGON_OFFSET_FILL:
     case GL_SAMPLE_COVERAGE_INVERT:
+    case GL_SCISSOR_TEST:
       return state_name_to_enum(value);
 
     // float values
@@ -134,6 +169,8 @@ StateOverride::interpret_value(const StateKey &item,
     }
 
     // int values
+    case GL_SCISSOR_BOX:
+      return std::stoi(value);
     default:
       assert(false);
       return 0;
@@ -151,7 +188,8 @@ StateOverride::getState(const StateKey &item,
     case GL_DEPTH_TEST:
     case GL_DITHER:
     case GL_LINE_SMOOTH:
-    case GL_POLYGON_OFFSET_FILL: {
+    case GL_POLYGON_OFFSET_FILL:
+    case GL_SCISSOR_TEST: {
       data->resize(1);
       get_enabled_state(n, data);
       break;
@@ -202,6 +240,11 @@ StateOverride::getState(const StateKey &item,
     case GL_DEPTH_RANGE: {
       data->resize(2);
       get_float_state(n, data);
+      break;
+    }
+    case GL_SCISSOR_BOX: {
+      data->resize(4);
+      get_integer_state(n, data);
       break;
     }
   }
@@ -277,7 +320,8 @@ StateOverride::enact_state(const KeyMap &m) const {
       case GL_DEPTH_TEST:
       case GL_DITHER:
       case GL_LINE_SMOOTH:
-      case GL_POLYGON_OFFSET_FILL: {
+      case GL_POLYGON_OFFSET_FILL:
+      case GL_SCISSOR_TEST: {
         enact_enabled_state(n, i.second[0]);
         break;
       }
@@ -417,6 +461,11 @@ StateOverride::enact_state(const KeyMap &m) const {
             n == GL_SAMPLE_COVERAGE_INVERT ? i.second[0] : invert);
         break;
       }
+      case GL_SCISSOR_BOX: {
+        GlFunctions::Scissor(i.second[0], i.second[1],
+                             i.second[2], i.second[3]);
+        break;
+      }
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -432,6 +481,14 @@ void floatStrings(const std::vector<uint32_t> &i,
   for (auto d : i) {
     u.i = d;
     s->push_back(std::to_string(u.f));
+  }
+}
+
+void intStrings(const std::vector<uint32_t> &i,
+                  std::vector<std::string> *s) {
+  s->clear();
+  for (auto d : i) {
+    s->push_back(std::to_string(d));
   }
 }
 
@@ -634,5 +691,19 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Fragment/Scissor", "GL_SCISSOR_TEST");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Fragment/Scissor", "GL_SCISSOR_BOX");
+    getState(k, &data);
+    std::vector<std::string> box;
+    intStrings(data, &box);
+    callback->onState(selId, experimentCount, renderId,
+                      k, box);
   }
 }

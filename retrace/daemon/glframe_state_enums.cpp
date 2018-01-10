@@ -94,6 +94,8 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_POLYGON_OFFSET_UNITS", GL_POLYGON_OFFSET_UNITS},
     {"GL_SAMPLE_COVERAGE_INVERT", GL_SAMPLE_COVERAGE_INVERT},
     {"GL_SAMPLE_COVERAGE_VALUE", GL_SAMPLE_COVERAGE_VALUE},
+    {"GL_SCISSOR_TEST", GL_SCISSOR_TEST},
+    {"GL_SCISSOR_BOX", GL_SCISSOR_BOX},
     {"GL_SRC_ALPHA", GL_SRC_ALPHA},
     {"GL_SRC_ALPHA_SATURATE", GL_SRC_ALPHA_SATURATE},
     {"GL_SRC_COLOR", GL_SRC_COLOR},
@@ -168,6 +170,8 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_POLYGON_OFFSET_UNITS, "GL_POLYGON_OFFSET_UNITS"},
     {GL_SAMPLE_COVERAGE_INVERT, "GL_SAMPLE_COVERAGE_INVERT"},
     {GL_SAMPLE_COVERAGE_VALUE, "GL_SAMPLE_COVERAGE_VALUE"},
+    {GL_SCISSOR_TEST, "GL_SCISSOR_TEST"},
+    {GL_SCISSOR_BOX, "GL_SCISSOR_BOX"},
     {GL_SRC_ALPHA, "GL_SRC_ALPHA"},
     {GL_SRC_ALPHA_SATURATE, "GL_SRC_ALPHA_SATURATE"},
     {GL_SRC_COLOR, "GL_SRC_COLOR"},
@@ -193,6 +197,7 @@ glretrace::state_name_to_choices(const std::string &n) {
     case GL_LINE_SMOOTH:
     case GL_POLYGON_OFFSET_FILL:
     case GL_SAMPLE_COVERAGE_INVERT:
+    case GL_SCISSOR_TEST:
       return {"true", "false"};
     case GL_BLEND_DST:
     case GL_BLEND_DST_ALPHA:
@@ -256,6 +261,8 @@ glretrace::state_name_to_indices(const std::string &n) {
     case GL_LINE_SMOOTH:
     case GL_POLYGON_OFFSET_FILL:
       return {"Enabled"};
+    case GL_SCISSOR_BOX:
+      return {"x", "y", "width", "height"};
     default:
       return {};
   }
