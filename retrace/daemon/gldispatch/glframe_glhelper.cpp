@@ -133,6 +133,7 @@ static void *pSampleCoverage = NULL;
 static void *pGetBufferParameteriv = NULL;
 static void *pMapBufferRange = NULL;
 static void *pUnmapBuffer = NULL;
+static void *pScissor = NULL;
 
 }  // namespace
 
@@ -369,6 +370,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pMapBufferRange);
   pUnmapBuffer = _GetProcAddress("glUnmapBuffer");
   assert(pUnmapBuffer);
+  pScissor = _GetProcAddress("glScissor");
+  assert(pScissor);
 }
 
 GLuint
@@ -1072,4 +1075,10 @@ GLboolean
 GlFunctions::UnmapBuffer(GLenum target) {
   typedef GLboolean (*UNMAPBUFFER)(GLenum target);
   return  ((UNMAPBUFFER)pUnmapBuffer)(target);
+}
+
+void
+GlFunctions::Scissor(GLint x, GLint y, GLsizei width, GLsizei height) {
+  typedef void (*SCISSOR)(GLint x, GLint y, GLsizei width, GLsizei height);
+  return ((SCISSOR)pScissor)(x, y, width, height);
 }

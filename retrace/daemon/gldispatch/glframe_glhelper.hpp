@@ -190,6 +190,7 @@ class GlFunctions {
   static void *MapBufferRange(GLenum target, GLintptr offset,
                               GLsizeiptr length, GLbitfield access);
   static GLboolean UnmapBuffer(GLenum target);
+  static void Scissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
  private:
   GlFunctions();
