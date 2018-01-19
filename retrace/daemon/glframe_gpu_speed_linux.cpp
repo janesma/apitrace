@@ -41,6 +41,9 @@ using glretrace::OnFrameRetrace;
 void
 glretrace::check_gpu_speed(OnFrameRetrace *callback) {
   FILE * fh = fopen("/sys/class/drm/card0/gt_max_freq_mhz", "r");
+  if (!fh)
+    // non-intel hardware
+    return;
   std::vector<unsigned char> buf(100);
   size_t bytes = fread(buf.data(), 1, 99, fh);
   buf[bytes] = '\0';
