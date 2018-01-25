@@ -71,6 +71,7 @@ static void *pBlendFunc = NULL;
 static void *pGetFirstPerfQueryIdINTEL = NULL;
 static void *pGetNextPerfQueryIdINTEL = NULL;
 static void *pGetIntegerv = NULL;
+static void *pGetString = NULL;
 static void *pGetStringi = NULL;
 static void *pGetPerfQueryInfoINTEL = NULL;
 static void *pGetPerfCounterInfoINTEL = NULL;
@@ -158,6 +159,14 @@ static void *pSelectPerfMonitorCountersAMD = NULL;
 static void *pBeginPerfMonitorAMD = NULL;
 static void *pEndPerfMonitorAMD = NULL;
 static void *pGetPerfMonitorCounterDataAMD = NULL;
+static void *pGenQueries = NULL;
+static void *pDeleteQueries = NULL;
+static void *pBeginQuery = NULL;
+static void *pEndQuery = NULL;
+static void *pGetQueryiv = NULL;
+static void *pGetQueryObjectiv = NULL;
+static void *pGetQueryObjectui64v = NULL;
+static void *pQueryCounter = NULL;
 }  // namespace
 
 static void * _GetProcAddress(const char *name) {
@@ -269,6 +278,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetNextPerfQueryIdINTEL);
   pGetIntegerv = _GetProcAddress("glGetIntegerv");
   assert(pGetIntegerv);
+  pGetString = _GetProcAddress("glGetString");
+  assert(pGetString);
   pGetStringi = _GetProcAddress("glGetStringi");
   assert(pGetStringi);
   pGetPerfQueryInfoINTEL = _GetProcAddress("glGetPerfQueryInfoINTEL");
@@ -450,6 +461,22 @@ GlFunctions::Init(void *lookup_fn) {
   pGetPerfMonitorCounterDataAMD =
       _GetProcAddress("glGetPerfMonitorCounterDataAMD");
   assert(pGetPerfMonitorCounterDataAMD);
+  pGenQueries = _GetProcAddress("glGenQueries");
+  assert(pGenQueries);
+  pDeleteQueries = _GetProcAddress("glDeleteQueries");
+  assert(pDeleteQueries);
+  pBeginQuery = _GetProcAddress("glBeginQuery");
+  assert(pBeginQuery);
+  pEndQuery = _GetProcAddress("glEndQuery");
+  assert(pEndQuery);
+  pGetQueryiv = _GetProcAddress("glGetQueryiv");
+  assert(pGetQueryiv);
+  pGetQueryObjectiv = _GetProcAddress("glGetQueryObjectiv");
+  assert(pGetQueryObjectiv);
+  pGetQueryObjectui64v = _GetProcAddress("glGetQueryObjectui64v");
+  assert(pGetQueryObjectui64v);
+  pQueryCounter = _GetProcAddress("glQueryCounter");
+  assert(pQueryCounter);
 }
 
 GLuint
@@ -663,6 +690,12 @@ void
 GlFunctions::GetIntegerv(GLenum pname, GLint *params) {
   typedef void (*GETINTEGERV)(GLenum pname, GLint *params);
   ((GETINTEGERV)pGetIntegerv)(pname, params);
+}
+
+const GLubyte *
+GlFunctions::GetString(GLenum pname) {
+  typedef const GLubyte * (*GETSTRING)(GLenum pname);
+  return ((GETSTRING)pGetString)(pname);
 }
 
 const GLubyte *
@@ -1334,3 +1367,51 @@ GlFunctions::GetPerfMonitorCounterDataAMD(
       monitor, pname, dataSize, data, bytesWritten);
 }
 
+void
+GlFunctions::GenQueries(GLsizei n, GLuint *ids) {
+  typedef void (*GENQUERIES)(GLsizei n, GLuint *ids);
+  return ((GENQUERIES)pGenQueries)(n, ids);
+}
+
+void
+GlFunctions::DeleteQueries(GLsizei n, const GLuint *ids) {
+  typedef void (*DELETEQUERIES)(GLsizei n, const GLuint *ids);
+  return ((DELETEQUERIES)pDeleteQueries)(n, ids);
+}
+
+void
+GlFunctions::BeginQuery(GLenum target, GLuint id) {
+  typedef void (*BEGINQUERY)(GLenum target, GLuint id);
+  return ((BEGINQUERY)pBeginQuery)(target, id);
+}
+
+void
+GlFunctions::EndQuery(GLenum target) {
+  typedef void (*ENDQUERY)(GLenum target);
+  return ((ENDQUERY)pEndQuery)(target);
+}
+
+void
+GlFunctions::GetQueryiv(GLenum target, GLenum pname, GLint *params) {
+  typedef void (*GETQUERYIV)(GLenum target, GLenum pname, GLint *params);
+  return ((GETQUERYIV)pGetQueryiv)(target, pname, params);
+}
+
+void
+GlFunctions::GetQueryObjectiv(GLuint id, GLenum pname, GLint *params) {
+  typedef void (*GETQUERYOBJECTIV)(GLuint id, GLenum pname, GLint *params);
+  return ((GETQUERYOBJECTIV)pGetQueryObjectiv)(id, pname, params);
+}
+
+void
+GlFunctions::GetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params) {
+  typedef void (*GETQUERYOBJECTUI64V)(
+      GLuint id, GLenum pname, GLuint64 *params);
+  return ((GETQUERYOBJECTUI64V)pGetQueryObjectui64v)(id, pname, params);
+}
+
+void
+GlFunctions::QueryCounter(GLuint id, GLenum target) {
+  typedef void (*QUERYCOUNTER)(GLuint id, GLenum target);
+  return ((QUERYCOUNTER)pQueryCounter)(id, target);
+}

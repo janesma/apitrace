@@ -86,6 +86,7 @@ class GlFunctions {
   static void GetFirstPerfQueryIdINTEL(GLuint *queryId);
   static void GetNextPerfQueryIdINTEL(GLuint queryId, GLuint *nextQueryId);
   static void GetIntegerv(GLenum pname, GLint *params);
+  static const GLubyte *GetString(GLenum pname);
   static const GLubyte *GetStringi(GLenum pname, GLuint index);
   static void GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
                                     GLchar *queryName, GLuint *dataSize,
@@ -233,6 +234,14 @@ class GlFunctions {
   static void GetPerfMonitorCounterDataAMD(
       GLuint monitor, GLenum pname, GLsizei dataSize,
       GLuint *data, GLint *bytesWritten);
+  static void GenQueries(GLsizei n, GLuint *ids);
+  static void DeleteQueries(GLsizei n, const GLuint *ids);
+  static void BeginQuery(GLenum target, GLuint id);
+  static void EndQuery(GLenum target);
+  static void GetQueryiv(GLenum target, GLenum pname, GLint *params);
+  static void GetQueryObjectiv(GLuint id, GLenum pname, GLint *params);
+  static void GetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params);
+  static void QueryCounter(GLuint id, GLenum target);
 
  private:
   GlFunctions();
