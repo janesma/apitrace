@@ -47,6 +47,7 @@ class OnFrameRetrace;
 class StateTrack;
 class OutputPoller {
  public:
+  virtual void flush() = 0;
   virtual void poll(int current_program, StateTrack *cb) = 0;
   virtual void pollBatch(SelectionId selectionCount,
                          ExperimentId experimentCount,

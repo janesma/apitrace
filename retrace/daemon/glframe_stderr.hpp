@@ -39,6 +39,7 @@ class StdErrRedirect : public OutputPoller {
                  ExperimentId experimentCount,
                  RenderId id,
                  OnFrameRetrace *cb);
+  void flush();
   ~StdErrRedirect();
   void init();
 
@@ -55,6 +56,7 @@ class NoRedirect : public OutputPoller {
                  ExperimentId,
                  RenderId,
                  OnFrameRetrace *) {}
+  void flush() {}
   ~NoRedirect() {}
   void init() {}
 };
@@ -67,6 +69,7 @@ class WinShaders : public OutputPoller {
                  ExperimentId,
                  RenderId,
                  OnFrameRetrace *) {}
+  void flush() {}
   ~WinShaders() {}
   void init();
  private:

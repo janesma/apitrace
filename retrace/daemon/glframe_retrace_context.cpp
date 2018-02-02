@@ -446,6 +446,7 @@ RetraceContext::retraceBatch(const RenderSelection &selection,
     } else {
       control->batchOff();
     }
+    poller->flush();
     r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
       GlFunctions::Finish();

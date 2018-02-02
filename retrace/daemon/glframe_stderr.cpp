@@ -330,3 +330,13 @@ StdErrRedirect::pollBatch(SelectionId selectionCount,
 
   cb->onBatch(selectionCount, experimentCount, id, batch_output);
 }
+
+void
+StdErrRedirect::flush() {
+  fflush(stdout);
+  int bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+  while (0 < bytes) {
+    buf[bytes] = '\0';
+    bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
+  }
+}
