@@ -72,7 +72,9 @@ class PerfMetric : public NoCopy, NoAssign {
   MetricId id() const;
   const std::string &name() const;
   const std::string &description() const;
-  float getMetric(const std::vector<unsigned char> &data) const;
+  void getMetric(const std::vector<unsigned char> &data,
+                 float *val,
+                 int *bytes_read) const;
  private:
   const int m_group_id, m_counter_num;
   std::string m_name, m_description;
@@ -88,7 +90,7 @@ class PerfMetric : public NoCopy, NoAssign {
 
 class PerfMetricGroup : public NoCopy, NoAssign {
  public:
-  explicit PerfMetricGroup(int group_id);
+  explicit PerfMetricGroup(int group_id, int offset);
   ~PerfMetricGroup();
   const std::string &name() const { return m_group_name; }
   void metrics(std::vector<MetricDescription> *m) const;
@@ -99,7 +101,7 @@ class PerfMetricGroup : public NoCopy, NoAssign {
 
  private:
   std::string m_group_name;
-  const int m_group_id;
+  const int m_group_id, m_offset;
   std::vector<unsigned char> m_data_buf;
   MetricId m_metric;
 
@@ -172,15 +174,25 @@ PerfMetricsContextAMD::PerfMetricsContextAMD(OnFrameRetrace *cb)
   std::vector<MetricDescription> metrics;
 
   for (int group_index = 0; group_index < num_groups; ++group_index) {
-    PerfMetricGroup *g = new PerfMetricGroup(groups[group_index]);
-
-    m_groups.push_back(g);
-    metrics.clear();
-    g->metrics(&metrics);
-    for (auto &d : metrics) {
-      assert(known_metrics.find(d.name) == known_metrics.end());
-      known_metrics[d.name] = d;
-      metric_map[d.id] = group_index;
+    // query max active counters, and make a subgroup
+    int num_counters;
+    int max_active_counters;
+    GlFunctions::GetPerfMonitorCountersAMD(groups[group_index],
+                                           &num_counters,
+                                           &max_active_counters,
+                                           0, NULL);
+    int offset = 0;
+    while (offset < num_counters) {
+      PerfMetricGroup *g = new PerfMetricGroup(groups[group_index], offset);
+      m_groups.push_back(g);
+      metrics.clear();
+      g->metrics(&metrics);
+      for (auto &d : metrics) {
+        assert(known_metrics.find(d.name) == known_metrics.end());
+        known_metrics[d.name] = d;
+        metric_map[d.id] = group_index;
+      }
+      offset += max_active_counters;
     }
   }
   std::vector<MetricId> ids;
@@ -204,9 +216,10 @@ PerfMetricsContextAMD::~PerfMetricsContextAMD() {
 
 static const MetricId ALL_METRICS_IN_GROUP = MetricId(~ID_PREFIX_MASK);
 
-PerfMetricGroup::PerfMetricGroup(int group_id)
-  : m_group_id(group_id),
-    m_metric(ALL_METRICS_IN_GROUP) {
+PerfMetricGroup::PerfMetricGroup(int group_id, int offset)
+    : m_group_id(group_id),
+      m_offset(offset),
+      m_metric(ALL_METRICS_IN_GROUP) {
   static GLint max_name_len = 0;
   assert(!GL::GetError());
   if (max_name_len == 0)
@@ -226,6 +239,7 @@ PerfMetricGroup::PerfMetricGroup(int group_id)
                                          &num_counters,
                                          &max_active_counters,
                                          0, NULL);
+  assert(offset < num_counters);
   assert(!GL::GetError());
   std::vector<uint> counters(num_counters);
   GlFunctions::GetPerfMonitorCountersAMD(m_group_id,
@@ -233,11 +247,11 @@ PerfMetricGroup::PerfMetricGroup(int group_id)
                                          &max_active_counters,
                                          num_counters, counters.data());
   assert(!GL::GetError());
-  for (auto counter : counters) {
-    PerfMetric *p = new PerfMetric(m_group_id, counter);
+  while (offset < max_active_counters) {
+    PerfMetric *p = new PerfMetric(m_group_id, counters[offset]);
     m_metrics[p->id()] = p;
   }
-    }
+}
 
 PerfMetricGroup::~PerfMetricGroup() {
   for (auto i : m_extant_monitors)
@@ -275,8 +289,6 @@ PerfMetricGroup::selectMetric(MetricId metric) {
 
 void
 PerfMetricGroup::begin(RenderId render) {
-  if (m_metric == ALL_METRICS_IN_GROUP)
-    return;
   if (m_free_monitors.empty()) {
     assert(!GL::GetError());
     m_free_monitors.resize(m_extant_monitors.empty() ?
@@ -284,12 +296,19 @@ PerfMetricGroup::begin(RenderId render) {
     GlFunctions::GenPerfMonitorsAMD(m_free_monitors.size(),
                                     m_free_monitors.data());
     assert(!GL::GetError());
-    // TODO(majanes) enable "all metrics" mode
-    uint counter = m_metric.counter();
+    std::vector<uint> counters_to_activate;
+    if (m_metric == ALL_METRICS_IN_GROUP) {
+      for (auto metric : m_metrics) {
+        counters_to_activate.push_back(metric.first.counter());
+      }
+    } else {
+      counters_to_activate.push_back(m_metric.counter());
+    }
     for (auto i : m_free_monitors)
-      GlFunctions::SelectPerfMonitorCountersAMD(i, GL_TRUE,
-                                                m_group_id, 1,
-                                                &counter);
+      GlFunctions::SelectPerfMonitorCountersAMD(
+          i, GL_TRUE,
+          m_group_id, counters_to_activate.size(),
+          counters_to_activate.data());
   }
   assert(!m_free_monitors.empty());
   GlFunctions::BeginPerfMonitorAMD(m_free_monitors.back());
@@ -300,8 +319,6 @@ PerfMetricGroup::begin(RenderId render) {
 void
 PerfMetricGroup::publish(MetricId metric,
                          PerfMetricsAMD::MetricMap *out_metrics) {
-  if (m_metric == ALL_METRICS_IN_GROUP)
-    return;
   for (auto extant_monitor : m_extant_monitors) {
     GLuint ready_for_read = 0, data_size = 0;
     GLsizei bytes_written = 0;
@@ -325,9 +342,25 @@ PerfMetricGroup::publish(MetricId metric,
     GlFunctions::GetPerfMonitorCounterDataAMD(
             extant_monitor.second, GL_PERFMON_RESULT_AMD, data_size,
             reinterpret_cast<uint *>(buf.data()), &bytes_written);
-    (*out_metrics)[metric][extant_monitor.first] =
-        m_metrics[metric]->getMetric(buf);
-    m_free_monitors.push_back(extant_monitor.second);
+      const unsigned char *buf_ptr = buf.data();
+      const unsigned char *buf_end = buf_ptr + bytes_written;
+      while (buf_ptr < buf_end) {
+        const GLuint *group = reinterpret_cast<const GLuint *>(buf_ptr);
+        const GLuint *counter = group + 1;
+        buf_ptr += 2*sizeof(GLuint);
+        assert(*group == m_group_id);
+        if (metric != ALL_METRICS_IN_GROUP)
+          assert(metric.counter() == *counter);
+        MetricId parsed_metric(*group, *counter);
+        assert(m_metrics.find(parsed_metric) != m_metrics.end());
+
+        float value;
+        int bytes_read;
+        m_metrics[parsed_metric]->getMetric(buf, &value, &bytes_read);
+        (*out_metrics)[parsed_metric][extant_monitor.first] = value;
+        buf_ptr += bytes_read;
+      }
+      m_free_monitors.push_back(extant_monitor.second);
   }
   m_extant_monitors.clear();
 }
@@ -378,8 +411,10 @@ PerfMetric::description() const {
   return m_description;
 }
 
-float
-PerfMetric::getMetric(const std::vector<unsigned char> &data) const {
+void
+PerfMetric::getMetric(const std::vector<unsigned char> &data,
+                      float *val,
+                      int *bytes_read) const {
   int buf_index = 0;
   const GLuint *group = reinterpret_cast<const GLuint*>(&data[buf_index]);
   buf_index += sizeof(GLuint);
@@ -389,30 +424,31 @@ PerfMetric::getMetric(const std::vector<unsigned char> &data) const {
   assert(*metric == m_counter_num);
   const unsigned char *p_value = &data[buf_index];
   const int header_size = 2 * sizeof(GLuint);
-  float fval;
   switch (m_counter_type) {
   case kInt64Counter: {
     assert(data.size() == header_size + sizeof(int64_t));
-    uint64_t val = *reinterpret_cast<const uint64_t *>(p_value);
-    fval = static_cast<float>(val);
+    uint64_t uval = *reinterpret_cast<const uint64_t *>(p_value);
+    *val = static_cast<float>(uval);
+    *bytes_read = sizeof(uint64_t);
     break;
   }
   case kPercentCounter:
   case kFloatCounter: {
     assert(data.size() == header_size + sizeof(float));
-    fval = *reinterpret_cast<const float *>(p_value);
+    *val = *reinterpret_cast<const float *>(p_value);
+    *bytes_read = sizeof(float);
     break;
   }
   case kUnsignedCounter: {
     assert(data.size() == header_size + sizeof(uint32_t));
-    uint32_t val = *reinterpret_cast<const uint32_t *>(p_value);
-    fval = static_cast<float>(val);
+    uint32_t uval = *reinterpret_cast<const uint32_t *>(p_value);
+    *val = static_cast<float>(uval);
+    *bytes_read = sizeof(uint32_t);
     break;
   }
   default:
     assert(false);
   }
-  return fval;
 }
 
 void
@@ -448,7 +484,6 @@ void
 PerfMetricsContextAMD::selectGroup(int index) {
   current_group = m_groups[index];
   current_metric = ALL_METRICS_IN_GROUP;
-  // TODO(majanes) enable "all metrics" mode
 }
 
 PerfMetricsAMD::PerfMetricsAMD(OnFrameRetrace *cb)

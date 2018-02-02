@@ -1,4 +1,4 @@
-// Copyright (C) Intel Corp.  2017.  All Rights Reserved.
+// Copyright (C) Intel Corp.  2018.  All Rights Reserved.
 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -25,32 +25,49 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#ifndef _GLFRAME_METRICS_AMD_GPA_HPP_
+#define _GLFRAME_METRICS_AMD_GPA_HPP_
+
+#include <map>
+#include <vector>
+
 #include "glframe_metrics.hpp"
+#include "glframe_traits.hpp"
+#include "glframe_retrace.hpp"
 
-#include <string.h>
+namespace glretrace {
 
-#include "glframe_metrics_intel.hpp"
-#include "glframe_metrics_amd.hpp"
-#include "glframe_glhelper.hpp"
-#include "glframe_metrics_amd_gpa.hpp"
+class PerfContext;
+class PerfMetricsContextAMDGPA;
+struct Context;
 
-using glretrace::PerfMetrics;
-using glretrace::OnFrameRetrace;
+class PerfMetricsAMDGPA : public PerfMetrics, NoCopy, NoAssign {
+ public:
+  explicit PerfMetricsAMDGPA(OnFrameRetrace *cb);
+  ~PerfMetricsAMDGPA();
+  int groupCount() const;
+  void selectMetric(MetricId metric);
+  void selectGroup(int index);
+  void begin(RenderId render);
+  void end();
+  void publish(ExperimentId experimentCount,
+               SelectionId selectionCount,
+               OnFrameRetrace *callback);
+  void endContext();
+  void beginContext();
+  typedef std::map<MetricId, std::map<RenderId, float>> MetricMap;
 
-PerfMetrics *PerfMetrics::Create(OnFrameRetrace *callback) {
-  GLint count;
-  GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
+ private:
+  std::map<Context *, PerfContext*> m_contexts;
+  PerfContext *m_current_context;
+  // PerfMetricsContextAMDGPA* m_current_context;
+  // std::map<Context*, PerfMetricsContextAMDGPA*> m_contexts;
+  MetricMap m_data;
+  int m_current_group;
+  MetricId m_current_metric;
+  uint32_t m_session_id;
+};
 
-  const GLubyte *renderer = GlFunctions::GetString(GL_RENDERER);
-  if (strstr((const char*)renderer, "AMD") != NULL)
-      return new glretrace::PerfMetricsAMDGPA(callback);
+}  // namespace glretrace
 
-  for (int i = 0; i < count; ++i) {
-    const GLubyte *name = GlFunctions::GetStringi(GL_EXTENSIONS, i);
-    if (strcmp((const char*)name, "GL_AMD_performance_monitor") == 0)
-      return new PerfMetricsAMD(callback);
-    if (strcmp((const char*)name, "GL_INTEL_performance_query") == 0)
-      return new PerfMetricsIntel(callback);
-  }
-  return new glretrace::DummyMetrics();
-}
+#endif /* _GLFRAME_METRICS_AMD_GPA_HPP_ */

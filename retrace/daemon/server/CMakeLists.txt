@@ -23,8 +23,13 @@ else()
   set (THREAD_LIB pthread dl)
 endif()
 
+if(EXISTS ${CMAKE_SOURCE_DIR}/retrace/daemon/amd_gpa/GPA)
+  set (AMD_GPA_LIB amdgpa)
+endif()
+
 target_link_libraries(frameretrace_server
   retrace_daemon
+  ${AMD_GPA_LIB}
   glretrace_common
   glhelpers
   glproc_gl
