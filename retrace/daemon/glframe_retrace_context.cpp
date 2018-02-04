@@ -147,6 +147,8 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
                                     RenderOptions options,
                                     const StateTrack &tracker,
                                     OnFrameRetrace *callback) const {
+  if (m_renders.empty())
+    return;
   auto current_render = m_renders.begin();
   // play up to the beginning of the first render
   while (current_render->first < selection.series.front().begin) {
@@ -287,6 +289,8 @@ RetraceContext::retraceAllMetrics(const RenderSelection &selection,
   // iterate through the RenderSelection, and insert begin/end
   // around each RenderSeries
   // auto currentRenderSequence = selection.series.begin();
+  if (m_renders.empty())
+    return;
   auto current_render = m_renders.begin();
   bool metrics_active = false;
   CleanPerf cleanup(perf, &metrics_active);
