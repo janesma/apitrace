@@ -192,6 +192,13 @@ class GlFunctions {
   static GLboolean UnmapBuffer(GLenum target);
   static void Scissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
+  static void ClearStencil(GLint s);
+  static void StencilOpSeparate(
+      GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+  static void StencilFuncSeparate(
+      GLenum face, GLenum func, GLint ref, GLuint mask);
+  static void StencilMaskSeparate(GLenum face, GLuint mask);
+
  private:
   GlFunctions();
   static bool m_is_initialized;

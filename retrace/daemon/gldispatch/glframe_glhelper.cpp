@@ -134,6 +134,10 @@ static void *pGetBufferParameteriv = NULL;
 static void *pMapBufferRange = NULL;
 static void *pUnmapBuffer = NULL;
 static void *pScissor = NULL;
+static void *pClearStencil = NULL;
+static void *pStencilOpSeparate = NULL;
+static void *pStencilFuncSeparate = NULL;
+static void *pStencilMaskSeparate = NULL;
 
 }  // namespace
 
@@ -372,6 +376,14 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pUnmapBuffer);
   pScissor = _GetProcAddress("glScissor");
   assert(pScissor);
+  pClearStencil = _GetProcAddress("glClearStencil");
+  assert(pClearStencil);
+  pStencilOpSeparate = _GetProcAddress("glStencilOpSeparate");
+  assert(pStencilOpSeparate);
+  pStencilFuncSeparate = _GetProcAddress("glStencilFuncSeparate");
+  assert(pStencilFuncSeparate);
+  pStencilMaskSeparate = _GetProcAddress("glStencilMaskSeparate");
+  assert(pStencilMaskSeparate);
 }
 
 GLuint
@@ -1081,4 +1093,28 @@ void
 GlFunctions::Scissor(GLint x, GLint y, GLsizei width, GLsizei height) {
   typedef void (*SCISSOR)(GLint x, GLint y, GLsizei width, GLsizei height);
   return ((SCISSOR)pScissor)(x, y, width, height);
+}
+
+void GlFunctions::ClearStencil(GLint s) {
+  typedef void (*CLEARSTENCIL)(GLint s);
+  return ((CLEARSTENCIL)pClearStencil)(s);
+}
+
+void GlFunctions::StencilOpSeparate(
+    GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass) {
+  typedef void (*STENCILOPSEPARATE)(
+      GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+  return ((STENCILOPSEPARATE)pStencilOpSeparate)(face, sfail, dpfail, dppass);
+}
+
+void GlFunctions::StencilFuncSeparate(
+    GLenum face, GLenum func, GLint ref, GLuint mask) {
+  typedef void (*STENCILFUNCSEPARATE)(
+      GLenum face, GLenum func, GLint ref, GLuint mask);
+  return ((STENCILFUNCSEPARATE)pStencilFuncSeparate)(face, func, ref, mask);
+}
+
+void GlFunctions::StencilMaskSeparate(GLenum face, GLuint mask) {
+  typedef void (*STENCILMASKSEPARATE)(GLenum face, GLuint mask);
+  return ((STENCILMASKSEPARATE)pStencilMaskSeparate)(face, mask);
 }
