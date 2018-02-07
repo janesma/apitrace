@@ -29,12 +29,11 @@ add_library(retrace_ui_test_utilities
   ${TEST_UTILITIES_SOURCE}
   )
 
-
 target_link_libraries(retrace_bargraph_test
   retrace_ui_test_utilities
   retrace_bargraph
   retrace_gldispatch
-  libprotobuf
+  ${PROTOBUF_LIBRARIES}
   gtest
   waffle-1
   Qt5::Core

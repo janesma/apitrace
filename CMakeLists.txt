@@ -524,7 +524,12 @@ endmacro ()
 
 set(protobuf_BUILD_TESTS OFF)
 set(protobuf_BUILD_EXAMPLES OFF)
-add_subdirectory (thirdparty/protobuf/cmake)
+
+find_package(Protobuf)
+if (NOT PROTOBUF_FOUND)
+    add_subdirectory (thirdparty/protobuf/cmake)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/protobuf/cmake")
+endif ()
 
 enable_testing ()
 
