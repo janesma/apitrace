@@ -2,6 +2,10 @@ include(Lint.cmake)
 
 include(CustomProtoBuf.cmake)
 
+if (NOT PROTOBUF_FOUND)
+  find_package(Protobuf, REQUIRED)
+endif ()
+
 if (WIN32)
 set (Protobuf_PROTOC_EXECUTABLE protoc)
 else()
@@ -93,7 +97,7 @@ add_library(retrace_daemon STATIC
 target_link_libraries(retrace_daemon
   glretrace_common
   retrace_gldispatch
-  libprotobuf
+  ${PROTOBUF_LIBRARIES}
   )
 
 add_dependencies(retrace_daemon protoc)

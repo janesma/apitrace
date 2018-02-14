@@ -66,7 +66,7 @@ target_link_libraries(frameretrace
   glhelpers
   glproc_gl
   Qt5::Core Qt5::Gui Qt5::Concurrent Qt5::Quick Qt5::Widgets
-  libprotobuf
+  ${PROTOBUF_LIBRARIES}
   ${GL_LIB}
   ${X11_X11_LIB}
   ${THREAD_LIB}

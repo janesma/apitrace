@@ -28,7 +28,7 @@ target_link_libraries(frameretrace_server
   glretrace_common
   glhelpers
   glproc_gl
-  libprotobuf
+  ${PROTOBUF_LIBRARIES}
   ${GL_LIB}
   ${X11_X11_LIB}
   ${THREAD_LIB}
