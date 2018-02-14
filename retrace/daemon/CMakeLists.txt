@@ -1,12 +1,11 @@
 include(Lint.cmake)
 
-include(FindProtobuf)
+include(CustomProtoBuf.cmake)
 
 if (WIN32)
 set (Protobuf_PROTOC_EXECUTABLE protoc)
 else()
 set (Protobuf_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/protoc)
-set (PROTOBUF_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/protoc)
 endif()
 
 PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders
