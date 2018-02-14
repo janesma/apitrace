@@ -61,6 +61,8 @@
 
 #include "glframe_state_override.hpp"
 
+#include <stdio.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -151,6 +153,15 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_POLYGON_OFFSET_FILL:
     case GL_SAMPLE_COVERAGE_INVERT:
     case GL_SCISSOR_TEST:
+    case GL_STENCIL_BACK_FAIL:
+    case GL_STENCIL_BACK_FUNC:
+    case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
+    case GL_STENCIL_BACK_PASS_DEPTH_PASS:
+    case GL_STENCIL_FAIL:
+    case GL_STENCIL_FUNC:
+    case GL_STENCIL_PASS_DEPTH_FAIL:
+    case GL_STENCIL_PASS_DEPTH_PASS:
+    case GL_STENCIL_TEST:
       return state_name_to_enum(value);
 
     // float values
@@ -171,6 +182,17 @@ StateOverride::interpret_value(const StateKey &item,
     // int values
     case GL_SCISSOR_BOX:
       return std::stoi(value);
+
+    // hex values
+    case GL_STENCIL_BACK_REF:
+    case GL_STENCIL_BACK_VALUE_MASK:
+    case GL_STENCIL_BACK_WRITEMASK:
+    case GL_STENCIL_CLEAR_VALUE:
+    case GL_STENCIL_REF:
+    case GL_STENCIL_VALUE_MASK:
+    case GL_STENCIL_WRITEMASK:
+      return std::stoul(value, 0, 16);
+
     default:
       assert(false);
       return 0;
@@ -189,7 +211,8 @@ StateOverride::getState(const StateKey &item,
     case GL_DITHER:
     case GL_LINE_SMOOTH:
     case GL_POLYGON_OFFSET_FILL:
-    case GL_SCISSOR_TEST: {
+    case GL_SCISSOR_TEST:
+    case GL_STENCIL_TEST: {
       data->resize(1);
       get_enabled_state(n, data);
       break;
@@ -204,7 +227,22 @@ StateOverride::getState(const StateKey &item,
     case GL_BLEND_SRC_RGB:
     case GL_CULL_FACE_MODE:
     case GL_DEPTH_FUNC:
-    case GL_FRONT_FACE: {
+    case GL_FRONT_FACE:
+    case GL_STENCIL_BACK_FAIL:
+    case GL_STENCIL_BACK_FUNC:
+    case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
+    case GL_STENCIL_BACK_PASS_DEPTH_PASS:
+    case GL_STENCIL_BACK_REF:
+    case GL_STENCIL_BACK_VALUE_MASK:
+    case GL_STENCIL_BACK_WRITEMASK:
+    case GL_STENCIL_CLEAR_VALUE:
+    case GL_STENCIL_FAIL:
+    case GL_STENCIL_FUNC:
+    case GL_STENCIL_PASS_DEPTH_FAIL:
+    case GL_STENCIL_PASS_DEPTH_PASS:
+    case GL_STENCIL_REF:
+    case GL_STENCIL_VALUE_MASK:
+    case GL_STENCIL_WRITEMASK: {
       data->resize(1);
       get_integer_state(n, data);
       break;
@@ -321,7 +359,8 @@ StateOverride::enact_state(const KeyMap &m) const {
       case GL_DITHER:
       case GL_LINE_SMOOTH:
       case GL_POLYGON_OFFSET_FILL:
-      case GL_SCISSOR_TEST: {
+      case GL_SCISSOR_TEST:
+      case GL_STENCIL_TEST: {
         enact_enabled_state(n, i.second[0]);
         break;
       }
@@ -466,6 +505,78 @@ StateOverride::enact_state(const KeyMap &m) const {
                              i.second[2], i.second[3]);
         break;
       }
+      case GL_STENCIL_BACK_FAIL:
+      case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
+      case GL_STENCIL_BACK_PASS_DEPTH_PASS: {
+        GLint sfail = 0, dpfail = 0, dppass = 0;
+        GlFunctions::GetIntegerv(GL_STENCIL_BACK_FAIL, &sfail);
+        GlFunctions::GetIntegerv(
+            GL_STENCIL_BACK_PASS_DEPTH_FAIL, &dpfail);
+        GlFunctions::GetIntegerv(
+            GL_STENCIL_BACK_PASS_DEPTH_PASS, &dppass);
+        GlFunctions::StencilOpSeparate(
+            GL_BACK,
+            n == GL_STENCIL_BACK_FAIL ? i.second[0] : sfail,
+            n == GL_STENCIL_BACK_PASS_DEPTH_FAIL ? i.second[0] : dpfail,
+            n == GL_STENCIL_BACK_PASS_DEPTH_PASS ? i.second[0] : dppass);
+        break;
+      }
+      case GL_STENCIL_BACK_FUNC:
+      case GL_STENCIL_BACK_REF:
+      case GL_STENCIL_BACK_VALUE_MASK: {
+        GLint func = 0, ref = 0, mask = 0;
+        GlFunctions::GetIntegerv(GL_STENCIL_BACK_FUNC, &func);
+        GlFunctions::GetIntegerv(GL_STENCIL_BACK_REF, &ref);
+        GlFunctions::GetIntegerv(GL_STENCIL_BACK_VALUE_MASK, &mask);
+        GlFunctions::StencilFuncSeparate(
+            GL_BACK,
+            n == GL_STENCIL_BACK_FUNC ? i.second[0] : func,
+            n == GL_STENCIL_BACK_REF ? i.second[0] : ref,
+            n == GL_STENCIL_BACK_VALUE_MASK ? i.second[0] : mask);
+        break;
+      }
+      case GL_STENCIL_FAIL:
+      case GL_STENCIL_PASS_DEPTH_FAIL:
+      case GL_STENCIL_PASS_DEPTH_PASS: {
+        GLint sfail, dpfail, dppass;
+        GlFunctions::GetIntegerv(GL_STENCIL_FAIL, &sfail);
+        GlFunctions::GetIntegerv(
+            GL_STENCIL_PASS_DEPTH_FAIL, &dpfail);
+        GlFunctions::GetIntegerv(
+            GL_STENCIL_PASS_DEPTH_PASS, &dppass);
+        GlFunctions::StencilOpSeparate(
+            GL_FRONT,
+            n == GL_STENCIL_FAIL ? i.second[0] : sfail,
+            n == GL_STENCIL_PASS_DEPTH_FAIL ? i.second[0] : dpfail,
+            n == GL_STENCIL_PASS_DEPTH_PASS ? i.second[0] : dppass);
+        break;
+      }
+      case GL_STENCIL_FUNC:
+      case GL_STENCIL_REF:
+      case GL_STENCIL_VALUE_MASK: {
+        GLint func = 0, ref = 0, mask = 0;
+        GlFunctions::GetIntegerv(GL_STENCIL_FUNC, &func);
+        GlFunctions::GetIntegerv(GL_STENCIL_REF, &ref);
+        GlFunctions::GetIntegerv(GL_STENCIL_VALUE_MASK, &mask);
+        GlFunctions::StencilFuncSeparate(
+            GL_FRONT,
+            n == GL_STENCIL_FUNC ? i.second[0] : func,
+            n == GL_STENCIL_REF ? i.second[0] : ref,
+            n == GL_STENCIL_VALUE_MASK ? i.second[0] : mask);
+        break;
+      }
+      case GL_STENCIL_WRITEMASK:
+      case GL_STENCIL_BACK_WRITEMASK: {
+        GlFunctions::StencilMaskSeparate(
+            n == GL_STENCIL_WRITEMASK ? GL_FRONT : GL_BACK,
+            i.second[0]);
+        break;
+      }
+      case GL_STENCIL_CLEAR_VALUE: {
+        GlFunctions::ClearStencil(i.second[0]);
+        break;
+      }
+
       case GL_INVALID_ENUM:
       default:
         assert(false);
@@ -485,7 +596,7 @@ void floatStrings(const std::vector<uint32_t> &i,
 }
 
 void intStrings(const std::vector<uint32_t> &i,
-                  std::vector<std::string> *s) {
+                std::vector<std::string> *s) {
   s->clear();
   for (auto d : i) {
     s->push_back(std::to_string(d));
@@ -497,6 +608,13 @@ void floatString(const uint32_t i,
   IntFloat u;
   u.i = i;
   *s = std::to_string(u.f);
+}
+
+void hexString(const uint32_t i,
+               std::string *s) {
+  std::vector<char> hexstr(11);
+  snprintf(hexstr.data(), hexstr.size(), "0x%08x", i);
+  *s = hexstr.data();
 }
 
 void
@@ -607,9 +725,9 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
                       {data[0] ? "true" : "false",
-                      data[1] ? "true" : "false",
-                      data[2] ? "true" : "false",
-                      data[3] ? "true" : "false"});
+                            data[1] ? "true" : "false",
+                            data[2] ? "true" : "false",
+                            data[3] ? "true" : "false"});
   }
   {
     StateKey k("Fragment/Depth", "GL_DEPTH_CLEAR_VALUE");
@@ -705,5 +823,115 @@ StateOverride::onState(SelectionId selId,
     intStrings(data, &box);
     callback->onState(selId, experimentCount, renderId,
                       k, box);
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_FAIL");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_PASS_DEPTH_FAIL");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_PASS_DEPTH_PASS");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_FUNC");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_REF");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_VALUE_MASK");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Stencil/Back", "GL_STENCIL_BACK_WRITEMASK");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_FAIL");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_PASS_DEPTH_FAIL");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_PASS_DEPTH_PASS");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil", "GL_STENCIL_TEST");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {data[0] ? "true" : "false"});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_FUNC");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0])});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_REF");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_VALUE_MASK");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Stencil/Front", "GL_STENCIL_WRITEMASK");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
+  }
+  {
+    StateKey k("Stencil", "GL_STENCIL_CLEAR_VALUE");
+    getState(k, &data);
+    std::string value;
+    hexString(data[0], &value);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {value});
   }
 }
