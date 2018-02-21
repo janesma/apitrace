@@ -120,7 +120,6 @@ Item {
                                     anchors.margins: 3
                                     anchors.verticalCenter: parent.verticalCenter
                                     visible: choices.length == 0
-                                    validator: DoubleValidator{}
                                     text: value[offset]
                                     Keys.onReturnPressed: {
                                         if (!acceptableInput) {
