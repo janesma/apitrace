@@ -114,7 +114,7 @@ class MetricId {
   MetricId() : value(0) {}
 
   uint64_t operator()() const { return value; }
-  uint32_t group() const { return value >> 16; }
+  uint32_t group() const { return ((value >> 16) & 0x0FFF); }
   uint32_t counter() const { return (value & 0x0FFFF); }
   bool operator<(const MetricId &o) const { return value < o.value; }
   bool operator==(const MetricId &o) const { return value == o.value; }
