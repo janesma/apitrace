@@ -63,6 +63,7 @@ class FrameRetrace : public IFrameRetrace {
                 const std::vector<unsigned char> &md5,
                 uint64_t fileSize,
                 uint32_t frameNumber,
+                uint32_t frameCount,
                 OnFrameRetrace *callback);
 
   // TODO(majanes) move to frame state tracker

@@ -341,6 +341,7 @@ class IFrameRetrace {
                         const std::vector<unsigned char> &md5,
                         uint64_t fileSize,
                         uint32_t frameNumber,
+                        uint32_t frameCount,
                         OnFrameRetrace *callback) = 0;
   virtual void retraceRenderTarget(ExperimentId experimentCount,
                                    const RenderSelection &selection,
@@ -399,7 +400,7 @@ class FrameState {
   int render_count;
  public:
   FrameState(const std::string &filename,
-             int framenumber);
+             int framenumber, int framecount);
   int getRenderCount() const { return render_count; }
 };
 

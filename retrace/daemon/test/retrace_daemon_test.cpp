@@ -156,7 +156,7 @@ TEST_F(RetraceTest, LoadFile) {
 
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   if (cb.file_error)
     return;
   int renderCount = rt.getRenderCount();
@@ -188,7 +188,7 @@ TEST_F(RetraceTest, ReplaceShaders) {
   NullCallback cb;
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   if (cb.file_error)
     return;
   rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "",
@@ -214,7 +214,7 @@ TEST_F(RetraceTest, ApiCalls) {
   NullCallback cb;
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   if (cb.file_error)
     return;
   RenderSelection sel;
@@ -256,7 +256,7 @@ TEST_F(RetraceTest, ShaderAssembly) {
   NullCallback cb;
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   if (cb.file_error)
     return;
   RenderSelection selection;

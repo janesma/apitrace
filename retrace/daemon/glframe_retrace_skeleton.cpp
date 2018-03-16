@@ -199,7 +199,7 @@ FrameRetraceSkeleton::Run() {
           fclose(fh);
 
           m_frame->openFile(file_path, vsum, of.filesize(),
-                            of.framenumber(), this);
+                            of.framenumber(), of.framecount(), this);
           break;
         }
       case ApiTrace::RENDER_TARGET_REQUEST:

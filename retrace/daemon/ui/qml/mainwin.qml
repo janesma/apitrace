@@ -162,7 +162,7 @@ ApplicationWindow {
             text: "frame number:"
         }
         Rectangle {
-            width: 100
+            width: 300
             id: frameBox
             border.width: 1
             height: textHeight.height * 1.5
@@ -237,9 +237,6 @@ ApplicationWindow {
                     openfile.visible = false;
                     progressBar.visible = true;
                     progressBar.targetFrame = parseInt(frameInput.text, 10);
-                } else {
-                    fileError.text = "File not found:\n\t" + textInput.text;
-                    fileError.visible = true;
                 }
             }
             KeyNavigation.tab: cancelButton

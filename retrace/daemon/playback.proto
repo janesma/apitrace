@@ -28,6 +28,7 @@ message OpenFileRequest {
   required bytes md5Sum = 2;
   required uint32 fileSize = 3;
   required uint32 frameNumber = 4;
+  required uint32 frameCount = 5;
 };
 
 message OpenFileStatus {

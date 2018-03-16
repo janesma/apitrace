@@ -53,6 +53,7 @@ class FrameRetraceStub : public IFrameRetrace {
                         const std::vector<unsigned char> &md5,
                         uint64_t fileSize,
                         uint32_t frameNumber,
+                        uint32_t frameCount,
                         OnFrameRetrace *callback);
   virtual void retraceRenderTarget(ExperimentId experimentCount,
                                    const RenderSelection &selection,

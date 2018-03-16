@@ -108,6 +108,7 @@ FrameRetrace::openFile(const std::string &filename,
                        const std::vector<unsigned char> &,
                        uint64_t,
                        uint32_t framenumber,
+                       uint32_t framecount,
                        OnFrameRetrace *callback) {
   check_gpu_speed(callback);
 
@@ -174,9 +175,10 @@ FrameRetrace::openFile(const std::string &filename,
     auto c = new RetraceContext(current_render, parser, &retracer, &m_tracker);
     current_render = RenderId(current_render.index() + c->getRenderCount());
     m_contexts.push_back(c);
-    if (c->endsFrame()) {
+    if (c->endsFrame())
+      --framecount;
+    if (framecount == 0)
       break;
-    }
   }
 
   callback->onFileOpening(false, true, current_frame);
@@ -217,7 +219,7 @@ FrameRetrace::retraceShaderAssembly(const RenderSelection &selection,
 }
 
 FrameState::FrameState(const std::string &filename,
-                       int framenumber) : render_count(0) {
+                       int framenumber, int framecount) : render_count(0) {
   trace::Parser *p = reinterpret_cast<trace::Parser*>(parser);
   p->open(filename.c_str());
   trace::Call *call;
@@ -239,8 +241,11 @@ FrameState::FrameState(const std::string &filename,
     }
 
     if (RetraceRender::endsFrame(*call)) {
-      delete call;
-      break;
+      --framecount;
+      if (framecount == 0) {
+        delete call;
+        break;
+      }
     }
     delete call;
   }

@@ -134,7 +134,7 @@ TEST_F(RetraceTest, SingleMetricData) {
   EXPECT_TRUE(found);
 
   FrameRetrace rt;
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   p->begin(RenderId(0));
   RenderSelection s;
   s.id = SelectionId(0);
@@ -158,7 +158,7 @@ TEST_F(RetraceTest, FrameMetricData) {
   MetricsCallback cb;
 
   FrameRetrace rt;
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   if (!cb.ids.size()) {
     retrace::cleanUp();
     return;
@@ -187,7 +187,7 @@ TEST_F(RetraceTest, AllMetricData) {
   MetricsCallback cb;
 
   FrameRetrace rt;
-  rt.openFile(test_file, md5, fileSize, 7, &cb);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
   if (!cb.ids.size()) {
     retrace::cleanUp();
     return;

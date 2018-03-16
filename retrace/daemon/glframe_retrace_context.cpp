@@ -75,13 +75,12 @@ RetraceContext::RetraceContext(RenderId current_render,
   // play through the frame, generating renders
   while (true) {
     auto r = new RetraceRender(parser, retracer, tracker);
+    m_renders[current_render] = r;
+    ++current_render;
     if (r->endsFrame()) {
-      delete r;
       m_ends_frame = true;
       break;
     }
-    m_renders[current_render] = r;
-    ++current_render;
 
     // peek ahead to see if next call is in the following context
     m_parser->getBookmark(m_end_bookmark);

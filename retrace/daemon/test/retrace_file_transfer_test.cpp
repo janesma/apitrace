@@ -65,6 +65,7 @@ class FileTransfer : public IFrameRetrace {
                 const std::vector<unsigned char> &md5,
                 uint64_t fileSize,
                 uint32_t frameNumber,
+                uint32_t frameCount,
                 OnFrameRetrace *callback) {
     callback->onFileOpening(false, true, frameNumber + 1);
   }
@@ -225,7 +226,7 @@ TEST(FrameRetrace, FileTransfer) {
 
   FileTransferCB cb;
   stub.openFile(std::string(test_file), md5,
-                fileSize, 1, &cb);
+                fileSize, 1, 1, &cb);
   stub.Flush();
   EXPECT_TRUE(cb.m_needUpload);
   EXPECT_TRUE(exists(target));
@@ -235,7 +236,7 @@ TEST(FrameRetrace, FileTransfer) {
   // resend bogus path, and verify that upload is not requested (it is
   // in the cache)
   stub.openFile(std::string(test_file), md5,
-                fileSize, 1, &cb);
+                fileSize, 1, 1, &cb);
   stub.Flush();
   EXPECT_FALSE(cb.m_needUpload);
   stub.Shutdown();

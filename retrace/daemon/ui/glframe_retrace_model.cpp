@@ -100,8 +100,8 @@ FrameRetraceModel::~FrameRetraceModel() {
 }
 
 FrameState *frame_state_off_thread(std::string filename,
-                                   int framenumber) {
-  return new FrameState(filename, framenumber);
+                                   int framenumber, int framecount) {
+  return new FrameState(filename, framenumber, framecount);
 }
 
 static QFuture<FrameState *> future;
@@ -144,19 +144,41 @@ exec_retracer(const char *main_exe, int port) {
 }
 
 bool
-FrameRetraceModel::setFrame(const QString &filename, int framenumber,
+FrameRetraceModel::setFrame(const QString &filename, const QString &framenumber,
                             const QString &host) {
   QFileInfo check_file(filename);
-  if (!check_file.exists())
+  if (!check_file.exists()) {
+    onError(RETRACE_WARN,
+            "File not found");
     return false;
-  if (!check_file.isFile())
+  }
+  if (!check_file.isFile()) {
+    onError(RETRACE_WARN,
+            "Selected path is not a file");
     return false;
+  }
 
-  // m_retrace = new FrameRetrace(filename.toStdString(), framenumber);
-  future = QtConcurrent::run(frame_state_off_thread,
-                             filename.toStdString(), framenumber);
-  m_state = future.result();
+  int framecount = 1;
   int port = 24642;
+  std::vector<unsigned char> md5;
+  RenderSelection sel;
+  QStringList range = framenumber.split("-");
+
+  if (range.size() < 1 || range.size() > 2) {
+    goto BAD_FRAME;
+  }
+
+  m_target_frame_number = range[0].toInt();
+  if (range.size() == 2)
+    framecount = range[1].toInt() - m_target_frame_number + 1;
+  if (framecount < 1)
+    goto BAD_FRAME;
+
+  future = QtConcurrent::run(frame_state_off_thread,
+                             filename.toStdString(),
+                             m_target_frame_number,
+                             framecount);
+  m_state = future.result();
   if (host == "localhost") {
     {
       ServerSocket sock(0);
@@ -170,18 +192,20 @@ FrameRetraceModel::setFrame(const QString &filename, int framenumber,
 
   // let the stub calculate the md5 off-thread.  Doing it here
   // conforms better to the interfaces, but blocks the UI.
-  std::vector<unsigned char> md5;
-
-  m_target_frame_number = framenumber;
   m_retrace.openFile(filename.toStdString(), md5, 0,
-                     framenumber, this);
+                     m_target_frame_number, framecount, this);
 
-  RenderSelection sel;
   glretrace::renderSelectionFromList(m_selection_count,
                                      m_cached_selection,
                                      &sel);
   m_retrace.retraceApi(sel, this);
   return true;
+
+BAD_FRAME: {
+  onError(RETRACE_WARN,
+          "Invalid frame range.  Enter a number or range (begin - end).");
+  return false;
+  }
 }
 
 QQmlListProperty<QRenderBookmark>

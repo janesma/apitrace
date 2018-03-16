@@ -332,6 +332,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
                          const std::vector<unsigned char> &md5,
                          uint64_t fileSize,
                          uint32_t frame,
+                         uint32_t count,
                          OnFrameRetrace *cb,
                          FrameRetraceStub *stub)
       : m_filename(fn), m_callback(cb), m_stub(stub) {
@@ -340,6 +341,7 @@ class RetraceOpenFileRequest: public IRetraceRequest {
     file_open->set_filename(fn);
     file_open->set_filesize(fileSize);
     file_open->set_framenumber(frame);
+    file_open->set_framecount(count);
     // ignore md5 argument.  it will be calculated on the retrace thread.
   }
   virtual void retrace(RetraceSocket *s) {
@@ -1147,9 +1149,11 @@ FrameRetraceStub::openFile(const std::string &filename,
                            const std::vector<unsigned char> &md5,
                            uint64_t fileSize,
                            uint32_t frameNumber,
+                           uint32_t frameCount,
                            OnFrameRetrace *callback) {
   m_thread->push(new RetraceOpenFileRequest(filename, md5, fileSize,
-                                            frameNumber, callback, this));
+                                            frameNumber, frameCount,
+                                            callback, this));
 }
 
 void
