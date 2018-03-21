@@ -87,9 +87,12 @@ FrameLoop::advanceToFrame(int f) {
 
   trace::Call *call;
   while ((call = parser->parse_call()) && m_current_frame < f) {
+    bool owned_by_thread_tracker = false;
+    m_thread_context.track(call, &owned_by_thread_tracker);
     retracer.retrace(*call);
     const bool frame_boundary = call->flags & trace::CALL_FLAG_END_FRAME;
-    delete call;
+    if (!owned_by_thread_tracker)
+      delete call;
     if (frame_boundary) {
       ++m_current_frame;
       if (m_current_frame == f)

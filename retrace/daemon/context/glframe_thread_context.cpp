@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2016 Intel Corporation
+ * Copyright 2018 Intel Corporation
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,40 +25,47 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
-#ifndef _GLFRAME_LOOP_HPP_
-#define _GLFRAME_LOOP_HPP_
-
-#include <string>
-#include <vector>
-
-#include <fstream> // NOLINT
-
 #include "glframe_thread_context.hpp"
+#include "trace_model.hpp"
+#include "glframe_retrace_render.hpp"
 
-namespace trace {
-class Call;
+using glretrace::ThreadContext;
+
+extern retrace::Retracer retracer;
+
+ThreadContext::~ThreadContext() {
+  for (auto i : m_thread_context_switch)
+    delete i.second;
+  m_thread_context_switch.clear();
 }
 
-namespace glretrace {
+void
+ThreadContext::track(trace::Call *c,
+                     bool *is_owned_by_thread_tracker) {
+  if (c->thread_id != m_current_thread) {
+    m_current_thread = c->thread_id;
+    auto context_switch = m_thread_context_switch.find(m_current_thread);
+    if (context_switch != m_thread_context_switch.end())
+      retracer.retrace(*(context_switch->second));
+  }
 
-class FrameLoop {
- public:
-  FrameLoop(const std::string filepath,
-            const std::string out_path,
-            int loop_count);
-  ~FrameLoop();
-  void advanceToFrame(int f);
-  void loop();
+  *is_owned_by_thread_tracker = changesContext(*c);
+  if (!*is_owned_by_thread_tracker) {
+    return;
+  }
 
- private:
-  std::ofstream m_of;
-  std::ostream *m_out;
-  int m_current_frame, m_loop_count;
-  std::vector<trace::Call*> m_calls;
-  ThreadContext m_thread_context;
-};
+  auto last_context_cmd = m_thread_context_switch.find(m_current_thread);
+  if (last_context_cmd != m_thread_context_switch.end())
+    delete last_context_cmd->second;
+  m_thread_context_switch[m_current_thread] = c;
+}
 
-}  // namespace glretrace
-
-#endif
-
+bool
+ThreadContext::changesContext(const trace::Call &call) {
+  if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
+    return true;
+  if (strncmp(call.name(), "glXMakeContextCurrent",
+              strlen("glXMakeContextCurrent")) == 0)
+    return true;
+  return false;
+}

@@ -1,6 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2016 Intel Corporation
+ * Copyright 2015 Intel Corporation
  * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,40 +25,30 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
-#ifndef _GLFRAME_LOOP_HPP_
-#define _GLFRAME_LOOP_HPP_
+#ifndef _GLFRAME_THREADCONTEXT_HPP_
+#define _GLFRAME_THREADCONTEXT_HPP_
 
-#include <string>
-#include <vector>
+#include <map>
 
-#include <fstream> // NOLINT
-
-#include "glframe_thread_context.hpp"
+#include "glframe_traits.hpp"
 
 namespace trace {
 class Call;
-}
+}  // namespace trace
 
 namespace glretrace {
 
-class FrameLoop {
+class ThreadContext : public NoCopy, NoAssign {
  public:
-  FrameLoop(const std::string filepath,
-            const std::string out_path,
-            int loop_count);
-  ~FrameLoop();
-  void advanceToFrame(int f);
-  void loop();
+  ThreadContext() : m_current_thread(0) {}
+  ~ThreadContext();
+  void track(trace::Call *c, bool *is_owned_by_thread_tracker);
+  static bool changesContext(const trace::Call &c);
 
  private:
-  std::ofstream m_of;
-  std::ostream *m_out;
-  int m_current_frame, m_loop_count;
-  std::vector<trace::Call*> m_calls;
-  ThreadContext m_thread_context;
+  unsigned m_current_thread;
+  std::map<unsigned, trace::Call *> m_thread_context_switch;
 };
 
 }  // namespace glretrace
-
 #endif
-

@@ -21,6 +21,7 @@ include(../Lint.cmake)
 
 include_directories (
   ${CMAKE_SOURCE_DIR}/retrace/daemon
+  ${CMAKE_SOURCE_DIR}/retrace/daemon/context
   ${CMAKE_SOURCE_DIR}/retrace/daemon/ui
   ${CMAKE_SOURCE_DIR}/retrace/daemon/gldispatch
   )

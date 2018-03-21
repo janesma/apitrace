@@ -75,16 +75,6 @@ isClear(const trace::Call &call) {
 }
 
 bool
-RetraceRender::changesContext(const trace::Call &call) {
-  if (strncmp(call.name(), "glXMakeCurrent", strlen("glXMakeCurrent")) == 0)
-    return true;
-  if (strncmp(call.name(), "glXMakeContextCurrent",
-              strlen("glXMakeContextCurrent")) == 0)
-    return true;
-  return false;
-}
-
-bool
 RetraceRender::isRender(const trace::Call &call) {
   return ((call.flags & trace::CALL_FLAG_RENDER) || isCompute(call)
           || isClear(call));
@@ -180,7 +170,7 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
     m_end_of_frame = endsFrame(*call);
     const bool render = isRender(*call);
     compute = isCompute(*call);
-    if (changesContext(*call)) {
+    if (ThreadContext::changesContext(*call)) {
       m_changes_context = true;
       if (m_api_calls.size() > 0) {
         // this ought to be in the next context
@@ -348,7 +338,7 @@ RetraceRender::retrace(const StateTrack &tracker,
     tracker.retraceProgramSideEffects(m_original_program, call, m_retracer);
 
     // context change must be on the first call of the render
-    assert((!changesContext(*call)) || calls == 0);
+    assert((!ThreadContext::changesContext(*call)) || calls == 0);
     m_retracer->retrace(*call);
 
     delete(call);

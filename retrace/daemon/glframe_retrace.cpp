@@ -45,6 +45,7 @@
 #include "glframe_retrace_context.hpp"
 #include "glframe_retrace_render.hpp"
 #include "glframe_stderr.hpp"
+#include "glframe_thread_context.hpp"
 #include "glretrace.hpp"
 // #include "glws.hpp"
 // #include "trace_dump.hpp"
@@ -140,6 +141,8 @@ FrameRetrace::openFile(const std::string &filename,
                 trace::DUMP_FLAG_NO_COLOR);
     GRLOGF(glretrace::DEBUG, "CALL: %s", call_stream.str().c_str());
 
+    bool owned_by_thread_tracker = false;
+    m_thread_context.track(call, &owned_by_thread_tracker);
     // we re-use shaders for shader editing features, even if the
     // source program has deleted them.  To support this, we never
     // delete shaders.
@@ -148,7 +151,8 @@ FrameRetrace::openFile(const std::string &filename,
       m_tracker.track(*call);
     }
     const bool frame_boundary = RetraceRender::endsFrame(*call);
-    delete call;
+    if (!owned_by_thread_tracker)
+      delete call;
     if (frame_boundary) {
       ++current_frame;
       callback->onFileOpening(false, false, current_frame);

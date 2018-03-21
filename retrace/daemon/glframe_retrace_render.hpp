@@ -95,7 +95,6 @@ class RetraceRender {
                 const std::string &value);
 
   static bool isRender(const trace::Call &c);
-  static bool changesContext(const trace::Call &c);
   static bool endsFrame(const trace::Call &c);
   static int currentRenderBuffer();
 
