@@ -47,11 +47,6 @@
 #include "glframe_stderr.hpp"
 #include "glframe_thread_context.hpp"
 #include "glretrace.hpp"
-// #include "glws.hpp"
-// #include "trace_dump.hpp"
-// #include "trace_parser.hpp"
-
-// #include "glstate_images.hpp"
 #include "glstate.hpp"
 #include "glstate_internal.hpp"
 #include "trace_dump.hpp"
