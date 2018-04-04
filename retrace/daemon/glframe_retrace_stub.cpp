@@ -1134,7 +1134,9 @@ FrameRetraceStub::Init(const char *host, int port) {
 
 void
 FrameRetraceStub::Shutdown() {
-  assert(m_thread != NULL);
+  if (!m_thread)
+    return;
+
   m_thread->stop();
   delete m_thread;
 }
