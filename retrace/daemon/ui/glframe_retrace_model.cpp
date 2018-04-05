@@ -668,3 +668,10 @@ FrameRetraceModel::retrace_state() {
   m_stateModel->clear();
   m_retrace.retraceState(sel, m_experiment_count, this);
 }
+
+void
+FrameRetraceModel::revertExperiments() {
+  m_retrace.revertExperiments();
+  m_experiment.onRevert();
+  m_selection->experiment();
+}

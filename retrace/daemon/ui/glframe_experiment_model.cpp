@@ -122,3 +122,13 @@ QExperimentModel::simpleShader(CheckState simple) {
   emit onSimpleShader();
   emit onExperiment();
 }
+
+void
+QExperimentModel::onRevert() {
+  m_disabled.clear();
+  m_simple.clear();
+  m_disabled_checkbox = Unchecked;
+  m_simple_checkbox = Unchecked;
+  emit onDisabled();
+  emit onSimpleShader();
+}

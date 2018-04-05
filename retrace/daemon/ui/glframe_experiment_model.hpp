@@ -60,6 +60,7 @@ class QExperimentModel : public QObject,
   Qt::CheckState selectionDisabled() const { return m_disabled_checkbox; }
   Qt::CheckState selectionSimpleShader() const { return m_simple_checkbox; }
   void onSelect(SelectionId selection_count, const QList<int> &selection);
+  void onRevert();
   Q_INVOKABLE void disableDraw(Qt::CheckState disable);
   Q_INVOKABLE void simpleShader(Qt::CheckState simple);
  signals:

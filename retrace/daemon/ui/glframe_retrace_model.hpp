@@ -139,6 +139,7 @@ class FrameRetraceModel : public QObject,
   Q_INVOKABLE void filterMetrics(const QString &f);
   Q_INVOKABLE QString urlToFilePath(const QUrl &url);
   Q_INVOKABLE void setTab(const int index);
+  Q_INVOKABLE void revertExperiments();
 
   QQmlListProperty<QRenderBookmark> renders();
   QQmlListProperty<QMetric> metricList();

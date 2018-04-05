@@ -44,8 +44,17 @@ Item {
             }
         }
         Button {
-            id: refreshButton
+            id: revertButton
             anchors.left: textRect.right
+            anchors.leftMargin: 25
+            text: "Revert"
+            onClicked: {
+                metricsModel.revertExperiments();
+            }
+        }
+        Button {
+            id: refreshButton
+            anchors.left: revertButton.right
             anchors.leftMargin: 25
             text: "Refresh"
             onClicked: {
