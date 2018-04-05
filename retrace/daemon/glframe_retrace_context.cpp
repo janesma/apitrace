@@ -519,3 +519,9 @@ RetraceContext::setState(const RenderSelection &selection,
       r.second->setState(item, offset, value);
   }
 }
+
+void
+RetraceContext::revertExperiments(StateTrack *tracker) {
+  for (auto r : m_renders)
+    r.second->revertExperiments(tracker);
+}

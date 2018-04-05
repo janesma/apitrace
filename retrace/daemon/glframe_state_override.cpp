@@ -1008,3 +1008,8 @@ StateOverride::onState(SelectionId selId,
                       k, {value});
   }
 }
+
+void
+StateOverride::revertExperiments() {
+  m_overrides.clear();
+}

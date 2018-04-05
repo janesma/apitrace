@@ -125,6 +125,9 @@ class RetraceRender::UniformOverride {
   void restoreUniforms() {
     orig.set();
   }
+  void revertExperiments() {
+    m_uniform_overrides.clear();
+  }
 
  private:
   struct UniformKey {
@@ -454,4 +457,28 @@ RetraceRender::setState(const StateKey &item,
                         int offset,
                         const std::string &value) {
   m_state_override->setState(item, offset, value);
+}
+
+void
+RetraceRender::revertExperiments(StateTrack *tracker) {
+  m_modified_fs = "";
+  m_modified_vs = "";
+  m_modified_tess_eval = "";
+  m_modified_tess_control = "";
+  m_modified_geom = "";
+  m_modified_comp = "";
+  m_retrace_program = -1;
+  m_disabled = false;
+  m_simple_shader = false;
+  m_uniform_override->revertExperiments();
+  m_state_override->revertExperiments();
+  if (m_rt_program > -1)
+    // set render target program back to default
+    m_rt_program = tracker->useProgram(m_original_program,
+                                       m_original_vs,
+                                       simple_fs,
+                                       m_original_tess_eval,
+                                       m_original_tess_control,
+                                       m_original_geom,
+                                       m_original_comp);
 }

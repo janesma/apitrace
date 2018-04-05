@@ -115,6 +115,7 @@ class RetraceContext {
                 int offset,
                 const std::string &value,
                 const StateTrack &tracker);
+  void revertExperiments(StateTrack *tracker);
 
  private:
   trace::AbstractParser *m_parser;

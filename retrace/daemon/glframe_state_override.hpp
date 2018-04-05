@@ -52,6 +52,7 @@ class StateOverride {
 
   void getState(const StateKey &item,
                 std::vector<uint32_t> *data);
+  void revertExperiments();
 
  private:
   enum Type {

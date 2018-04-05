@@ -93,6 +93,7 @@ class RetraceRender {
   void setState(const StateKey &item,
                 int offset,
                 const std::string &value);
+  void revertExperiments(StateTrack *tracker);
 
   static bool isRender(const trace::Call &c);
   static bool endsFrame(const trace::Call &c);

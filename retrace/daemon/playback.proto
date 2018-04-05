@@ -21,6 +21,7 @@ enum RequestType {
   SET_UNIFORM_REQUEST = 12;
   STATE_REQUEST = 13;
   SET_STATE_REQUEST = 14;
+  REVERT_EXPERIMENTS_REQUEST = 15;
 };
 
 message OpenFileRequest {

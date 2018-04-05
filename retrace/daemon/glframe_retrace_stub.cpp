@@ -1098,6 +1098,17 @@ class SetStateRequest : public IRetraceRequest {
   const std::string m_value;
 };
 
+class RevertExperimentsRequest : public IRetraceRequest {
+ public:
+  RevertExperimentsRequest() {}
+  void retrace(RetraceSocket *sock) {
+    RetraceRequest msg;
+    msg.set_requesttype(ApiTrace::REVERT_EXPERIMENTS_REQUEST);
+    sock->request(msg);
+  }
+ private:
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -1385,4 +1396,9 @@ FrameRetraceStub::setState(const RenderSelection &selection,
                            int offset,
                            const std::string &value) {
   m_thread->push(new SetStateRequest(selection, item, offset, value));
+}
+
+void
+FrameRetraceStub::revertExperiments() {
+  m_thread->push(new RevertExperimentsRequest());
 }

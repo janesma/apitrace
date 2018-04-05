@@ -115,6 +115,7 @@ class FileTransfer : public IFrameRetrace {
                 const StateKey &item,
                 int offset,
                 const std::string &value) {}
+  void revertExperiments() {}
 };
 
 class FileTransferCB : public OnFrameRetrace {

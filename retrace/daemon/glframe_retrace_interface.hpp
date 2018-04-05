@@ -389,6 +389,7 @@ class IFrameRetrace {
                         const StateKey &item,
                         int offset,
                         const std::string &value) = 0;
+  virtual void revertExperiments() = 0;
 };
 
 class FrameState {

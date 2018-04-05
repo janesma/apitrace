@@ -412,3 +412,9 @@ FrameRetrace::setState(const RenderSelection &selection,
   for (auto i : m_contexts)
     i->setState(selection, item, offset, value, m_tracker);
 }
+
+void
+FrameRetrace::revertExperiments() {
+  for (auto i : m_contexts)
+    i->revertExperiments(&m_tracker);
+}

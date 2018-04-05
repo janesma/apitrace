@@ -420,6 +420,12 @@ FrameRetraceSkeleton::Run() {
           m_frame->setState(selection, k, state.offset(), state.value());
           break;
         }
+
+      case ApiTrace::REVERT_EXPERIMENTS_REQUEST:
+        {
+          m_frame->revertExperiments();
+          break;
+        }
     }
   }
 }

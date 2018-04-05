@@ -75,6 +75,7 @@ class NullCallback : public OnFrameRetrace {
                         const ShaderAssembly &tess_eval,
                         const ShaderAssembly &geom,
                         const ShaderAssembly &comp) {
+    vs.push_back(vertex.shader);
     fs.push_back(fragment.shader);
   }
   void onRenderTarget(SelectionId selectionCount,
@@ -121,7 +122,7 @@ class NullCallback : public OnFrameRetrace {
   int renderTargetCount;
   SelectionId last_selection;
   std::string compile_error;
-  std::vector<std::string> fs;
+  std::vector<std::string> fs, vs;
   std::map<RenderId, std::vector<std::string>> calls;
   bool file_error;
 };
@@ -189,8 +190,6 @@ TEST_F(RetraceTest, ReplaceShaders) {
   FrameRetrace rt;
   get_md5(test_file, &md5, &fileSize);
   rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
-  if (cb.file_error)
-    return;
   rt.replaceShaders(RenderId(1), ExperimentId(0), "bug", "blarb", "",
                     "", "", "", &cb);
   EXPECT_GT(cb.compile_error.size(), 0);
@@ -208,6 +207,13 @@ TEST_F(RetraceTest, ReplaceShaders) {
   rt.replaceShaders(RenderId(1), ExperimentId(1), vs, cb.fs.back(),
                     "", "", "", "", &cb);
   EXPECT_EQ(cb.compile_error.size(), 0);
+  cb.vs.clear();
+  rt.retraceShaderAssembly(rs, ExperimentId(0), &cb);
+  EXPECT_EQ(vs, cb.vs[0]);
+  rt.revertExperiments();
+  cb.vs.clear();
+  rt.retraceShaderAssembly(rs, ExperimentId(0), &cb);
+  EXPECT_NE(vs, cb.vs[0]);
 }
 
 TEST_F(RetraceTest, ApiCalls) {
