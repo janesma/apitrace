@@ -82,10 +82,10 @@ Socket::Write(const void * buf, int size) {
   int bytes_remaining = size;
   const void *curPtr = buf;
   while (bytes_remaining > 0) {
-    size_t bytes_written = ::send(m_socket_fd,
-                                  reinterpret_cast<const char *>(curPtr),
-                                  bytes_remaining,
-                                  0);  // default flags
+    int bytes_written = ::send(m_socket_fd,
+                               reinterpret_cast<const char *>(curPtr),
+                               bytes_remaining,
+                               0);  // default flags
 
     if (bytes_written < 0) {
       if (errno == EINTR)

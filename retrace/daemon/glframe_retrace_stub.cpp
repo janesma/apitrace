@@ -77,11 +77,11 @@ namespace {
 class RetraceSocket {
  public:
   explicit RetraceSocket(const char *host, int port) : m_sock(host, port) {}
-  void request(const RetraceRequest &req) {
+  bool request(const RetraceRequest &req) {
     // write message
     const uint32_t write_size = req.ByteSize();
     if (!m_sock.Write(write_size)) {
-      return;
+      return false;
     }
     m_buf.clear();
     m_buf.resize(write_size);
@@ -89,14 +89,15 @@ class RetraceSocket {
     CodedOutputStream coded_out(&array_out);
     req.SerializeToCodedStream(&coded_out);
     if (!m_sock.WriteVec(m_buf)) {
-      return;
+      return false;
     }
+    return true;
   }
-  void response(RetraceResponse *resp) {
+  bool response(RetraceResponse *resp) {
     // read response
     uint32_t read_size;
     if (!m_sock.Read(&read_size)) {
-      return;
+      return false;
     }
     m_buf.clear();
     m_buf.resize(read_size);
@@ -106,11 +107,13 @@ class RetraceSocket {
     CodedInputStream::Limit msg_limit = coded_in.PushLimit(read_size);
     resp->ParseFromCodedStream(&coded_in);
     coded_in.PopLimit(msg_limit);
+    return true;
   }
 
-  void retrace(const RetraceRequest &req, RetraceResponse *resp) {
-    request(req);
-    response(resp);
+  bool retrace(const RetraceRequest &req, RetraceResponse *resp) {
+    if (!request(req))
+      return false;
+    return response(resp);
   }
 
   void write(const std::vector<unsigned char> &buf) {
@@ -180,11 +183,17 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
         // more recent experiment was enabled while this was enqueued
         return;
     }
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
     bool success = false;
     while (true) {
       RetraceResponse response;
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       if (response.has_error()) {
         Severity s = (response.error().severity() == RETRACE_FATAL ?
                       ERR : WARN);
@@ -277,10 +286,17 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
     }
     RetraceResponse response;
     // sends single request, read multiple responses
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
+
     while (true) {
       response.Clear();
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       assert(response.has_shaderassembly());
       auto shader = response.shaderassembly();
       if (shader.render_id() == (unsigned int)-1)
@@ -368,10 +384,16 @@ class RetraceOpenFileRequest: public IRetraceRequest {
       file_open->set_filesize(total_bytes);
     }
 
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
     while (true) {
       RetraceResponse response;
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       if (response.has_filestatus()) {
         auto status = response.filestatus();
         if (status.needs_upload()) {
@@ -524,7 +546,11 @@ class RetraceAllMetricsRequest : public IRetraceRequest {
     }
 
     RetraceResponse response;
-    s->retrace(m_proto_msg, &response);
+    if (!s->retrace(m_proto_msg, &response)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
+
     if (response.has_error()) {
       m_callback->onError(ErrorSeverity(response.error().severity()),
                           response.error().message());
@@ -654,10 +680,16 @@ class ApiRequest : public IRetraceRequest {
     }
     RetraceResponse response;
     // sends single request, read multiple responses
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
     while (true) {
       response.Clear();
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       assert(response.has_api());
       const auto &api_response = response.api();
       if (api_response.render_id() == (unsigned int)-1)
@@ -727,10 +759,16 @@ class BatchRequest : public IRetraceRequest {
     }
     RetraceResponse response;
     // sends single request, read multiple responses
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
     while (true) {
       response.Clear();
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       assert(response.has_batch());
       const auto &batch_response = response.batch();
       if (batch_response.render_id() == (unsigned int)-1)
@@ -801,11 +839,17 @@ class UniformRequest : public IRetraceRequest {
         return;
     }
     // sends single request, read multiple responses
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
     RetraceResponse response;
     while (true) {
       response.Clear();
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       assert(response.has_uniform());
       const auto &uniform = response.uniform();
       if (uniform.render_id() == (unsigned int)-1) {
@@ -927,9 +971,7 @@ class SetUniformRequest : public IRetraceRequest {
 
 
   virtual void retrace(RetraceSocket *s) {
-    {
-      s->request(m_proto_msg);
-    }
+    s->request(m_proto_msg);
   }
 
  private:
@@ -968,10 +1010,16 @@ class StateRequest : public IRetraceRequest {
     }
     RetraceResponse response;
     // sends single request, read multiple responses
-    s->request(m_proto_msg);
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
     while (true) {
       response.Clear();
-      s->response(&response);
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
       assert(response.has_state());
       const auto &state_response = response.state();
       if (state_response.render_id() == (unsigned int)-1) {
