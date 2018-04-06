@@ -199,12 +199,21 @@ StateOverride::interpret_value(const StateKey &item,
   }
 }
 
-void
-StateOverride::getState(const StateKey &item,
-                        std::vector<uint32_t> *data) {
-  const auto n = state_name_to_enum(item.name);
-  data->clear();
-  switch (n) {
+enum StateCategory {
+  kStateEnabled,
+  kStateBoolean,
+  kStateBoolean4,
+  kStateInteger,
+  kStateInteger4,
+  kStateFloat,
+  kStateFloat2,
+  kStateFloat4,
+  kStateInvalid
+};
+
+StateCategory
+state_type(uint32_t state) {
+  switch (state) {
     case GL_BLEND:
     case GL_CULL_FACE:
     case GL_DEPTH_TEST:
@@ -212,11 +221,9 @@ StateOverride::getState(const StateKey &item,
     case GL_LINE_SMOOTH:
     case GL_POLYGON_OFFSET_FILL:
     case GL_SCISSOR_TEST:
-    case GL_STENCIL_TEST: {
-      data->resize(1);
-      get_enabled_state(n, data);
-      break;
-    }
+    case GL_STENCIL_TEST:
+      return kStateEnabled;
+
     case GL_BLEND_DST:
     case GL_BLEND_DST_ALPHA:
     case GL_BLEND_DST_RGB:
@@ -242,49 +249,86 @@ StateOverride::getState(const StateKey &item,
     case GL_STENCIL_PASS_DEPTH_PASS:
     case GL_STENCIL_REF:
     case GL_STENCIL_VALUE_MASK:
-    case GL_STENCIL_WRITEMASK: {
-      data->resize(1);
-      get_integer_state(n, data);
-      break;
-    }
+    case GL_STENCIL_WRITEMASK:
+      return kStateInteger;
+
     case GL_COLOR_WRITEMASK:
-      {
-        data->resize(4);
-        get_bool_state(n, data);
-        break;
-      }
+      return kStateBoolean4;
+
     case GL_DEPTH_WRITEMASK:
     case GL_SAMPLE_COVERAGE_INVERT:
-      {
-        data->resize(1);
-        get_bool_state(n, data);
-        break;
-      }
+      return kStateBoolean;
+
     case GL_BLEND_COLOR:
     case GL_COLOR_CLEAR_VALUE:
-      data->resize(4);
-      get_float_state(n, data);
-      break;
+      return kStateFloat4;
+
     case GL_DEPTH_CLEAR_VALUE:
     case GL_LINE_WIDTH:
     case GL_POLYGON_OFFSET_FACTOR:
     case GL_POLYGON_OFFSET_UNITS:
     case GL_SAMPLE_COVERAGE_VALUE:
-      {
+      return kStateFloat;
+
+    case GL_DEPTH_RANGE:
+      return kStateFloat2;
+
+    case GL_SCISSOR_BOX:
+      return kStateFloat4;
+  }
+  assert(false);
+  return kStateInvalid;
+}
+
+void
+StateOverride::getState(const StateKey &item,
+                        std::vector<uint32_t> *data) {
+  const auto n = state_name_to_enum(item.name);
+  data->clear();
+  switch (state_type(n)) {
+    case kStateEnabled: {
+      data->resize(1);
+      get_enabled_state(n, data);
+      break;
+    }
+    case kStateInteger: {
+      data->resize(1);
+      get_integer_state(n, data);
+      break;
+    }
+    case kStateBoolean4: {
+        data->resize(4);
+        get_bool_state(n, data);
+        break;
+      }
+    case kStateBoolean: {
+        data->resize(1);
+        get_bool_state(n, data);
+        break;
+      }
+    case kStateFloat4: {
+      data->resize(4);
+      get_float_state(n, data);
+      break;
+    }
+    case kStateFloat: {
         data->resize(1);
         get_float_state(n, data);
         break;
       }
-    case GL_DEPTH_RANGE: {
+    case kStateFloat2: {
       data->resize(2);
       get_float_state(n, data);
       break;
     }
-    case GL_SCISSOR_BOX: {
+    case kStateInteger4: {
       data->resize(4);
       get_integer_state(n, data);
       break;
     }
+    case kStateInvalid:
+      assert(false);
+      break;
   }
 }
 
@@ -617,6 +661,35 @@ void hexString(const uint32_t i,
   *s = hexstr.data();
 }
 
+bool
+is_supported(uint32_t state) {
+  glretrace::GL::GetError();
+  std::vector<uint32_t> data(4);
+  switch (state_type(state)) {
+   case kStateEnabled:
+      glretrace::GL::IsEnabled(state);
+      break;
+    case kStateInteger:
+    case kStateInteger4:
+      glretrace::GL::GetIntegerv(state, reinterpret_cast<GLint*>(data.data()));
+      break;
+    case kStateBoolean:
+    case kStateBoolean4:
+      glretrace::GL::GetBooleanv(state,
+                                 reinterpret_cast<GLboolean*>(data.data()));
+      break;
+    case kStateFloat:
+    case kStateFloat2:
+    case kStateFloat4:
+      glretrace::GL::GetFloatv(state, reinterpret_cast<GLfloat*>(data.data()));
+      break;
+    case kStateInvalid:
+      assert(false);
+      return false;
+  }
+  return(glretrace::GL::GetError() == false);
+}
+
 void
 StateOverride::onState(SelectionId selId,
                        ExperimentId experimentCount,
@@ -627,100 +700,100 @@ StateOverride::onState(SelectionId selId,
   // these entries are roughly in the order of the items in the glGet
   // man page:
   // https://www.khronos.org/registry/OpenGL-Refpages/es3.1/html/glGet.xhtml
-  {
+  if (is_supported(GL_CULL_FACE)) {
     StateKey k("Primitive/Cull", "GL_CULL_FACE");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_CULL_FACE_MODE)) {
     StateKey k("Primitive/Cull", "GL_CULL_FACE_MODE");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND)) {
     StateKey k("Fragment/Blend", "GL_BLEND");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_BLEND_SRC)) {
     StateKey k("Fragment/Blend", "GL_BLEND_SRC");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_SRC_ALPHA)) {
     StateKey k("Fragment/Blend", "GL_BLEND_SRC_ALPHA");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_SRC_RGB)) {
     StateKey k("Fragment/Blend", "GL_BLEND_SRC_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_DST)) {
     StateKey k("Fragment/Blend", "GL_BLEND_DST");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_DST_ALPHA)) {
     StateKey k("Fragment/Blend", "GL_BLEND_DST_ALPHA");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_DST_RGB)) {
     StateKey k("Fragment/Blend", "GL_BLEND_DST_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_COLOR)) {
     StateKey k("Fragment/Blend", "GL_BLEND_COLOR");
     getState(k, &data);
     std::vector<std::string> color;
     floatStrings(data, &color);
     callback->onState(selId, experimentCount, renderId, k, color);
   }
-  {
+  if (is_supported(GL_LINE_WIDTH)) {
     StateKey k("Primitive/Line", "GL_LINE_WIDTH");
     getState(k, &data);
     std::string value;
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId, k, {value});
   }
-  {
+  if (is_supported(GL_LINE_SMOOTH)) {
     StateKey k("Primitive/Line", "GL_LINE_SMOOTH");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_BLEND_EQUATION_RGB)) {
     StateKey k("Fragment/Blend", "GL_BLEND_EQUATION_RGB");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_BLEND_EQUATION_ALPHA)) {
     StateKey k("Fragment/Blend", "GL_BLEND_EQUATION_ALPHA");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_COLOR_CLEAR_VALUE)) {
     StateKey k("Framebuffer", "GL_COLOR_CLEAR_VALUE");
     getState(k, &data);
     std::vector<std::string> color;
     floatStrings(data, &color);
     callback->onState(selId, experimentCount, renderId, k, color);
   }
-  {
+  if (is_supported(GL_COLOR_WRITEMASK)) {
     StateKey k("Framebuffer/Mask", "GL_COLOR_WRITEMASK");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
@@ -729,20 +802,20 @@ StateOverride::onState(SelectionId selId,
                             data[2] ? "true" : "false",
                             data[3] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_DEPTH_CLEAR_VALUE)) {
     StateKey k("Fragment/Depth", "GL_DEPTH_CLEAR_VALUE");
     getState(k, &data);
     std::string value;
     floatString(data[0], &value);
     callback->onState(selId, experimentCount, renderId, k, {value});
   }
-  {
+  if (is_supported(GL_DEPTH_FUNC)) {
     StateKey k("Fragment/Depth", "GL_DEPTH_FUNC");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_DEPTH_RANGE)) {
     StateKey k("Fragment/Depth", "GL_DEPTH_RANGE");
     getState(k, &data);
     std::vector<std::string> range;
@@ -750,31 +823,31 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, range);
   }
-  {
+  if (is_supported(GL_DEPTH_TEST)) {
     StateKey k("Fragment/Depth", "GL_DEPTH_TEST");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_DEPTH_WRITEMASK)) {
     StateKey k("Framebuffer/Mask", "GL_DEPTH_WRITEMASK");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
                       {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_DITHER)) {
     StateKey k("Framebuffer", "GL_DITHER");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId, k,
                       {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_FRONT_FACE)) {
     StateKey k("Primitive", "GL_FRONT_FACE");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_POLYGON_OFFSET_FACTOR)) {
     StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_FACTOR");
     getState(k, &data);
     std::string value;
@@ -782,13 +855,13 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_POLYGON_OFFSET_FILL)) {
     StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_FILL");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_POLYGON_OFFSET_UNITS)) {
     StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_UNITS");
     getState(k, &data);
     std::string value;
@@ -796,7 +869,7 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_SAMPLE_COVERAGE_VALUE)) {
     StateKey k("Fragment/Multisample", "GL_SAMPLE_COVERAGE_VALUE");
     getState(k, &data);
     std::string value;
@@ -804,19 +877,19 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_SAMPLE_COVERAGE_INVERT)) {
     StateKey k("Fragment/Multisample", "GL_SAMPLE_COVERAGE_INVERT");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_SCISSOR_TEST)) {
     StateKey k("Fragment/Scissor", "GL_SCISSOR_TEST");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_SCISSOR_BOX)) {
     StateKey k("Fragment/Scissor", "GL_SCISSOR_BOX");
     getState(k, &data);
     std::vector<std::string> box;
@@ -824,31 +897,31 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, box);
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_FAIL)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_FAIL");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_PASS_DEPTH_FAIL)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_PASS_DEPTH_FAIL");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_PASS_DEPTH_PASS)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_PASS_DEPTH_PASS");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_FUNC)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_FUNC");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_REF)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_REF");
     getState(k, &data);
     std::string value;
@@ -856,7 +929,7 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_VALUE_MASK)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_VALUE_MASK");
     getState(k, &data);
     std::string value;
@@ -864,7 +937,7 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_STENCIL_BACK_WRITEMASK)) {
     StateKey k("Stencil/Back", "GL_STENCIL_BACK_WRITEMASK");
     getState(k, &data);
     std::string value;
@@ -872,37 +945,37 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_STENCIL_FAIL)) {
     StateKey k("Stencil/Front", "GL_STENCIL_FAIL");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_PASS_DEPTH_FAIL)) {
     StateKey k("Stencil/Front", "GL_STENCIL_PASS_DEPTH_FAIL");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_PASS_DEPTH_PASS)) {
     StateKey k("Stencil/Front", "GL_STENCIL_PASS_DEPTH_PASS");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_TEST)) {
     StateKey k("Stencil", "GL_STENCIL_TEST");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {data[0] ? "true" : "false"});
   }
-  {
+  if (is_supported(GL_STENCIL_FUNC)) {
     StateKey k("Stencil/Front", "GL_STENCIL_FUNC");
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
   }
-  {
+  if (is_supported(GL_STENCIL_REF)) {
     StateKey k("Stencil/Front", "GL_STENCIL_REF");
     getState(k, &data);
     std::string value;
@@ -910,7 +983,7 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_STENCIL_VALUE_MASK)) {
     StateKey k("Stencil/Front", "GL_STENCIL_VALUE_MASK");
     getState(k, &data);
     std::string value;
@@ -918,7 +991,7 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_STENCIL_WRITEMASK)) {
     StateKey k("Stencil/Front", "GL_STENCIL_WRITEMASK");
     getState(k, &data);
     std::string value;
@@ -926,7 +999,7 @@ StateOverride::onState(SelectionId selId,
     callback->onState(selId, experimentCount, renderId,
                       k, {value});
   }
-  {
+  if (is_supported(GL_STENCIL_CLEAR_VALUE)) {
     StateKey k("Stencil", "GL_STENCIL_CLEAR_VALUE");
     getState(k, &data);
     std::string value;
