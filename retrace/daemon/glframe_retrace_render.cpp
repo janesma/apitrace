@@ -264,7 +264,9 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
-  if (!m_disabled)
+  if ((!m_disabled) &&
+      // do not retrace swap buffers: the gpu cost is variable
+      (!endsFrame(*call)))
     m_retracer->retrace(*call);
   delete(call);
 
@@ -357,7 +359,9 @@ RetraceRender::retrace(const StateTrack &tracker,
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
-  if (!m_disabled)
+  if ((!m_disabled) &&
+      // do not retrace swap buffers: the gpu cost is variable
+      (!endsFrame(*call)))
     m_retracer->retrace(*call);
   delete(call);
 
