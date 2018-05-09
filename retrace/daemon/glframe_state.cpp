@@ -202,6 +202,11 @@ StateTrack::trackShaderSource(const Call &call) {
 
 void
 StateTrack::trackLinkProgram(const trace::Call &call) {
+  // linking generates shader assembly output that must be associated
+  // with the current program.  In fact, the active program is still
+  // 0.  This may affect SSO programs which never call glUseProgram
+  // (FrameRetrace will think the program is in use)
+  current_program = getRetracedProgram(call.args[0].value->toDouble());
 }
 
 void

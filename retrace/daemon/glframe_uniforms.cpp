@@ -97,7 +97,7 @@ class Uniform {
 }  // namespace glretrace
 
 Uniform::Uniform(int i) {
-  GLint prog = 0, name_len, name_buf_len;
+  GLint prog = 0, name_len = 0, name_buf_len = 0;
   GLenum data_type;
   GL_CHECK();
   GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &prog);
@@ -612,7 +612,7 @@ Uniform::overrideUniform(const std::string &name,
 
 
 Uniforms::Uniforms() {
-  int prog = 0, uniform_count;
+  int prog = 0, uniform_count = 0;
   GL::GetError();
   GlFunctions::GetIntegerv(GL_CURRENT_PROGRAM, &prog);
   if (prog == 0)
