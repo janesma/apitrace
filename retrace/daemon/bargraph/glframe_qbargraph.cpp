@@ -98,6 +98,12 @@ QBarGraphRenderer::synchronize(QQuickFramebufferObject * item) {
     v->clicked = false;
     v->shift = false;
   }
+
+  if (v->arrow) {
+    m_graph.moveSelection(v->arrow, v->shift);
+    v->arrow = 0;
+    v->shift = false;
+  }
 }
 
 void
@@ -140,7 +146,7 @@ BarGraphView::createRenderer() const {
 }
 
 BarGraphView::BarGraphView() : mouse_area(4),
-                               clicked(false), shift(false),
+                               clicked(false), shift(false), arrow(0),
                                selection(NULL), model(NULL),
                                m_randomBars(0),
                                m_zoom(1.0),
@@ -254,3 +260,9 @@ BarGraphView::setTranslate(float z) {
   update();
 }
 
+void
+BarGraphView::arrowKey(int amount, bool _shift) {
+  arrow = amount;
+  shift = _shift;
+  update();
+}

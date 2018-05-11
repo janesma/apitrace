@@ -68,6 +68,7 @@ class BarGraphRenderer : protected QOpenGLFunctions {
   void setZoom(float z, float t);
   void render();
   void subscribe(BarGraphSubscriber *s);
+  void moveSelection(int amount, bool extend);
 
  private:
   static const char *vshader, *fshader;

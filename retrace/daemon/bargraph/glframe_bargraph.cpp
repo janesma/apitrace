@@ -424,3 +424,43 @@ BarGraphRenderer::setZoom(float z, float t) {
   zoom = z;
   zoom_translate = t;
 }
+
+void
+BarGraphRenderer::moveSelection(int amount, bool extend) {
+  // right/left movement by 1
+  assert(amount == 1 || amount == -1);
+  int first_selected = 0;
+  // int direction = 1;
+  if (amount > 0) {
+    first_selected = selected.size() - 1;
+    // direction = -1;
+  }
+  // find the first selected
+  while (first_selected >= 0 &&
+         first_selected < selected.size() &&
+         selected[first_selected] == false)
+    first_selected -= amount;
+
+  if (first_selected < 0 ||
+      first_selected >= selected.size())
+    // no selection, cannot move
+    return;
+
+  if (!extend)
+    // unselected existing
+    for (auto i : selected)
+      // TODO(majanes) - is this a reference
+      i = false;
+
+  selected[first_selected + amount] = true;
+
+  if (!subscriber)
+    return;
+
+  std::vector<int> selected_renders;
+  for (int i = 0; i < selected.size(); ++i) {
+    if (selected[i])
+      selected_renders.push_back(i);
+  }
+  subscriber->onBarSelect(selected_renders);
+}

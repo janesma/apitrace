@@ -48,14 +48,22 @@ class QBarGraphRenderer : public QObject,
  public:
   QBarGraphRenderer();
   void render();
+
+  // called by Qt, so QBarGraphRenderer can update member data based
+  // on the settings in BarGraphView
   void synchronize(QQuickFramebufferObject * item);
+
+  // subscribes to BarGraphRenderer.  When barse are clicked,
+  // onBarSelect is called.
   void onBarSelect(const std::vector<int> selection);
+
   // to ensure that we get a multisample fbo
   QOpenGLFramebufferObject * createFramebufferObject(const QSize & size);
  public slots:
   void onSelect(glretrace::SelectionId id, QList<int> selection);
   void onMetrics(QList<BarMetrics> metrics);
  signals:
+  // sent to QSelection when bars are clicked
   void barSelect(QList<int> selection);
  private:
   BarGraphRenderer m_graph;
@@ -92,6 +100,7 @@ class BarGraphView : public QQuickFramebufferObject,
   Q_INVOKABLE void mouseRelease(bool shift);
   Q_INVOKABLE void mouseDrag(float x1, float y1, float x2, float y2);
   Q_INVOKABLE void mouseWheel(int degrees, float zoom_point_x);
+  Q_INVOKABLE void arrowKey(int amount, bool shift);
 
   bool subscribeRandom(QBarGraphRenderer *graph);
 
@@ -115,6 +124,7 @@ class BarGraphView : public QQuickFramebufferObject,
   std::vector<float> mouse_area;
   bool clicked;
   bool shift;
+  int arrow;
  signals:
   void onModel();
   void onRandomBarCount();

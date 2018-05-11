@@ -77,45 +77,65 @@ Item {
             anchors.topMargin: 10
             anchors.bottomMargin: 10
 
-            BarGraph {
-                id: barGraph
+            FocusScope {
                 anchors.top: parent.top
                 anchors.bottom: scrollBar.top
                 anchors.left: parent.left
                 anchors.right: scale.left
-                model: metric_model
-                selection: control.selection
 
-                onZoomChanged : {
-                    scrollBar.positionHandle();
-                }
-                onTranslateChanged : {
-                    scrollBar.positionHandle();
-                }
-
-                MouseArea {
-                    property var startx : -1.0;
-                    property var starty : -1.0;
+                BarGraph {
+                    id: barGraph
                     anchors.fill: parent
-                    onPressed : {
-                        startx = mouse.x / barGraph.width;
-                        starty = (barGraph.height - mouse.y) / barGraph.height;
-                        barGraph.mouseDrag(startx, starty, startx, starty);
+                    model: metric_model
+                    selection: control.selection
+                    focus: true
+
+                    onZoomChanged : {
+                        scrollBar.positionHandle();
                     }
-                    onPositionChanged : {
-                        if (mouse.buttons & Qt.LeftButton) {
-                            var endx = mouse.x / barGraph.width;
-                            var endy = (barGraph.height - mouse.y) / barGraph.height;
-                            barGraph.mouseDrag(startx, starty, endx, endy)
+                    onTranslateChanged : {
+                        scrollBar.positionHandle();
+                    }
+                    Keys.onPressed: {
+                        var shift = event.modifiers & Qt.ShiftModifier;
+                        if (event.key == Qt.Key_Left) {
+                            event.accepted = true;
+                            barGraph.arrowKey(-1, shift);
+                            return;
+                        }
+                        if (event.key == Qt.Key_Right) {
+                            event.accepted = true;
+                            barGraph.arrowKey(1, shift);
                         }
                     }
-                    onWheel : {
-                        var wheelx = 1.0;
-                        wheelx = wheel.x / barGraph.width;
-                        barGraph.mouseWheel(wheel.angleDelta.y / 5, wheelx);
-                    }
-                    onReleased : {
-                        barGraph.mouseRelease(mouse.modifiers & Qt.ShiftModifier);
+
+                    MouseArea {
+                        property var startx : -1.0;
+                        property var starty : -1.0;
+                        anchors.fill: parent
+                        onPressed : {
+                            startx = mouse.x / barGraph.width;
+                            starty = (barGraph.height - mouse.y) / barGraph.height;
+                            barGraph.mouseDrag(startx, starty, startx, starty);
+                            forceActiveFocus();
+                        }
+                        onPositionChanged : {
+                            if (mouse.buttons & Qt.LeftButton) {
+                                var endx = mouse.x / barGraph.width;
+                                var endy = (barGraph.height - mouse.y) / barGraph.height;
+                                barGraph.mouseDrag(startx, starty, endx, endy)
+                            }
+                        }
+                        onWheel : {
+                            var wheelx = 1.0;
+                            wheelx = wheel.x / barGraph.width;
+                            barGraph.mouseWheel(wheel.angleDelta.y / 5, wheelx);
+                            forceActiveFocus();
+                        }
+                        onReleased : {
+                            barGraph.mouseRelease(mouse.modifiers & Qt.ShiftModifier);
+                            forceActiveFocus();
+                        }
                     }
                 }
             }
