@@ -460,6 +460,11 @@ RetraceRender::setState(const StateKey &item,
 }
 
 void
+RetraceRender::revertState(const StateKey &item) {
+  m_state_override->revertState(item);
+}
+
+void
 RetraceRender::revertExperiments(StateTrack *tracker) {
   m_modified_fs = "";
   m_modified_vs = "";

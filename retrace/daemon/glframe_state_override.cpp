@@ -274,7 +274,7 @@ state_type(uint32_t state) {
       return kStateFloat2;
 
     case GL_SCISSOR_BOX:
-      return kStateFloat4;
+      return kStateInteger4;
   }
   assert(false);
   return kStateInvalid;
@@ -1013,3 +1013,11 @@ void
 StateOverride::revertExperiments() {
   m_overrides.clear();
 }
+
+void
+StateOverride::revertState(const StateKey &item) {
+  auto i = m_overrides.find(item);
+  if (i != m_overrides.end())
+    m_overrides.erase(i);
+}
+

@@ -418,3 +418,34 @@ FrameRetrace::revertExperiments() {
   for (auto i : m_contexts)
     i->revertExperiments(&m_tracker);
 }
+
+void
+FrameRetrace::oneByOneScissor(const RenderSelection &selection,
+                              bool scissor) {
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
+  const StateKey enable("Fragment/Scissor", "GL_SCISSOR_TEST");
+  const StateKey scissor_box("Fragment/Scissor", "GL_SCISSOR_BOX");
+  trace::ParseBookmark save;
+  for (auto i : m_contexts) {
+    if (scissor) {
+      // each state change requires a retrace, and the parser must be
+      // set to the context starting point.
+      parser->getBookmark(save);
+      i->setState(selection, enable, 0, "true", m_tracker);
+
+      // x, y, width, height
+      parser->setBookmark(save);
+      i->setState(selection, scissor_box, 0, "0", m_tracker);
+      parser->setBookmark(save);
+      i->setState(selection, scissor_box, 1, "0", m_tracker);
+      parser->setBookmark(save);
+      i->setState(selection, scissor_box, 2, "1", m_tracker);
+      parser->setBookmark(save);
+      i->setState(selection, scissor_box, 3, "1", m_tracker);
+    } else {
+      i->revertState(selection, enable);
+      i->revertState(selection, scissor_box);
+    }
+  }
+}

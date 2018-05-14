@@ -17,11 +17,12 @@ enum RequestType {
   BATCH_REQUEST = 8;
   DISABLE_REQUEST = 9;
   SIMPLE_SHADER_REQUEST = 10;
-  UNIFORM_REQUEST = 11;
-  SET_UNIFORM_REQUEST = 12;
-  STATE_REQUEST = 13;
-  SET_STATE_REQUEST = 14;
-  REVERT_EXPERIMENTS_REQUEST = 15;
+  SCISSOR_REQUEST = 11;
+  UNIFORM_REQUEST = 12;
+  SET_UNIFORM_REQUEST = 13;
+  STATE_REQUEST = 14;
+  SET_STATE_REQUEST = 15;
+  REVERT_EXPERIMENTS_REQUEST = 16;
 };
 
 message OpenFileRequest {
@@ -228,6 +229,11 @@ message SimpleRequest {
   required bool simple_shader = 2;
 }
 
+message ScissorRequest {
+  required RenderSelection selection = 1;
+  required bool scissor = 2;
+}
+
 message StateRequest {
   required RenderSelection selection = 1;
   required uint32 experiment_count = 2;
@@ -265,10 +271,11 @@ message RetraceRequest {
   optional BatchRequest batch = 9;
   optional DisableRequest disable = 10;
   optional SimpleRequest simpleShader = 11;
-  optional UniformRequest uniform = 12;
-  optional SetUniformRequest set_uniform = 13;
-  optional StateRequest state = 14;
-  optional SetStateRequest set_state = 15;
+  optional ScissorRequest scissor = 12;
+  optional UniformRequest uniform = 13;
+  optional SetUniformRequest set_uniform = 14;
+  optional StateRequest state = 15;
+  optional SetStateRequest set_state = 16;
 }
 
 message RetraceResponse {

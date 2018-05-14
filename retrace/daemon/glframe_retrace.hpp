@@ -95,13 +95,14 @@ class FrameRetrace : public IFrameRetrace {
                       OnFrameRetrace *callback);
   void disableDraw(const RenderSelection &selection, bool disable);
   void simpleShader(const RenderSelection &selection, bool simple);
+  void oneByOneScissor(const RenderSelection &selection,
+                       bool scissor);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);
   // void setShaders(const std::string &vs,
   //                 const std::string &fs,
   //                 OnFrameRetrace *callback);
-  // void revertModifications();
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback);
 

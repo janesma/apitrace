@@ -521,6 +521,15 @@ RetraceContext::setState(const RenderSelection &selection,
 }
 
 void
+RetraceContext::revertState(const RenderSelection &selection,
+                            const StateKey &item) {
+  for (auto r : m_renders) {
+    if (isSelected(r.first, selection))
+      r.second->revertState(item);
+  }
+}
+
+void
 RetraceContext::revertExperiments(StateTrack *tracker) {
   for (auto r : m_renders)
     r.second->revertExperiments(tracker);

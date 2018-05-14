@@ -348,6 +348,15 @@ FrameRetraceSkeleton::Run() {
           m_frame->simpleShader(selection, simple.simple_shader());
           break;
         }
+      case ApiTrace::SCISSOR_REQUEST:
+        {
+          assert(request.has_scissor());
+          auto sub_request = request.scissor();
+          RenderSelection selection;
+          makeRenderSelection(sub_request.selection(), &selection);
+          m_frame->oneByOneScissor(selection, sub_request.scissor());
+          break;
+        }
       case ApiTrace::UNIFORM_REQUEST:
         {
           assert(request.has_uniform());

@@ -655,6 +655,23 @@ class SimpleShaderRequest : public IRetraceRequest {
   RetraceRequest m_proto_msg;
 };
 
+class OneByOneScissorRequest : public IRetraceRequest {
+ public:
+  OneByOneScissorRequest(const RenderSelection &selection,
+                         bool scissor) {
+    auto request = m_proto_msg.mutable_scissor();
+    auto selectionRequest = request->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    request->set_scissor(scissor);
+    m_proto_msg.set_requesttype(ApiTrace::SCISSOR_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    s->request(m_proto_msg);
+  }
+ private:
+  RetraceRequest m_proto_msg;
+};
+
 class ApiRequest : public IRetraceRequest {
  public:
   ApiRequest(SelectionId *current_selection,
@@ -1401,4 +1418,10 @@ FrameRetraceStub::setState(const RenderSelection &selection,
 void
 FrameRetraceStub::revertExperiments() {
   m_thread->push(new RevertExperimentsRequest());
+}
+
+void
+FrameRetraceStub::oneByOneScissor(const RenderSelection &selection,
+                                  bool scissor) {
+  m_thread->push(new OneByOneScissorRequest(selection, scissor));
 }

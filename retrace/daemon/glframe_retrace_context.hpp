@@ -115,6 +115,8 @@ class RetraceContext {
                 int offset,
                 const std::string &value,
                 const StateTrack &tracker);
+  void revertState(const RenderSelection &selection,
+                   const StateKey &item);
   void revertExperiments(StateTrack *tracker);
 
  private:
