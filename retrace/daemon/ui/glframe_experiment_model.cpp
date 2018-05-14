@@ -43,7 +43,8 @@ using Qt::CheckState;
 QExperimentModel::QExperimentModel()
     : m_retrace(NULL), m_disabled_checkbox(Qt::Unchecked),
       m_simple_checkbox(Unchecked),
-      m_scissor_checkbox(Unchecked) {
+      m_scissor_checkbox(Unchecked),
+      m_wireframe_checkbox(Unchecked) {
   assert(false);
 }
 
@@ -51,7 +52,8 @@ QExperimentModel::QExperimentModel(IFrameRetrace *retrace)
     : m_retrace(retrace),
       m_disabled_checkbox(Unchecked),
       m_simple_checkbox(Unchecked),
-      m_scissor_checkbox(Unchecked) {}
+      m_scissor_checkbox(Unchecked),
+      m_wireframe_checkbox(Unchecked) {}
 
 CheckState
 isChecked(std::map<RenderId, bool> *_renders,
@@ -86,9 +88,11 @@ QExperimentModel::onSelect(SelectionId count, const QList<int> &selection) {
   m_disabled_checkbox = isChecked(&m_disabled, selection);
   m_simple_checkbox = isChecked(&m_simple, selection);
   m_scissor_checkbox = isChecked(&m_scissor, selection);
+  m_wireframe_checkbox = isChecked(&m_wireframe, selection);
   emit onDisabled();
   emit onSimpleShader();
   emit onScissorRect();
+  emit onWireframe();
 }
 
 CheckState uncheckPartials(CheckState c) {
@@ -142,14 +146,32 @@ QExperimentModel::scissorRect(CheckState scissor) {
 }
 
 void
+QExperimentModel::wireframe(CheckState wire) {
+  m_wireframe_checkbox = uncheckPartials(wire);
+  for (auto render : m_selection)
+    m_wireframe[RenderId(render)] = m_wireframe_checkbox;
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_count,
+                                     m_selection,
+                                     &sel);
+  m_retrace->wireframe(sel, (m_wireframe_checkbox == Checked));
+  emit onWireframe();
+  emit onExperiment();
+}
+
+// TODO(majanes)
+void
 QExperimentModel::onRevert() {
   m_disabled.clear();
   m_simple.clear();
   m_scissor.clear();
+  m_wireframe.clear();
   m_disabled_checkbox = Unchecked;
   m_simple_checkbox = Unchecked;
   m_scissor_checkbox = Unchecked;
+  m_wireframe_checkbox = Unchecked;
   emit onDisabled();
   emit onSimpleShader();
   emit onScissorRect();
+  emit onWireframe();
 }

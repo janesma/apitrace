@@ -55,6 +55,8 @@ class QExperimentModel : public QObject,
              NOTIFY onSimpleShader)
   Q_PROPERTY(Qt::CheckState selectionScissorRect READ selectionScissorRect
              NOTIFY onScissorRect)
+  Q_PROPERTY(Qt::CheckState selectionWireframe READ selectionWireframe
+             NOTIFY onWireframe)
  public:
   QExperimentModel();
   explicit QExperimentModel(IFrameRetrace *retrace);
@@ -63,6 +65,7 @@ class QExperimentModel : public QObject,
   Qt::CheckState selectionDisabled() const { return m_disabled_checkbox; }
   Qt::CheckState selectionSimpleShader() const { return m_simple_checkbox; }
   Qt::CheckState selectionScissorRect() const { return m_scissor_checkbox; }
+  Qt::CheckState selectionWireframe() const { return m_wireframe_checkbox; }
 
   void onSelect(SelectionId selection_count, const QList<int> &selection);
   void onRevert();
@@ -70,18 +73,21 @@ class QExperimentModel : public QObject,
   Q_INVOKABLE void disableDraw(Qt::CheckState disable);
   Q_INVOKABLE void simpleShader(Qt::CheckState simple);
   Q_INVOKABLE void scissorRect(Qt::CheckState scissor);
+  Q_INVOKABLE void wireframe(Qt::CheckState wireframe);
  signals:
   void onDisabled();
   void onSimpleShader();
   void onScissorRect();
+  void onWireframe();
   void onExperiment();
 
  private:
   IFrameRetrace *m_retrace;
-  std::map<RenderId, bool> m_disabled, m_simple, m_scissor;
+  std::map<RenderId, bool> m_disabled, m_simple, m_scissor, m_wireframe;
   QList<int> m_selection;
   SelectionId m_count;
-  Qt::CheckState m_disabled_checkbox, m_simple_checkbox, m_scissor_checkbox;
+  Qt::CheckState m_disabled_checkbox, m_simple_checkbox, m_scissor_checkbox,
+    m_wireframe_checkbox;
 };
 
 }  // namespace glretrace
