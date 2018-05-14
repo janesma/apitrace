@@ -42,14 +42,16 @@ using Qt::CheckState;
 
 QExperimentModel::QExperimentModel()
     : m_retrace(NULL), m_disabled_checkbox(Qt::Unchecked),
-      m_simple_checkbox(Unchecked) {
+      m_simple_checkbox(Unchecked),
+      m_scissor_checkbox(Unchecked) {
   assert(false);
 }
 
 QExperimentModel::QExperimentModel(IFrameRetrace *retrace)
     : m_retrace(retrace),
       m_disabled_checkbox(Unchecked),
-      m_simple_checkbox(Unchecked) {}
+      m_simple_checkbox(Unchecked),
+      m_scissor_checkbox(Unchecked) {}
 
 CheckState
 isChecked(std::map<RenderId, bool> *_renders,
@@ -83,8 +85,10 @@ QExperimentModel::onSelect(SelectionId count, const QList<int> &selection) {
   m_count = count;
   m_disabled_checkbox = isChecked(&m_disabled, selection);
   m_simple_checkbox = isChecked(&m_simple, selection);
+  m_scissor_checkbox = isChecked(&m_scissor, selection);
   emit onDisabled();
   emit onSimpleShader();
+  emit onScissorRect();
 }
 
 CheckState uncheckPartials(CheckState c) {
@@ -124,11 +128,28 @@ QExperimentModel::simpleShader(CheckState simple) {
 }
 
 void
+QExperimentModel::scissorRect(CheckState scissor) {
+  m_scissor_checkbox = uncheckPartials(scissor);
+  for (auto render : m_selection)
+    m_scissor[RenderId(render)] = m_scissor_checkbox;
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_count,
+                                     m_selection,
+                                     &sel);
+  m_retrace->oneByOneScissor(sel, (m_scissor_checkbox == Checked));
+  emit onScissorRect();
+  emit onExperiment();
+}
+
+void
 QExperimentModel::onRevert() {
   m_disabled.clear();
   m_simple.clear();
+  m_scissor.clear();
   m_disabled_checkbox = Unchecked;
   m_simple_checkbox = Unchecked;
+  m_scissor_checkbox = Unchecked;
   emit onDisabled();
   emit onSimpleShader();
+  emit onScissorRect();
 }

@@ -53,27 +53,35 @@ class QExperimentModel : public QObject,
              NOTIFY onDisabled)
   Q_PROPERTY(Qt::CheckState selectionSimpleShader READ selectionSimpleShader
              NOTIFY onSimpleShader)
+  Q_PROPERTY(Qt::CheckState selectionScissorRect READ selectionScissorRect
+             NOTIFY onScissorRect)
  public:
   QExperimentModel();
   explicit QExperimentModel(IFrameRetrace *retrace);
   ~QExperimentModel() {}
+
   Qt::CheckState selectionDisabled() const { return m_disabled_checkbox; }
   Qt::CheckState selectionSimpleShader() const { return m_simple_checkbox; }
+  Qt::CheckState selectionScissorRect() const { return m_scissor_checkbox; }
+
   void onSelect(SelectionId selection_count, const QList<int> &selection);
   void onRevert();
+
   Q_INVOKABLE void disableDraw(Qt::CheckState disable);
   Q_INVOKABLE void simpleShader(Qt::CheckState simple);
+  Q_INVOKABLE void scissorRect(Qt::CheckState scissor);
  signals:
   void onDisabled();
   void onSimpleShader();
+  void onScissorRect();
   void onExperiment();
 
  private:
   IFrameRetrace *m_retrace;
-  std::map<RenderId, bool> m_disabled, m_simple;
+  std::map<RenderId, bool> m_disabled, m_simple, m_scissor;
   QList<int> m_selection;
   SelectionId m_count;
-  Qt::CheckState m_disabled_checkbox, m_simple_checkbox;
+  Qt::CheckState m_disabled_checkbox, m_simple_checkbox, m_scissor_checkbox;
 };
 
 }  // namespace glretrace

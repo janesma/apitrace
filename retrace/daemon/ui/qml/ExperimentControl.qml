@@ -41,5 +41,19 @@ Item {
                 });
             }
         }
+        CheckBox {
+            text: "1x1 Scissor Rect"
+            checkedState: experimentModel.selectionScissorRect
+            partiallyCheckedEnabled : false
+            onClicked: {
+                if (checkedState == Qt.PartiallyChecked)
+                    checkedState = Qt.Unchecked;
+                experimentModel.scissorRect(checkedState);
+                partiallyCheckedEnabled = false
+                checkedState = Qt.binding(function () { 
+                    return experimentModel.selectionScissorRect;
+                });
+            }
+        }
     }
 }
