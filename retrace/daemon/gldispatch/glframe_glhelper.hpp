@@ -185,6 +185,7 @@ class GlFunctions {
   static void DepthMask(GLboolean flag);
   static void FrontFace(GLenum mode);
   static void PolygonOffset(GLfloat factor, GLfloat units);
+  static void PolygonMode(GLenum face,  GLenum mode);
   static void SampleCoverage(GLfloat value, GLboolean invert);
   static void GetBufferParameteriv(GLenum target, GLenum pname, GLint *params);
   static void *MapBufferRange(GLenum target, GLintptr offset,

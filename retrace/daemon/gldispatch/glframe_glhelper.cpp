@@ -129,6 +129,7 @@ static void *pDepthRangef = NULL;
 static void *pDepthMask = NULL;
 static void *pFrontFace = NULL;
 static void *pPolygonOffset = NULL;
+static void *pPolygonMode = NULL;
 static void *pSampleCoverage = NULL;
 static void *pGetBufferParameteriv = NULL;
 static void *pMapBufferRange = NULL;
@@ -366,6 +367,8 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pFrontFace);
   pPolygonOffset = _GetProcAddress("glPolygonOffset");
   assert(pPolygonOffset);
+  pPolygonMode = _GetProcAddress("glPolygonMode");
+  assert(pPolygonMode);
   pSampleCoverage = _GetProcAddress("glSampleCoverage");
   assert(pSampleCoverage);
   pGetBufferParameteriv = _GetProcAddress("glGetBufferParameteriv");
@@ -1060,6 +1063,12 @@ void
 GlFunctions::PolygonOffset(GLfloat factor, GLfloat units) {
   typedef void (*POLYGONOFFSET)(GLfloat factor, GLfloat units);
   return  ((POLYGONOFFSET)pPolygonOffset)(factor, units);
+}
+
+void
+GlFunctions::PolygonMode(GLenum face, GLenum mode) {
+  typedef void (*POLYGONMODE)(GLenum face, GLenum mode);
+  return ((POLYGONMODE)pPolygonMode)(face, mode);
 }
 
 void
