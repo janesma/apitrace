@@ -357,6 +357,15 @@ FrameRetraceSkeleton::Run() {
           m_frame->oneByOneScissor(selection, sub_request.scissor());
           break;
         }
+      case ApiTrace::WIREFRAME_REQUEST:
+        {
+          assert(request.has_wireframe());
+          auto sub_request = request.wireframe();
+          RenderSelection selection;
+          makeRenderSelection(sub_request.selection(), &selection);
+          m_frame->wireframe(selection, sub_request.wireframe());
+          break;
+        }
       case ApiTrace::UNIFORM_REQUEST:
         {
           assert(request.has_uniform());

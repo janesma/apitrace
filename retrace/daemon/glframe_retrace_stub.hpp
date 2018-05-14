@@ -84,6 +84,8 @@ class FrameRetraceStub : public IFrameRetrace {
                             bool simple);
   virtual void oneByOneScissor(const RenderSelection &selection,
                                bool scissor);
+  virtual void wireframe(const RenderSelection &selection,
+                         bool wireframe);
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback);
   virtual void retraceBatch(const RenderSelection &selection,

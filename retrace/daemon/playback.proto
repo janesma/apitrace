@@ -23,6 +23,7 @@ enum RequestType {
   STATE_REQUEST = 14;
   SET_STATE_REQUEST = 15;
   REVERT_EXPERIMENTS_REQUEST = 16;
+  WIREFRAME_REQUEST = 17;
 };
 
 message OpenFileRequest {
@@ -234,6 +235,11 @@ message ScissorRequest {
   required bool scissor = 2;
 }
 
+message WireframeRequest {
+  required RenderSelection selection = 1;
+  required bool wireframe = 2;
+}
+
 message StateRequest {
   required RenderSelection selection = 1;
   required uint32 experiment_count = 2;
@@ -276,6 +282,7 @@ message RetraceRequest {
   optional SetUniformRequest set_uniform = 14;
   optional StateRequest state = 15;
   optional SetStateRequest set_state = 16;
+  optional WireframeRequest wireframe = 17;
 }
 
 message RetraceResponse {

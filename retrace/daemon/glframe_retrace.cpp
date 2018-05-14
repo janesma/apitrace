@@ -449,3 +449,31 @@ FrameRetrace::oneByOneScissor(const RenderSelection &selection,
     }
   }
 }
+
+void
+FrameRetrace::wireframe(const RenderSelection &selection,
+                        bool wireframe) {
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
+  const StateKey wireframe_key("Primitive/Polygon", "GL_POLYGON_MODE");
+  const StateKey width("Primitive/Line", "GL_LINE_WIDTH");
+  trace::ParseBookmark save;
+  for (auto i : m_contexts) {
+    if (wireframe) {
+      parser->getBookmark(save);
+
+      // set back and front polygons to be drawn with lines instead of
+      // filled.
+      i->setState(selection, wireframe_key, 0, "GL_LINE", m_tracker);
+      parser->setBookmark(save);
+      i->setState(selection, wireframe_key, 1, "GL_LINE", m_tracker);
+      parser->setBookmark(save);
+
+      // widen the lines to make them more visible.
+      i->setState(selection, width, 0, "1.5", m_tracker);
+    } else {
+      i->revertState(selection, wireframe_key);
+      i->revertState(selection, width);
+    }
+  }
+}

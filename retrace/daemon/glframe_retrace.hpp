@@ -97,6 +97,8 @@ class FrameRetrace : public IFrameRetrace {
   void simpleShader(const RenderSelection &selection, bool simple);
   void oneByOneScissor(const RenderSelection &selection,
                        bool scissor);
+  void wireframe(const RenderSelection &selection,
+                 bool wireframe);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);

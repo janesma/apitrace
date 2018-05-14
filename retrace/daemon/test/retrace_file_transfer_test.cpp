@@ -98,6 +98,8 @@ class FileTransfer : public IFrameRetrace {
                     bool simple) {}
   void oneByOneScissor(const RenderSelection &selection,
                        bool scissor) {}
+  void wireframe(const RenderSelection &selection,
+                 bool wireframe) {}
   void retraceApi(const RenderSelection &selection,
                   OnFrameRetrace *callback) {}
   void retraceBatch(const RenderSelection &selection,
