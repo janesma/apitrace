@@ -68,6 +68,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_DST_ALPHA", GL_DST_ALPHA},
     {"GL_DST_COLOR", GL_DST_COLOR},
     {"GL_EQUAL", GL_EQUAL},
+    {"GL_FILL", GL_FILL},
     {"GL_FRONT", GL_FRONT},
     {"GL_FRONT_AND_BACK", GL_FRONT_AND_BACK},
     {"GL_FRONT_FACE", GL_FRONT_FACE},
@@ -82,6 +83,7 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_KEEP", GL_KEEP},
     {"GL_LEQUAL", GL_LEQUAL},
     {"GL_LESS", GL_LESS},
+    {"GL_LINE", GL_LINE},
     {"GL_LINE_SMOOTH", GL_LINE_SMOOTH},
     {"GL_LINE_WIDTH", GL_LINE_WIDTH},
     {"GL_MAX", GL_MAX},
@@ -95,6 +97,8 @@ glretrace::state_name_to_enum(const std::string &value) {
     {"GL_ONE_MINUS_DST_COLOR", GL_ONE_MINUS_DST_COLOR},
     {"GL_ONE_MINUS_SRC_ALPHA", GL_ONE_MINUS_SRC_ALPHA},
     {"GL_ONE_MINUS_SRC_COLOR", GL_ONE_MINUS_SRC_COLOR},
+    {"GL_POINT", GL_POINT},
+    {"GL_POLYGON_MODE", GL_POLYGON_MODE},
     {"GL_POLYGON_OFFSET_FACTOR", GL_POLYGON_OFFSET_FACTOR},
     {"GL_POLYGON_OFFSET_FILL", GL_POLYGON_OFFSET_FILL},
     {"GL_POLYGON_OFFSET_UNITS", GL_POLYGON_OFFSET_UNITS},
@@ -168,6 +172,7 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_DST_ALPHA, "GL_DST_ALPHA"},
     {GL_DST_COLOR, "GL_DST_COLOR"},
     {GL_EQUAL, "GL_EQUAL"},
+    {GL_FILL, "GL_FILL"},
     {GL_FRONT, "GL_FRONT"},
     {GL_FRONT_AND_BACK, "GL_FRONT_AND_BACK"},
     {GL_FRONT_FACE, "GL_FRONT_FACE"},
@@ -182,6 +187,7 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_KEEP, "GL_KEEP"},
     {GL_LEQUAL, "GL_LEQUAL"},
     {GL_LESS, "GL_LESS"},
+    {GL_LINE, "GL_LINE"},
     {GL_LINE_SMOOTH, "GL_LINE_SMOOTH"},
     {GL_LINE_WIDTH, "GL_LINE_WIDTH"},
     {GL_MAX, "GL_MAX"},
@@ -195,6 +201,8 @@ glretrace::state_enum_to_name(GLint value) {
     {GL_ONE_MINUS_DST_COLOR, "GL_ONE_MINUS_DST_COLOR"},
     {GL_ONE_MINUS_SRC_ALPHA, "GL_ONE_MINUS_SRC_ALPHA"},
     {GL_ONE_MINUS_SRC_COLOR, "GL_ONE_MINUS_SRC_COLOR"},
+    {GL_POINT, "GL_POINT"},
+    {GL_POLYGON_MODE, "GL_POLYGON_MODE"},
     {GL_POLYGON_OFFSET_FACTOR, "GL_POLYGON_OFFSET_FACTOR"},
     {GL_POLYGON_OFFSET_FILL, "GL_POLYGON_OFFSET_FILL"},
     {GL_POLYGON_OFFSET_UNITS, "GL_POLYGON_OFFSET_UNITS"},
@@ -284,6 +292,8 @@ glretrace::state_name_to_choices(const std::string &n) {
             "GL_GREATER", "GL_NOTEQUAL", "GL_GEQUAL", "GL_ALWAYS"};
     case GL_FRONT_FACE:
       return {"GL_CW", "GL_CCW"};
+    case GL_POLYGON_MODE:
+      return {"GL_POINT", "GL_LINE", "GL_FILL"};
     case GL_STENCIL_BACK_FAIL:
     case GL_STENCIL_BACK_PASS_DEPTH_FAIL:
     case GL_STENCIL_BACK_PASS_DEPTH_PASS:
@@ -321,6 +331,8 @@ glretrace::state_name_to_indices(const std::string &n) {
     case GL_LINE_SMOOTH:
     case GL_POLYGON_OFFSET_FILL:
       return {"Enabled"};
+    case GL_POLYGON_MODE:
+      return {"front", "back"};
     case GL_SCISSOR_BOX:
       return {"x", "y", "width", "height"};
     default:

@@ -47,8 +47,9 @@
 //      representation of the items value into the bytes sent to the
 //      GL.  Internally, StateOverride holds the data as uint32_t, and
 //      converts them to the appropriate type before calling the GL.
-//    - add entries to ::getState, calling the GL to get the current
-//      state of the item, and converting into bytes uint32_t.
+//    - add entries to ::state_type, which indicates which GL call
+//      retrieves the current state of the item, and converting into
+//      bytes uint32_t.
 //    - add entries to ::enact_state, which calls the GL to set state
 //      according to what is stored in StateOverride.  Convert the
 //      bytes from uint32_t to whatever is required by the GL api
@@ -86,14 +87,29 @@ void
 StateOverride::setState(const StateKey &item,
                         int offset,
                         const std::string &value) {
-  StateKey adjusted_item(item);
-  auto &i = m_overrides[adjusted_item];
+  auto &i = m_overrides[item];
   if (i.empty()) {
     // save the prior state so we can restore it
-    getState(adjusted_item, &i);
-    m_saved_state[adjusted_item] = i;
+    getState(item, &i);
+    m_saved_state[item] = i;
   }
+
   const uint32_t data_value = interpret_value(item, value);
+
+  // for GL4, front and back face are latched
+  if (item.name == "GL_POLYGON_MODE") {
+    GlFunctions::PolygonMode(GL_FRONT, m_saved_state[item][0]);
+    // if glPolygonMode reports error, then it only accepts
+    // GL_FRONT_AND_BACK
+    GLenum err = GL::GetError();
+    if (err != GL_NO_ERROR) {
+      // set all offsets to the new value
+      for (auto &face : i)
+        face = data_value;
+      return;
+    }
+  }
+
   i[offset] = data_value;
 }
 
@@ -123,6 +139,7 @@ StateOverride::interpret_value(const StateKey &item,
     case GL_DEPTH_WRITEMASK:
     case GL_DITHER:
     case GL_FRONT_FACE:
+    case GL_POLYGON_MODE:
     case GL_POLYGON_OFFSET_FILL:
     case GL_SAMPLE_COVERAGE_INVERT:
     case GL_SCISSOR_TEST:
@@ -177,6 +194,7 @@ enum StateCategory {
   kStateBoolean,
   kStateBoolean4,
   kStateInteger,
+  kStateInteger2,
   kStateInteger4,
   kStateFloat,
   kStateFloat2,
@@ -248,6 +266,9 @@ state_type(uint32_t state) {
 
     case GL_SCISSOR_BOX:
       return kStateInteger4;
+
+    case GL_POLYGON_MODE:
+      return kStateInteger2;
   }
   assert(false);
   return kStateInvalid;
@@ -292,6 +313,11 @@ StateOverride::getState(const StateKey &item,
     case kStateFloat2: {
       data->resize(2);
       get_float_state(n, data);
+      break;
+    }
+    case kStateInteger2: {
+      data->resize(2);
+      get_integer_state(n, data);
       break;
     }
     case kStateInteger4: {
@@ -491,6 +517,14 @@ StateOverride::enact_state(const KeyMap &m) const {
         assert(GL::GetError() == GL_NO_ERROR);
         break;
       }
+      case GL_POLYGON_MODE: {
+        GlFunctions::PolygonMode(GL_FRONT, i.second[0]);
+        GlFunctions::PolygonMode(GL_BACK, i.second[1]);
+        GLenum err = GL::GetError();
+        if (err != GL_NO_ERROR)
+          GlFunctions::PolygonMode(GL_FRONT_AND_BACK, i.second[0]);
+        break;
+      }
       case GL_POLYGON_OFFSET_FACTOR:
       case GL_POLYGON_OFFSET_UNITS: {
         GLfloat factor, units;
@@ -643,6 +677,7 @@ is_supported(uint32_t state) {
       glretrace::GL::IsEnabled(state);
       break;
     case kStateInteger:
+    case kStateInteger2:
     case kStateInteger4:
       glretrace::GL::GetIntegerv(state, reinterpret_cast<GLint*>(data.data()));
       break;
@@ -819,6 +854,13 @@ StateOverride::onState(SelectionId selId,
     getState(k, &data);
     callback->onState(selId, experimentCount, renderId,
                       k, {state_enum_to_name(data[0])});
+  }
+  if (is_supported(GL_POLYGON_MODE)) {
+    StateKey k("Primitive/Polygon", "GL_POLYGON_MODE");
+    getState(k, &data);
+    callback->onState(selId, experimentCount, renderId,
+                      k, {state_enum_to_name(data[0]),
+                          state_enum_to_name(data[1])});
   }
   if (is_supported(GL_POLYGON_OFFSET_FACTOR)) {
     StateKey k("Primitive/Polygon", "GL_POLYGON_OFFSET_FACTOR");
