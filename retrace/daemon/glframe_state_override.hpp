@@ -71,9 +71,6 @@ class StateOverride {
   void get_float_state(GLint k, std::vector<uint32_t> *data);
   void get_bool_state(GLint k, std::vector<uint32_t> *data);
 
-  void adjust_item(StateKey *item) const;
-  void adjust_offset(const StateKey &item,
-                     int *offset) const;
   uint32_t interpret_value(const StateKey &item,
                            const std::string &value);
 

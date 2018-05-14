@@ -87,41 +87,14 @@ StateOverride::setState(const StateKey &item,
                         int offset,
                         const std::string &value) {
   StateKey adjusted_item(item);
-  adjust_item(&adjusted_item);
   auto &i = m_overrides[adjusted_item];
   if (i.empty()) {
     // save the prior state so we can restore it
     getState(adjusted_item, &i);
     m_saved_state[adjusted_item] = i;
   }
-  adjust_offset(item, &offset);
   const uint32_t data_value = interpret_value(item, value);
   i[offset] = data_value;
-}
-
-// Not all StateKey items from the UI will match the data model for
-// state overrides during retrace.  For example, GL_COLOR_WRITEMASK is
-// stored in 4 separate items in the UI, but a single override in this
-// model.  The reason for this discrepancy is to allow mapping of
-// model offsets to UI colors (0->red, 1->green, etc).  This method
-// interprets a StateKey from the UI and adjusts it to match the
-// model.
-void
-StateOverride::adjust_item(StateKey *item) const {
-  // initially required by GL_COLOR_WRITEMASK, which can now be
-  // implemented within the generic pattern.
-  return;
-}
-
-// As with adjust_item, offsets from the UI do not always match the
-// model used by this override.  This method interprets an offset from
-// the UI, and adjusts it to match the model implementation.
-void
-StateOverride::adjust_offset(const StateKey &item,
-                             int *offset) const {
-  // initially required by GL_COLOR_WRITEMASK, which can now be
-  // implemented within the generic pattern.
-  return;
 }
 
 // The UI uses strings for all state values.  The override model
