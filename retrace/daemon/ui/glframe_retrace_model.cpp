@@ -169,6 +169,9 @@ FrameRetraceModel::setFrame(const QString &filename, const QString &framenumber,
   }
 
   m_target_frame_number = range[0].toInt();
+  if (m_target_frame_number == 0)
+    goto BAD_FRAME;
+
   if (range.size() == 2)
     framecount = range[1].toInt() - m_target_frame_number + 1;
   if (framecount < 1)
@@ -203,7 +206,8 @@ FrameRetraceModel::setFrame(const QString &filename, const QString &framenumber,
 
 BAD_FRAME: {
   onError(RETRACE_WARN,
-          "Invalid frame range.  Enter a number or range (begin - end).");
+          "Invalid frame range.  Enter a nonzero number "
+          "or range (begin - end).");
   return false;
   }
 }
