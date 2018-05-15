@@ -446,13 +446,18 @@ BarGraphRenderer::moveSelection(int amount, bool extend) {
     // no selection, cannot move
     return;
 
+  const int target = first_selected + amount;
+  if (target < 0 || target >= selected.size())
+    // do not shift off the graph
+    return;
+
   if (!extend)
     // unselected existing
     for (auto i : selected)
       // TODO(majanes) - is this a reference
       i = false;
 
-  selected[first_selected + amount] = true;
+  selected[target] = true;
 
   if (!subscriber)
     return;
