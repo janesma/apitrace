@@ -366,6 +366,15 @@ FrameRetraceSkeleton::Run() {
           m_frame->wireframe(selection, sub_request.wireframe());
           break;
         }
+      case ApiTrace::TEXTURE_2X2_REQUEST:
+        {
+          assert(request.has_texture_2x2());
+          auto sub_request = request.texture_2x2();
+          RenderSelection selection;
+          makeRenderSelection(sub_request.selection(), &selection);
+          m_frame->texture2x2(selection, sub_request.texture_2x2());
+          break;
+        }
       case ApiTrace::UNIFORM_REQUEST:
         {
           assert(request.has_uniform());

@@ -374,6 +374,8 @@ class IFrameRetrace {
                                bool scissor) = 0;
   virtual void wireframe(const RenderSelection &selection,
                          bool wireframe) = 0;
+  virtual void texture2x2(const RenderSelection &selection,
+                          bool texture_2x2) = 0;
   virtual void retraceApi(const RenderSelection &selection,
                           OnFrameRetrace *callback) = 0;
   virtual void retraceBatch(const RenderSelection &selection,

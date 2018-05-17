@@ -99,6 +99,8 @@ class FrameRetrace : public IFrameRetrace {
                        bool scissor);
   void wireframe(const RenderSelection &selection,
                  bool wireframe);
+  void texture2x2(const RenderSelection &selection,
+                  bool texture_2x2);
   // this is going to be ugly to serialize
   // void insertCall(const trace::Call &call,
   //                 uint32_t renderId,);

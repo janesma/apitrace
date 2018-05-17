@@ -24,6 +24,7 @@ enum RequestType {
   SET_STATE_REQUEST = 15;
   REVERT_EXPERIMENTS_REQUEST = 16;
   WIREFRAME_REQUEST = 17;
+  TEXTURE_2X2_REQUEST = 18;
 };
 
 message OpenFileRequest {
@@ -240,6 +241,11 @@ message WireframeRequest {
   required bool wireframe = 2;
 }
 
+message Texture2x2Request {
+  required RenderSelection selection = 1;
+  required bool texture_2x2 = 2;
+}
+
 message StateRequest {
   required RenderSelection selection = 1;
   required uint32 experiment_count = 2;
@@ -283,6 +289,7 @@ message RetraceRequest {
   optional StateRequest state = 15;
   optional SetStateRequest set_state = 16;
   optional WireframeRequest wireframe = 17;
+  optional Texture2x2Request texture_2x2 = 18;
 }
 
 message RetraceResponse {

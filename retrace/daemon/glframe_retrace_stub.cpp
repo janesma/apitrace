@@ -689,6 +689,23 @@ class WireframeRequest : public IRetraceRequest {
   RetraceRequest m_proto_msg;
 };
 
+class Texture2x2Request : public IRetraceRequest {
+ public:
+  Texture2x2Request(const RenderSelection &selection,
+                    bool texture_2x2) {
+    auto request = m_proto_msg.mutable_texture_2x2();
+    auto selectionRequest = request->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    request->set_texture_2x2(texture_2x2);
+    m_proto_msg.set_requesttype(ApiTrace::TEXTURE_2X2_REQUEST);
+  }
+  virtual void retrace(RetraceSocket *s) {
+    s->request(m_proto_msg);
+  }
+ private:
+  RetraceRequest m_proto_msg;
+};
+
 class ApiRequest : public IRetraceRequest {
  public:
   ApiRequest(SelectionId *current_selection,
@@ -1447,4 +1464,10 @@ void
 FrameRetraceStub::wireframe(const RenderSelection &selection,
                             bool wireframe) {
   m_thread->push(new WireframeRequest(selection, wireframe));
+}
+
+void
+FrameRetraceStub::texture2x2(const RenderSelection &selection,
+                             bool texture_2x2) {
+  m_thread->push(new Texture2x2Request(selection, texture_2x2));
 }
