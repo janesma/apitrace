@@ -200,6 +200,14 @@ class GlFunctions {
       GLenum face, GLenum func, GLint ref, GLuint mask);
   static void StencilMaskSeparate(GLenum face, GLuint mask);
 
+  static void ActiveTexture(GLenum texture);
+  static void BindTexture(GLenum target, GLuint texture);
+  static void GenTextures(GLsizei n, GLuint *textures);
+  static void TexParameteri(GLenum target, GLenum pname, GLint param);
+  static void TexImage2D(GLenum target, GLint level, GLint internalformat,
+                         GLsizei width, GLsizei height, GLint border,
+                         GLenum format, GLenum type, const void *pixels);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
@@ -249,6 +257,6 @@ inline void PrintCompileError(GLint shader) {
 
 }  // namespace glretrace
 
-#define GL_CHECK() CheckError(__FILE__, __LINE__)
+#define GL_CHECK() glretrace::CheckError(__FILE__, __LINE__)
 
 #endif  // RETRACE_DAEMON_BARGRAPH_GLFRAME_GLHELPER_H_

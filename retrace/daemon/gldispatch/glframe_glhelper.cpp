@@ -139,6 +139,11 @@ static void *pClearStencil = NULL;
 static void *pStencilOpSeparate = NULL;
 static void *pStencilFuncSeparate = NULL;
 static void *pStencilMaskSeparate = NULL;
+static void *pActiveTexture = NULL;
+static void *pBindTexture = NULL;
+static void *pGenTextures = NULL;
+static void *pTexParameteri = NULL;
+static void *pTexImage2D = NULL;
 
 }  // namespace
 
@@ -387,6 +392,16 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pStencilFuncSeparate);
   pStencilMaskSeparate = _GetProcAddress("glStencilMaskSeparate");
   assert(pStencilMaskSeparate);
+  pActiveTexture = _GetProcAddress("glActiveTexture");
+  assert(pActiveTexture);
+  pBindTexture = _GetProcAddress("glBindTexture");
+  assert(pBindTexture);
+  pGenTextures = _GetProcAddress("glGenTextures");
+  assert(pGenTextures);
+  pTexParameteri = _GetProcAddress("glTexParameteri");
+  assert(pTexParameteri);
+  pTexImage2D = _GetProcAddress("glTexImage2D");
+  assert(pTexImage2D);
 }
 
 GLuint
@@ -1126,4 +1141,35 @@ void GlFunctions::StencilFuncSeparate(
 void GlFunctions::StencilMaskSeparate(GLenum face, GLuint mask) {
   typedef void (*STENCILMASKSEPARATE)(GLenum face, GLuint mask);
   return ((STENCILMASKSEPARATE)pStencilMaskSeparate)(face, mask);
+}
+
+void GlFunctions::ActiveTexture(GLenum texture) {
+  typedef void (*ACTIVETEXTURE)(GLenum texture);
+  return ((ACTIVETEXTURE)pActiveTexture)(texture);
+}
+
+void GlFunctions::BindTexture(GLenum target, GLuint texture) {
+  typedef void (*BINDTEXTURE)(GLenum target, GLuint texture);
+  return ((BINDTEXTURE)pBindTexture)(target, texture);
+}
+
+void GlFunctions::GenTextures(GLsizei n, GLuint *textures) {
+  typedef void (*GENTEXTURES)(GLsizei n, GLuint *textures);
+  return ((GENTEXTURES)pGenTextures)(n, textures);
+}
+
+void GlFunctions::TexParameteri(GLenum target, GLenum pname, GLint param) {
+  typedef void (*TEXPARAMETERI)(GLenum target, GLenum pname, GLint param);
+  return ((TEXPARAMETERI)pTexParameteri)(target, pname, param);
+}
+
+void GlFunctions::TexImage2D(GLenum target, GLint level, GLint internalformat,
+                             GLsizei width, GLsizei height, GLint border,
+                             GLenum format, GLenum type, const void *pixels) {
+  typedef void (*TEXIMAGE2D)(GLenum target, GLint level, GLint internalformat,
+                             GLsizei width, GLsizei height, GLint border,
+                             GLenum format, GLenum type, const void *pixels);
+  return ((TEXIMAGE2D)pTexImage2D)(target, level, internalformat,
+                                   width, height, border,
+                                   format, type, pixels);
 }
