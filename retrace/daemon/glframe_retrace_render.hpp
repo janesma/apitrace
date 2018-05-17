@@ -49,10 +49,11 @@ class ExperimentId;
 class MetricId;
 class PerfMetrics;
 class StateOverride;
+class TextureOverride;
 
 class RetraceRender {
  public:
-  RetraceRender(trace::AbstractParser *parser,
+  RetraceRender(unsigned int tex2x2, trace::AbstractParser *parser,
                 retrace::Retracer *retracer,
                 StateTrack *tracker);
   ~RetraceRender();
@@ -95,6 +96,7 @@ class RetraceRender {
                 const std::string &value);
   void revertState(const StateKey &item);
   void revertExperiments(StateTrack *tracker);
+  void texture2x2(bool enable);
 
   static bool isRender(const trace::Call &c);
   static bool endsFrame(const trace::Call &c);
@@ -124,6 +126,7 @@ class RetraceRender {
   class UniformOverride;
   UniformOverride *m_uniform_override;
   StateOverride *m_state_override;
+  TextureOverride *m_texture_override;
 };
 
 }  // namespace glretrace

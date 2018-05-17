@@ -100,6 +100,8 @@ set (RETRACE_SOURCES
   glframe_state_override.cpp
   glframe_state_override.hpp
   glframe_stderr.hpp
+  glframe_texture_override.cpp
+  glframe_texture_override.hpp
   glframe_thread.hpp
   glframe_traits.hpp
   glframe_uniforms.cpp

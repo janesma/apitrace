@@ -57,6 +57,7 @@ using glretrace::WARN;
 using image::Image;
 
 RetraceContext::RetraceContext(RenderId current_render,
+                               unsigned int tex2x2,
                                trace::AbstractParser *parser,
                                retrace::Retracer *retracer,
                                StateTrack *tracker)
@@ -74,7 +75,7 @@ RetraceContext::RetraceContext(RenderId current_render,
   int current_render_buffer = RetraceRender::currentRenderBuffer();
   // play through the frame, generating renders
   while (true) {
-    auto r = new RetraceRender(parser, retracer, tracker);
+    auto r = new RetraceRender(tex2x2, parser, retracer, tracker);
     m_renders[current_render] = r;
     ++current_render;
     if (r->endsFrame()) {
@@ -533,4 +534,12 @@ void
 RetraceContext::revertExperiments(StateTrack *tracker) {
   for (auto r : m_renders)
     r.second->revertExperiments(tracker);
+}
+
+void
+RetraceContext::texture2x2(const RenderSelection &selection,
+                           bool enable) {
+  for (auto r : m_renders)
+    if (isSelected(r.first, selection))
+      r.second->texture2x2(enable);
 }

@@ -99,6 +99,61 @@ FrameRetrace::~FrameRetrace() {
   retrace::cleanUp();
 }
 
+GLuint
+gen_2x2_texture() {
+  GLuint tex2x2;
+  GlFunctions::GetError();
+
+  int prev_active_texture_unit;
+  GlFunctions::GetIntegerv(GL_ACTIVE_TEXTURE, &prev_active_texture_unit);
+  GL_CHECK();
+
+  GlFunctions::Enable(GL_TEXTURE_2D);
+  GlFunctions::GetError();
+  unsigned char data[] {
+    255, 0, 0, 255,
+        0, 255, 0, 255,
+        0, 0, 255, 255,
+        255, 255, 255, 255};
+
+  GlFunctions::ActiveTexture(GL_TEXTURE0);
+  GL_CHECK();
+
+  int prev_bound_texture;
+  GlFunctions::GetIntegerv(GL_TEXTURE_BINDING_2D, &prev_bound_texture);
+  GL_CHECK();
+
+  GlFunctions::GenTextures(1, reinterpret_cast<GLuint*>(&tex2x2));
+  GL_CHECK();
+
+  GlFunctions::BindTexture(GL_TEXTURE_2D, tex2x2);
+  GL_CHECK();
+  GlFunctions::TexParameteri(GL_TEXTURE_2D,
+                             GL_TEXTURE_MIN_FILTER,
+                             GL_NEAREST);
+  GL_CHECK();
+  GlFunctions::TexParameteri(GL_TEXTURE_2D,
+                             GL_TEXTURE_MAG_FILTER,
+                             GL_NEAREST);
+  GL_CHECK();
+  GlFunctions::TexImage2D(GL_TEXTURE_2D,  // target
+                          0,            // level
+                          GL_RGBA,      // internalformat
+                          2,            // width
+                          2,            // height
+                          0,            // border
+                          GL_RGBA,      // format
+                          GL_UNSIGNED_BYTE,  // type
+                          data);        // data
+  GL_CHECK();
+  GlFunctions::BindTexture(GL_TEXTURE_2D, prev_bound_texture);
+  GL_CHECK();
+
+  GlFunctions::ActiveTexture(prev_active_texture_unit);
+  GL_CHECK();
+  return tex2x2;
+}
+
 void
 FrameRetrace::openFile(const std::string &filename,
                        const std::vector<unsigned char> &,
@@ -170,8 +225,13 @@ FrameRetrace::openFile(const std::string &filename,
 
   // play through the frame, recording each context
   RenderId current_render(0);
+
+  // gen a 2x2 texture
+  GLuint tex2x2 = gen_2x2_texture();
+
   while (true) {
-    auto c = new RetraceContext(current_render, parser, &retracer, &m_tracker);
+    auto c = new RetraceContext(current_render, tex2x2, parser,
+                                &retracer, &m_tracker);
     current_render = RenderId(current_render.index() + c->getRenderCount());
     m_contexts.push_back(c);
     if (c->endsFrame())
@@ -476,4 +536,11 @@ FrameRetrace::wireframe(const RenderSelection &selection,
       i->revertState(selection, width);
     }
   }
+}
+
+void
+FrameRetrace::texture2x2(const RenderSelection &selection,
+                         bool texture_2x2) {
+  for (auto i : m_contexts)
+    i->texture2x2(selection, texture_2x2);
 }

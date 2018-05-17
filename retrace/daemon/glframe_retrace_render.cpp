@@ -42,6 +42,7 @@
 #include "glstate_internal.hpp"
 #include "trace_parser.hpp"
 #include "glframe_state_override.hpp"
+#include "glframe_texture_override.hpp"
 
 using glretrace::DEBUG;
 using glretrace::ExperimentId;
@@ -148,7 +149,8 @@ class RetraceRender::UniformOverride {
 
 
 
-RetraceRender::RetraceRender(trace::AbstractParser *parser,
+RetraceRender::RetraceRender(unsigned int tex2x2,
+                             trace::AbstractParser *parser,
                              retrace::Retracer *retracer,
                              StateTrack *tracker)
     : m_parser(parser),
@@ -160,7 +162,8 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
       m_changes_context(false),
       m_disabled(false),
       m_simple_shader(false),
-      m_state_override(new StateOverride()) {
+      m_state_override(new StateOverride()),
+      m_texture_override(new TextureOverride(tex2x2)) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
   std::stringstream call_stream;
@@ -224,6 +227,7 @@ RetraceRender::RetraceRender(trace::AbstractParser *parser,
 RetraceRender::~RetraceRender() {
   delete m_uniform_override;
   delete m_state_override;
+  delete m_texture_override;
 }
 
 void
@@ -263,6 +267,7 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
 
   m_uniform_override->overrideUniforms();
   m_state_override->overrideState();
+  m_texture_override->overrideTexture();
 
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
@@ -275,6 +280,7 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
 
   m_uniform_override->restoreUniforms();
   m_state_override->restoreState();
+  m_texture_override->restoreTexture();
 
   if (blend_enabled)
     GlFunctions::Enable(GL_BLEND);
@@ -358,6 +364,7 @@ RetraceRender::retrace(const StateTrack &tracker,
 
   m_uniform_override->overrideUniforms();
   m_state_override->overrideState();
+  m_texture_override->overrideTexture();
 
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
@@ -381,6 +388,7 @@ RetraceRender::retrace(const StateTrack &tracker,
 
   m_state_override->restoreState();
   m_uniform_override->restoreUniforms();
+  m_texture_override->restoreTexture();
 
   StateTrack::useProgramGL(m_original_program);
 }
@@ -477,6 +485,7 @@ RetraceRender::revertExperiments(StateTrack *tracker) {
   m_simple_shader = false;
   m_uniform_override->revertExperiments();
   m_state_override->revertExperiments();
+  m_texture_override->revertExperiments();
   if (m_rt_program > -1)
     // set render target program back to default
     m_rt_program = tracker->useProgram(m_original_program,
@@ -486,4 +495,9 @@ RetraceRender::revertExperiments(StateTrack *tracker) {
                                        m_original_tess_control,
                                        m_original_geom,
                                        m_original_comp);
+}
+
+void
+RetraceRender::texture2x2(bool enable) {
+  m_texture_override->set2x2(enable);
 }

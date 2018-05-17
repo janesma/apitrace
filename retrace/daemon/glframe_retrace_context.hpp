@@ -60,6 +60,7 @@ class RetraceRender;
 class RetraceContext {
  public:
   RetraceContext(RenderId current_render,
+                 unsigned int tex2x2,
                  trace::AbstractParser *parser,
                  retrace::Retracer *retracer,
                  StateTrack *tracker);
@@ -117,6 +118,8 @@ class RetraceContext {
                 const StateTrack &tracker);
   void revertState(const RenderSelection &selection,
                    const StateKey &item);
+  void texture2x2(const RenderSelection &selection,
+                  bool enable);
   void revertExperiments(StateTrack *tracker);
 
  private:
