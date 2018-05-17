@@ -25,6 +25,9 @@
 //  *   Mark Janes <mark.a.janes@intel.com>
 //  **********************************************************************/
 
+#ifndef _GLFRAME_STATE_OVERRIDE_HPP__
+#define _GLFRAME_STATE_OVERRIDE_HPP__
+
 #include <GL/gl.h>
 
 #include <map>
@@ -80,3 +83,5 @@ class StateOverride {
 };
 
 }  // namespace glretrace
+
+#endif  //  _GLFRAME_STATE_OVERRIDE_HPP__
