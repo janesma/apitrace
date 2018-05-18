@@ -69,5 +69,19 @@ Item {
                 });
             }
         }
+        CheckBox {
+            text: "2x2 Textures"
+            checkedState: experimentModel.selectionTexture2x2
+            partiallyCheckedEnabled : false
+            onClicked: {
+                if (checkedState == Qt.PartiallyChecked)
+                    checkedState = Qt.Unchecked;
+                experimentModel.texture2x2(checkedState);
+                partiallyCheckedEnabled = false
+                checkedState = Qt.binding(function () { 
+                    return experimentModel.selectionTexture2x2;
+                });
+            }
+        }
     }
 }

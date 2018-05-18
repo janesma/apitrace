@@ -44,7 +44,8 @@ QExperimentModel::QExperimentModel()
     : m_retrace(NULL), m_disabled_checkbox(Qt::Unchecked),
       m_simple_checkbox(Unchecked),
       m_scissor_checkbox(Unchecked),
-      m_wireframe_checkbox(Unchecked) {
+      m_wireframe_checkbox(Unchecked),
+      m_texture_2x2_checkbox(Unchecked) {
   assert(false);
 }
 
@@ -53,7 +54,8 @@ QExperimentModel::QExperimentModel(IFrameRetrace *retrace)
       m_disabled_checkbox(Unchecked),
       m_simple_checkbox(Unchecked),
       m_scissor_checkbox(Unchecked),
-      m_wireframe_checkbox(Unchecked) {}
+      m_wireframe_checkbox(Unchecked),
+      m_texture_2x2_checkbox(Unchecked) {}
 
 CheckState
 isChecked(std::map<RenderId, bool> *_renders,
@@ -89,10 +91,12 @@ QExperimentModel::onSelect(SelectionId count, const QList<int> &selection) {
   m_simple_checkbox = isChecked(&m_simple, selection);
   m_scissor_checkbox = isChecked(&m_scissor, selection);
   m_wireframe_checkbox = isChecked(&m_wireframe, selection);
+  m_texture_2x2_checkbox = isChecked(&m_texture_2x2, selection);
   emit onDisabled();
   emit onSimpleShader();
   emit onScissorRect();
   emit onWireframe();
+  emit onTexture2x2();
 }
 
 CheckState uncheckPartials(CheckState c) {
@@ -159,19 +163,35 @@ QExperimentModel::wireframe(CheckState wire) {
   emit onExperiment();
 }
 
-// TODO(majanes)
+void
+QExperimentModel::texture2x2(CheckState texture2x2) {
+  m_texture_2x2_checkbox = uncheckPartials(texture2x2);
+  for (auto render : m_selection)
+    m_texture_2x2[RenderId(render)] = m_texture_2x2_checkbox;
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_count,
+                                     m_selection,
+                                     &sel);
+  m_retrace->texture2x2(sel, (m_texture_2x2_checkbox == Checked));
+  emit onTexture2x2();
+  emit onExperiment();
+}
+
 void
 QExperimentModel::onRevert() {
   m_disabled.clear();
   m_simple.clear();
   m_scissor.clear();
   m_wireframe.clear();
+  m_texture_2x2.clear();
   m_disabled_checkbox = Unchecked;
   m_simple_checkbox = Unchecked;
   m_scissor_checkbox = Unchecked;
   m_wireframe_checkbox = Unchecked;
+  m_texture_2x2_checkbox = Unchecked;
   emit onDisabled();
   emit onSimpleShader();
   emit onScissorRect();
   emit onWireframe();
+  emit onTexture2x2();
 }
