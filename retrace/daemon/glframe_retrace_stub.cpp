@@ -170,6 +170,7 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
 
   virtual void retrace(RetraceSocket *s) {
     {
+      // do not request retrace if the selection/experiment have expired
       std::lock_guard<std::mutex> l(*m_protect);
       const auto &sel = m_proto_msg.rendertarget().render_selection();
       const SelectionId id(sel.selection_count());
@@ -214,6 +215,28 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
         // last response
         return;
       }
+
+      {
+        // do not display retraced images if the selection/experiment
+        // have expired
+        std::lock_guard<std::mutex> l(*m_protect);
+        const auto &sel = m_proto_msg.rendertarget().render_selection();
+        const SelectionId id(sel.selection_count());
+        if (*m_sel_count != id) {
+          // more recent selection was made while this was enqueued
+          success = true;
+          continue;
+        }
+
+        const ExperimentId exp(m_proto_msg.rendertarget().experiment_count());
+        assert(exp <= *m_exp_count);
+        if (*m_exp_count != exp) {
+          // more recent experiment was enabled while this was enqueued
+          success = true;
+          continue;
+        }
+      }
+
       assert(rt.has_image());
       success = true;
       auto imageStr = rt.image();
