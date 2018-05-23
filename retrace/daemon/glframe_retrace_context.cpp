@@ -140,6 +140,56 @@ RetraceContext::lastRenderForRTRegion(RenderId render) const {
   return m_renders.rbegin()->first;
 }
 
+// see glstate_images.cpp:973
+enum RtImage {
+  kStencil = -2,
+  kDepth = -1
+};
+
+void
+normalize_image(Image *image, int rt_num) {
+  float * const pixels = reinterpret_cast<float*>(image->pixels);
+  const int pixel_count = image->width * image->height;
+  switch (rt_num) {
+    case kDepth: {
+      // normalize the values in the depth image, so the minimum value
+      // is black and max is white.  Failure to do this will render a
+      // mostly-white depth buffer.  Normalizing on the client (UI)
+      // side results in banding, because Apitrace's PNG support
+      // converts grayscale images to 8bit depth.  PNG is the format
+      // used to send image data from the server to the client.
+
+      // get the global max/min for pixel greyscale in the image
+      float min = 1.0, max = 0.0;
+      for (int i = 0; i < pixel_count; ++i) {
+        if (pixels[i] > max)
+          max = pixels[i];
+        if (pixels[i] < min)
+          min = pixels[i];
+      }
+      const float range = max - min;
+      // correct each pixel so the greyscale coves [0.0,1.0] instead of
+      // the narrower range in the original image.
+      for (int i = 0; i < pixel_count; ++i) {
+        pixels[i] = (pixels[i] - min) / range;
+      }
+      break;
+    }
+    case kStencil: {
+      // make pixels in stencil image either white or black
+      if (image->channelType != image::TYPE_FLOAT)
+        return;
+      for (int i = 0; i < pixel_count; ++i) {
+        if (pixels[i])
+          pixels[i] = 1.0f;
+      }
+      break;
+    }
+    default:
+      return;
+  }
+}
+
 void
 RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
                                     const RenderSelection &selection,
@@ -214,13 +264,23 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
        (last_render <= m_renders.rbegin()->first));
   if (contains_last_render) {
     const int image_count = glstate::getDrawBufferImageCount();
-    for (int rt_num = 0; rt_num < image_count; ++rt_num) {
+
+    // re-order the images to put depth/stencil at the bottom
+    std::vector<int> rt_indices;
+    for (int rt_num = 0; rt_num < image_count; ++rt_num)
+      rt_indices.push_back(rt_num);
+    // request depth and stencil images
+    rt_indices.push_back(kDepth);
+    rt_indices.push_back(kStencil);
+
+    for (auto rt_num : rt_indices) {
       Image *i = glstate::getDrawBufferImage(rt_num);
       if (!i) {
         GRLOG(WARN, "Failed to obtain draw buffer image for render id");
         if (callback)
           callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
       } else {
+        normalize_image(i, rt_num);
         std::stringstream png;
         i->writePNG(png);
 
