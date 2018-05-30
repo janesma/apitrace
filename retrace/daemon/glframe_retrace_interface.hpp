@@ -40,7 +40,6 @@ namespace glretrace {
 enum RenderTargetType {
   HIGHLIGHT_RENDER,
   NORMAL_RENDER,
-  DEPTH_RENDER,
   GEOMETRY_RENDER,
   OVERDRAW_RENDER,
   // etc

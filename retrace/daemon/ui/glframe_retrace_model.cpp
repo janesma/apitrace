@@ -282,6 +282,12 @@ FrameRetraceModel::retraceRendertarget() {
                                 rs,
                                 rt_type,
                                 opt, this);
+  RenderOptions geom_opt = (RenderOptions)(CLEAR_BEFORE_RENDER |
+                                           STOP_AT_RENDER);
+  m_retrace.retraceRenderTarget(m_experiment_count,
+                                rs,
+                                GEOMETRY_RENDER,
+                                geom_opt, this);
 }
 
 void

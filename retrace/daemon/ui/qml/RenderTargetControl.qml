@@ -36,6 +36,11 @@ Item {
                 }
             }
         }
+        Text {
+            id: measureLabelWidth
+            visible:false
+            text: "attachment 20"
+        }
         SplitView {
             orientation: Qt.Horizontal
             anchors.top: parent.top
@@ -43,7 +48,7 @@ Item {
             width: parent.width - renderOptions.width
             ListView {
                 id: thumbnails
-                width: 130
+                width: measureLabelWidth.width
                 spacing: 5
                 Component {
                     id: imageDelegate

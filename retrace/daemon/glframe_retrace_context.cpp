@@ -267,11 +267,15 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
 
     // re-order the images to put depth/stencil at the bottom
     std::vector<int> rt_indices;
-    for (int rt_num = 0; rt_num < image_count; ++rt_num)
-      rt_indices.push_back(rt_num);
-    // request depth and stencil images
-    rt_indices.push_back(kDepth);
-    rt_indices.push_back(kStencil);
+    if (type == GEOMETRY_RENDER) {
+      rt_indices.push_back(0);
+    } else {
+      for (int rt_num = 0; rt_num < image_count; ++rt_num)
+        rt_indices.push_back(rt_num);
+      // request depth and stencil images
+      rt_indices.push_back(kDepth);
+      rt_indices.push_back(kStencil);
+    }
 
     for (auto rt_num : rt_indices) {
       Image *i = glstate::getDrawBufferImage(rt_num);
@@ -280,18 +284,25 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         if (callback)
           callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
       } else if (callback) {
-        std::stringstream label;
+        // construct the appropriate label for the image
+        std::string label;
         switch (rt_num) {
           case kDepth:
-            label << "depth";
+            label = "depth";
             break;
           case kStencil:
-            label << "stencil";
+            label = "stencil";
             break;
-          default:
-            label <<  "attachment " << rt_num;
+          default: {
+            std::stringstream slabel;
+            slabel <<  "attachment " << rt_num;
+            label = slabel.str();
             break;
+          }
         }
+        if (type == GEOMETRY_RENDER)
+          label = "geometry";
+
         normalize_image(i, rt_num);
         std::stringstream png;
         i->writePNG(png);
@@ -301,8 +312,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         d.resize(bytes);
         memcpy(d.data(), png.str().c_str(), bytes);
         if (callback)
-          callback->onRenderTarget(selection.id, experimentCount,
-                                   label.str(), d);
+          callback->onRenderTarget(selection.id, experimentCount, label, d);
       }
     }
   }

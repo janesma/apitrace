@@ -125,7 +125,7 @@ class RetraceRender {
   bool m_disabled, m_simple_shader;
   class UniformOverride;
   UniformOverride *m_uniform_override;
-  StateOverride *m_state_override;
+  StateOverride *m_state_override, *m_geometry_rt_override;
   TextureOverride *m_texture_override;
 };
 

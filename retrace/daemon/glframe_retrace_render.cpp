@@ -163,6 +163,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
       m_disabled(false),
       m_simple_shader(false),
       m_state_override(new StateOverride()),
+      m_geometry_rt_override(new StateOverride()),
       m_texture_override(new TextureOverride(tex2x2)) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
@@ -221,12 +222,25 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
                                        m_original_comp);
     tracker->useProgram(m_original_program);
   }
+
+  // GL state must be in-flight for uniforms to be correctly queried
+  // in the constructor
   m_uniform_override = new UniformOverride();
+
+  // configure wireframe override for render targets
+  const StateKey wireframe_key("Primitive/Polygon", "GL_POLYGON_MODE");
+  const StateKey width("Primitive/Line", "GL_LINE_WIDTH");
+  const StateKey depth("Fragment/Depth", "GL_DEPTH_TEST");
+  m_geometry_rt_override->setState(wireframe_key, 0, "GL_LINE");
+  m_geometry_rt_override->setState(wireframe_key, 1, "GL_LINE");
+  m_geometry_rt_override->setState(width, 0, "1.5");
+  m_geometry_rt_override->setState(depth, 0, "false");
 }
 
 RetraceRender::~RetraceRender() {
   delete m_uniform_override;
   delete m_state_override;
+  delete m_geometry_rt_override;
   delete m_texture_override;
 }
 
@@ -248,7 +262,10 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   }
 
   bool blend_enabled = false;
-  if ((m_simple_shader || (type == HIGHLIGHT_RENDER)) && (m_rt_program > -1)) {
+  if ((type == GEOMETRY_RENDER ||
+       m_simple_shader ||
+       type == HIGHLIGHT_RENDER) &&
+      (m_rt_program > -1)) {
     blend_enabled = GlFunctions::IsEnabled(GL_BLEND);
     GlFunctions::Disable(GL_BLEND);
     StateTrack::useProgramGL(m_rt_program);
@@ -269,6 +286,9 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   m_state_override->overrideState();
   m_texture_override->overrideTexture();
 
+  if (type == GEOMETRY_RENDER)
+    m_geometry_rt_override->overrideState();
+
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
@@ -277,6 +297,9 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
       (!endsFrame(*call)))
     m_retracer->retrace(*call);
   delete(call);
+
+  if (type == GEOMETRY_RENDER)
+    m_geometry_rt_override->restoreState();
 
   m_uniform_override->restoreUniforms();
   m_state_override->restoreState();
