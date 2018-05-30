@@ -218,6 +218,7 @@ FrameRetraceSkeleton::Run() {
           auto rt_resp = proto_response.mutable_rendertarget();
           rt_resp->set_selection_count(-1);
           rt_resp->set_experiment_count(-1);
+          rt_resp->set_label("");
           rt_resp->set_image("");
           ShaderAssembly s;
           writeResponse(m_socket, proto_response, &m_buf);
@@ -505,11 +506,13 @@ typedef std::vector<unsigned char> Buffer;
 void
 FrameRetraceSkeleton::onRenderTarget(SelectionId selectionCount,
                                      ExperimentId experimentCount,
+                                     const std::string &label,
                                      const uvec & pngImageData) {
   RetraceResponse proto_response;
   auto rt_response = proto_response.mutable_rendertarget();
   rt_response->set_selection_count(selectionCount());
   rt_response->set_experiment_count(experimentCount());
+  rt_response->set_label(label);
   std::string *image = rt_response->mutable_image();
   image->assign((const char *)pngImageData.data(), pngImageData.size());
   writeResponse(m_socket, proto_response, &m_buf);

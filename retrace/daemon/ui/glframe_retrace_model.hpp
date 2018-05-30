@@ -159,6 +159,7 @@ class FrameRetraceModel : public QObject,
                         const ShaderAssembly &comp);
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
+                      const std::string &label,
                       const std::vector<unsigned char> &data);
   void onShaderCompile(RenderId renderId,
                        ExperimentId experimentCount,

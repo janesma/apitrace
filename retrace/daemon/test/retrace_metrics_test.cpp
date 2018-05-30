@@ -54,6 +54,7 @@ class MetricsCallback : public OnFrameRetrace {
                         const ShaderAssembly &comp) {}
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
+                      const std::string &label,
                       const uvec & pngImageData) {}
   void onShaderCompile(RenderId renderId, ExperimentId experimentCount,
                        bool status,

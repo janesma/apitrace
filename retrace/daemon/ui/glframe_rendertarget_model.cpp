@@ -28,6 +28,7 @@
 #include "glframe_rendertarget_model.hpp"
 
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include "glframe_os.hpp"
@@ -57,6 +58,7 @@ QRenderTargetModel::QRenderTargetModel(FrameRetraceModel *retrace)
 void
 QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
                                    ExperimentId experimentCount,
+                                   const std::string &label,
                                    const std::vector<unsigned char> &data) {
   if (selectionCount > m_sel || experimentCount > m_exp) {
     m_sel = selectionCount;
@@ -64,6 +66,7 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
     m_index = 0;
     glretrace::FrameImages::instance()->Clear();
     m_rts.clear();
+    m_labels.clear();
   }
 
   ++m_index;
@@ -71,6 +74,7 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
     // error case
     m_rts.push_back("image://myimageprovider/default_image.png");
     emit renderTargetsChanged();
+    emit renderTargetLabelsChanged();
     return;
   }
 
@@ -82,6 +86,7 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
        << m_option_count << "_"
        << m_index << ".png";
     m_rts.push_back(ss.str().c_str());
+    m_labels.push_back(label.c_str());
   }
 
   {
@@ -94,6 +99,7 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
     glretrace::FrameImages::instance()->AddImage(ss.str().c_str(), data);
   }
   emit renderTargetsChanged();
+  emit renderTargetLabelsChanged();
 }
 
 
@@ -118,6 +124,11 @@ QRenderTargetModel::type() {
 QStringList
 QRenderTargetModel::renderTargetImages() const {
   return m_rts;
+}
+
+QStringList
+QRenderTargetModel::renderTargetLabels() const {
+  return m_labels;
 }
 
 bool

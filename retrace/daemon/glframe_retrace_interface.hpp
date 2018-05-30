@@ -295,6 +295,7 @@ class OnFrameRetrace {
                                 const ShaderAssembly &comp) = 0;
   virtual void onRenderTarget(SelectionId selectionCount,
                               ExperimentId experimentCount,
+                              const std::string &label,
                               const uvec & pngImageData) = 0;
   virtual void onMetricList(const std::vector<MetricId> &ids,
                             const std::vector<std::string> &names,

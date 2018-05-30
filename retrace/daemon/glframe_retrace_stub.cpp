@@ -210,6 +210,7 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
           // default image.
           m_callback->onRenderTarget(*m_sel_count,
                                      *m_exp_count,
+                                     "no attachment",
                                      v);
         }
         // last response
@@ -244,6 +245,7 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
       memcpy(image.data(), imageStr.c_str(), imageStr.size());
       m_callback->onRenderTarget(*m_sel_count,
                                  *m_exp_count,
+                                 rt.label(),
                                  image);
     }
   }

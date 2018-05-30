@@ -31,6 +31,7 @@
 
 #include <QObject>
 
+#include <string>
 #include <vector>
 
 #include "glframe_retrace_interface.hpp"
@@ -43,6 +44,8 @@ class QRenderTargetModel : public QObject {
   Q_OBJECT
   Q_PROPERTY(QStringList renderTargetImages READ renderTargetImages
              NOTIFY renderTargetsChanged)
+  Q_PROPERTY(QStringList renderTargetLabels READ renderTargetLabels
+             NOTIFY renderTargetLabelsChanged)
   Q_PROPERTY(bool clearBeforeRender READ clearBeforeRender
              WRITE setClearBeforeRender)
   Q_PROPERTY(bool stopAtRender READ stopAtRender
@@ -55,8 +58,10 @@ class QRenderTargetModel : public QObject {
   explicit QRenderTargetModel(FrameRetraceModel *retrace);
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
+                      const std::string &label,
                       const std::vector<unsigned char> &data);
   QStringList renderTargetImages() const;
+  QStringList renderTargetLabels() const;
   bool clearBeforeRender() const;
   void setClearBeforeRender(bool v);
   bool stopAtRender() const;
@@ -68,6 +73,7 @@ class QRenderTargetModel : public QObject {
 
  signals:
   void renderTargetsChanged();
+  void renderTargetLabelsChanged();
 
  private:
   FrameRetraceModel *m_retrace;
@@ -76,7 +82,7 @@ class QRenderTargetModel : public QObject {
   ExperimentId m_exp;
   int m_option_count;
   int m_index;
-  QStringList m_rts;
+  QStringList m_rts, m_labels;
 };
 
 }  // namespace glretrace

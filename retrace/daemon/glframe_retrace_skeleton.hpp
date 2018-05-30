@@ -68,6 +68,7 @@ class FrameRetraceSkeleton : public Thread,
                              uint32_t frame_count);
   virtual void onRenderTarget(SelectionId selectionCount,
                               ExperimentId experimentCount,
+                              const std::string &label,
                               const uvec & pngImageData);
   virtual void onShaderCompile(RenderId renderId,
                                ExperimentId experimentCount,

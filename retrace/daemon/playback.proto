@@ -60,6 +60,7 @@ message RenderTargetRequest {
 message RenderTargetResponse {
   required uint32 selection_count = 1;
   required uint32 experiment_count = 2;
+  required string label = 4;
   required bytes image = 3;
 }
 

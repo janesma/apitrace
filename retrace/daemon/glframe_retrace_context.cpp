@@ -279,7 +279,19 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         GRLOG(WARN, "Failed to obtain draw buffer image for render id");
         if (callback)
           callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
-      } else {
+      } else if (callback) {
+        std::stringstream label;
+        switch (rt_num) {
+          case kDepth:
+            label << "depth";
+            break;
+          case kStencil:
+            label << "stencil";
+            break;
+          default:
+            label <<  "attachment " << rt_num;
+            break;
+        }
         normalize_image(i, rt_num);
         std::stringstream png;
         i->writePNG(png);
@@ -289,7 +301,8 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         d.resize(bytes);
         memcpy(d.data(), png.str().c_str(), bytes);
         if (callback)
-          callback->onRenderTarget(selection.id, experimentCount, d);
+          callback->onRenderTarget(selection.id, experimentCount,
+                                   label.str(), d);
       }
     }
   }

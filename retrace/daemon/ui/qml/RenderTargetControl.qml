@@ -43,28 +43,34 @@ Item {
             width: parent.width - renderOptions.width
             ListView {
                 id: thumbnails
-                width: 100
+                width: 130
                 spacing: 5
                 Component {
                     id: imageDelegate
-                    Rectangle {
-                        width: thumbnailImage.width + 6
-                        height: thumbnailImage.height + 6
-                        border.width: 3
-                        border.color: index == boundedIndex(rtIndex) ? "yellow" : "transparent"
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                rtIndex = index;
+                    Column {
+                        Rectangle {
+                            id: thumbnail
+                            width: thumbnailImage.width + 6
+                            height: thumbnailImage.height + 6
+                            border.width: 3
+                            border.color: index == boundedIndex(rtIndex) ? "yellow" : "transparent"
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    rtIndex = index;
+                                }
+                            }
+                            Image {
+                                anchors.centerIn: parent
+                                id: thumbnailImage
+                                width: thumbnails.width - 6
+                                fillMode: Image.PreserveAspectFit
+                                source: modelData
+                                cache: false
                             }
                         }
-                        Image {
-                            anchors.centerIn: parent
-                            id: thumbnailImage
-                            width: thumbnails.width - 6
-                            fillMode: Image.PreserveAspectFit
-                            source: modelData
-                            cache: false
+                        Text {
+                            text: rtModel.renderTargetLabels[index]
                         }
                     }
                 }

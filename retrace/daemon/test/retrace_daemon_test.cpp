@@ -80,6 +80,7 @@ class NullCallback : public OnFrameRetrace {
   }
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
+                      const std::string &label,
                       const uvec & pngImageData) {
     ++renderTargetCount;
   }

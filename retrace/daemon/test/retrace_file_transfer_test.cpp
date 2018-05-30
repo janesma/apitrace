@@ -143,6 +143,7 @@ class FileTransferCB : public OnFrameRetrace {
                         const ShaderAssembly &comp) {}
   void onRenderTarget(SelectionId selectionCount,
                       ExperimentId experimentCount,
+                      const std::string &label,
                       const uvec & pngImageData) {}
   void onMetricList(const std::vector<MetricId> &ids,
                     const std::vector<std::string> &names,

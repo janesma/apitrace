@@ -254,9 +254,10 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
 void
 FrameRetraceModel::onRenderTarget(SelectionId selectionCount,
                                   ExperimentId experimentCount,
+                                  const std::string &label,
                                   const std::vector<unsigned char> &data) {
   ScopedLock s(m_protect);
-  m_rendertarget->onRenderTarget(selectionCount, experimentCount, data);
+  m_rendertarget->onRenderTarget(selectionCount, experimentCount, label, data);
 }
 
 void
