@@ -45,6 +45,12 @@ QSelection::select(QList<int> selection) {
 }
 
 void
+QSelection::reSelect() {
+  ++m_selection_count;
+  emit onSelect(m_selection_count, _selection);
+}
+
+void
 QSelection::experiment() {
   ++m_experiment_count;
   emit onExperiment(m_experiment_count);

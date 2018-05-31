@@ -460,6 +460,8 @@ FrameRetraceModel::setSelection(QSelection *s) {
           s, &QSelection::experiment);
   connect(m_stateModel, &QStateModel::stateExperiment,
           s, &QSelection::experiment);
+  connect(m_rendertarget, &QRenderTargetModel::renderTargetOptionsChanged,
+          s, &QSelection::reSelect);
 }
 
 void

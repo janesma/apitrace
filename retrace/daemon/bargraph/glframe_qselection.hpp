@@ -42,6 +42,9 @@ class QSelection : public QObject,
   virtual ~QSelection();
  public slots:
   void select(QList<int> selection);
+  // for triggering retrace on the same selection.  EG: user selects
+  // different render target options.
+  void reSelect();
   void experiment();
  signals:
   void onSelect(glretrace::SelectionId selection_count, QList<int> selection);

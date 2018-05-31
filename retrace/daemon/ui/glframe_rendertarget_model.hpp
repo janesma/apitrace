@@ -74,6 +74,7 @@ class QRenderTargetModel : public QObject {
  signals:
   void renderTargetsChanged();
   void renderTargetLabelsChanged();
+  void renderTargetOptionsChanged();
 
  private:
   FrameRetraceModel *m_retrace;

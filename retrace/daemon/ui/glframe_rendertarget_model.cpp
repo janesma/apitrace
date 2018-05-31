@@ -142,7 +142,7 @@ QRenderTargetModel::setClearBeforeRender(bool v) {
   glretrace::FrameImages::instance()->Clear();
   m_rts.clear();
   m_clear_before_render = v;
-  m_retrace->retraceRendertarget();
+  emit renderTargetOptionsChanged();
 }
 
 bool
@@ -156,7 +156,7 @@ QRenderTargetModel::setStopAtRender(bool v) {
   glretrace::FrameImages::instance()->Clear();
   m_rts.clear();
   m_stop_at_render = v;
-  m_retrace->retraceRendertarget();
+  emit renderTargetOptionsChanged();
 }
 
 bool
@@ -170,7 +170,7 @@ QRenderTargetModel::setHighlightRender(bool v) {
   glretrace::FrameImages::instance()->Clear();
   m_rts.clear();
   m_highlight_render = v;
-  m_retrace->retraceRendertarget();
+  emit renderTargetOptionsChanged();
 }
 
 
