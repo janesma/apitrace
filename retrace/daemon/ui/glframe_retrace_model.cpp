@@ -288,6 +288,10 @@ FrameRetraceModel::retraceRendertarget() {
                                 rs,
                                 GEOMETRY_RENDER,
                                 geom_opt, this);
+  m_retrace.retraceRenderTarget(m_experiment_count,
+                                rs,
+                                OVERDRAW_RENDER,
+                                opt, this);
 }
 
 void

@@ -119,13 +119,15 @@ class RetraceRender {
     m_modified_fs, m_modified_vs,
     m_modified_tess_eval, m_modified_tess_control,
     m_modified_geom, m_modified_comp;
-  int m_rt_program, m_retrace_program, m_original_program;
+  int m_rt_program, m_overdraw_program, m_retrace_program, m_original_program;
   bool m_end_of_frame, m_highlight_rt, m_changes_context;
   std::vector<std::string> m_api_calls;
   bool m_disabled, m_simple_shader;
   class UniformOverride;
   UniformOverride *m_uniform_override;
-  StateOverride *m_state_override, *m_geometry_rt_override;
+  StateOverride *m_state_override,
+                *m_geometry_rt_override,
+                *m_overdraw_rt_override;
   TextureOverride *m_texture_override;
 };
 

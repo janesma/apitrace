@@ -63,6 +63,11 @@ static const std::string simple_fs =
     "  gl_FragColor = vec4(1,0,1,1);\n"
     "}";
 
+static const std::string overdraw_fs =
+    "void main(void) {\n"
+    "  gl_FragColor = vec4(1,1,1,1);\n"
+    "}";
+
 bool
 isCompute(const trace::Call &call) {
   return ((strcmp("glDispatchCompute", call.name()) == 0) ||
@@ -156,6 +161,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
     : m_parser(parser),
       m_retracer(retracer),
       m_rt_program(-1),
+      m_overdraw_program(-1),
       m_retrace_program(-1),
       m_end_of_frame(false),
       m_highlight_rt(false),
@@ -164,6 +170,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
       m_simple_shader(false),
       m_state_override(new StateOverride()),
       m_geometry_rt_override(new StateOverride()),
+      m_overdraw_rt_override(new StateOverride()),
       m_texture_override(new TextureOverride(tex2x2)) {
   m_parser->getBookmark(m_bookmark.start);
   trace::Call *call = NULL;
@@ -212,7 +219,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   m_modified_comp = m_original_comp;
 
   if (!compute) {
-    // generate the highlight rt program, for later use
+    // generate the highlight and overdraw rt programs, for later use
     m_rt_program = tracker->useProgram(m_original_program,
                                        m_modified_vs,
                                        simple_fs,
@@ -220,6 +227,13 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
                                        m_modified_tess_control,
                                        m_original_geom,
                                        m_original_comp);
+    m_overdraw_program = tracker->useProgram(m_original_program,
+                                             m_modified_vs,
+                                             overdraw_fs,
+                                             m_modified_tess_eval,
+                                             m_modified_tess_control,
+                                             m_original_geom,
+                                             m_original_comp);
     tracker->useProgram(m_original_program);
   }
 
@@ -235,12 +249,33 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   m_geometry_rt_override->setState(wireframe_key, 1, "GL_LINE");
   m_geometry_rt_override->setState(width, 0, "1.5");
   m_geometry_rt_override->setState(depth, 0, "false");
+
+  // configure the overdraw override for render targets
+  const StateKey blend_color("Fragment", "GL_BLEND_COLOR");
+  m_overdraw_rt_override->setState(blend_color, 0, "0.15");
+  m_overdraw_rt_override->setState(blend_color, 1, "0.15");
+  m_overdraw_rt_override->setState(blend_color, 2, "0.15");
+  m_overdraw_rt_override->setState(blend_color, 3, "0.0");
+  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND"), 0, "true");
+  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND_DST"),
+                                   0, "GL_ONE");
+  m_overdraw_rt_override->setState(StateKey("Fragment",
+                                            "GL_BLEND_EQUATION_ALPHA"),
+                                   0, "GL_MAX");
+  m_overdraw_rt_override->setState(StateKey("Fragment",
+                                            "GL_BLEND_EQUATION_RGB"),
+                                   0, "GL_FUNC_ADD");
+  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND_SRC_RGB"),
+                                   0, "GL_CONSTANT_COLOR");
+  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND_SRC_ALPHA"),
+                                   0, "GL_ONE");
 }
 
 RetraceRender::~RetraceRender() {
   delete m_uniform_override;
   delete m_state_override;
   delete m_geometry_rt_override;
+  delete m_overdraw_rt_override;
   delete m_texture_override;
 }
 
@@ -278,6 +313,9 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
       GlFunctions::GetProgramInfoLog(m_rt_program, 1024, &s, buf.data());
       GRLOGF(ERR, "Highlight program not validated: %s", buf.data());
     }
+  } else if ((type == OVERDRAW_RENDER) &&
+             m_overdraw_program > -1) {
+    StateTrack::useProgramGL(m_overdraw_program);
   } else if (m_retrace_program > -1) {
     StateTrack::useProgramGL(m_retrace_program);
   }
@@ -288,11 +326,14 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
 
   if (type == GEOMETRY_RENDER)
     m_geometry_rt_override->overrideState();
+  else if (type == OVERDRAW_RENDER)
+    m_overdraw_rt_override->overrideState();
 
   // retrace the final render
   trace::Call *call = m_parser->parse_call();
   assert(call);
-  if ((!m_disabled) &&
+  if ((type != NULL_RENDER) &&
+      (!m_disabled) &&
       // do not retrace swap buffers: the gpu cost is variable
       (!endsFrame(*call)))
     m_retracer->retrace(*call);
@@ -300,6 +341,8 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
 
   if (type == GEOMETRY_RENDER)
     m_geometry_rt_override->restoreState();
+  else if (type == OVERDRAW_RENDER)
+    m_overdraw_rt_override->restoreState();
 
   m_uniform_override->restoreUniforms();
   m_state_override->restoreState();
@@ -448,6 +491,10 @@ RetraceRender::replaceShaders(StateTrack *tracker,
                                      vs, simple_fs,
                                      tessControl, tessEval,
                                      geom, comp, message);
+  m_overdraw_program = tracker->useProgram(m_original_program,
+                                     vs, overdraw_fs,
+                                     tessControl, tessEval,
+                                     geom, comp, message);
   tracker->useProgram(result);
   return true;
 }
@@ -518,6 +565,15 @@ RetraceRender::revertExperiments(StateTrack *tracker) {
                                        m_original_tess_control,
                                        m_original_geom,
                                        m_original_comp);
+  if (m_overdraw_program > -1)
+    // set render target program back to default
+    m_overdraw_program = tracker->useProgram(m_original_program,
+                                             m_original_vs,
+                                             overdraw_fs,
+                                             m_original_tess_eval,
+                                             m_original_tess_control,
+                                             m_original_geom,
+                                             m_original_comp);
 }
 
 void

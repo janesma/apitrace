@@ -142,6 +142,7 @@ RetraceContext::lastRenderForRTRegion(RenderId render) const {
 
 // see glstate_images.cpp:973
 enum RtImage {
+  kOverDraw = -3,
   kStencil = -2,
   kDepth = -1
 };
@@ -200,9 +201,18 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
   if (m_renders.empty())
     return;
   auto current_render = m_renders.begin();
+
+  // for highlight renders, we only want to highlight what is
+  // selected.
+  RenderTargetType unselected_type = type;
+  if (type == HIGHLIGHT_RENDER)
+    unselected_type = NORMAL_RENDER;
+  else if (type == GEOMETRY_RENDER)
+    unselected_type = NULL_RENDER;
+
   // play up to the beginning of the first render
   while (current_render->first < selection.series.front().begin) {
-    current_render->second->retraceRenderTarget(tracker, NORMAL_RENDER);
+    current_render->second->retraceRenderTarget(tracker, unselected_type);
     ++current_render;
     if (current_render == m_renders.end())
       // played through the context
@@ -229,7 +239,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
     RenderTargetType current_type = type;
     if (!isSelected(current_render->first, selection))
       // unselected renders don't get highlighting
-      type = NORMAL_RENDER;
+      current_type = unselected_type;
     const bool is_last_render = (current_render->first == last_render);
     current_render->second->retraceRenderTarget(tracker,
                                                 current_type);
@@ -250,7 +260,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         lastRenderForRTRegion(last_render);
     while (current_render->first <= last_render_in_rt_region) {
       current_render->second->retraceRenderTarget(tracker,
-                                                  NORMAL_RENDER);
+                                                  unselected_type);
       ++current_render;
       if (current_render == m_renders.end())
         // played through the context
@@ -267,7 +277,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
 
     // re-order the images to put depth/stencil at the bottom
     std::vector<int> rt_indices;
-    if (type == GEOMETRY_RENDER) {
+    if (type == GEOMETRY_RENDER || type == OVERDRAW_RENDER) {
       rt_indices.push_back(0);
     } else {
       for (int rt_num = 0; rt_num < image_count; ++rt_num)
@@ -302,6 +312,10 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         }
         if (type == GEOMETRY_RENDER)
           label = "geometry";
+        if (type == OVERDRAW_RENDER) {
+          label = "overdraw";
+          rt_num = kOverDraw;
+        }
 
         normalize_image(i, rt_num);
         std::stringstream png;
@@ -320,7 +334,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
   // play to the rest of the context
   while (current_render != m_renders.end()) {
     current_render->second->retraceRenderTarget(tracker,
-                                                NORMAL_RENDER);
+                                                unselected_type);
     ++current_render;
   }
 }

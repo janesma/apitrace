@@ -42,7 +42,7 @@ enum RenderTargetType {
   NORMAL_RENDER,
   GEOMETRY_RENDER,
   OVERDRAW_RENDER,
-  // etc
+  NULL_RENDER
 };
 
 enum RenderOptions {
