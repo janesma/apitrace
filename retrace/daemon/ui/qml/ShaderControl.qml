@@ -29,10 +29,10 @@ Item {
                             compile_button.vsText = text;
                         } else if (shader_type == "fs") {
                             compile_button.fsText = text;
-                        } else if (shader_type == "tess_eval") {
-                            compile_button.tessEvalText = text;
                         } else if (shader_type == "tess_control") {
                             compile_button.tessControlText = text;
+                        } else if (shader_type == "tess_eval") {
+                            compile_button.tessEvalText = text;
                         } else if (shader_type == "geom") {
                             compile_button.geomText = text;
                         } else if (shader_type == "comp") {
@@ -349,10 +349,10 @@ Item {
                     compile_button.vsText = model.source;
                 } else if (shader_type == "fs") {
                     compile_button.fsText = model.source;
-                } else if (shader_type == "tess_eval") {
-                    compile_button.tessEvalText = model.source;
                 } else if (shader_type == "tess_control") {
                     compile_button.tessControlText = model.source;
+                } else if (shader_type == "tess_eval") {
+                    compile_button.tessEvalText = model.source;
                 } else if (shader_type == "geom") {
                     compile_button.geomText = model.source;
                 } else if (shader_type == "comp") {

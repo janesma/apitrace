@@ -221,17 +221,17 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   if (!compute) {
     // generate the highlight and overdraw rt programs, for later use
     m_rt_program = tracker->useProgram(m_original_program,
-                                       m_modified_vs,
+                                       m_original_vs,
                                        simple_fs,
-                                       m_modified_tess_eval,
-                                       m_modified_tess_control,
+                                       m_original_tess_control,
+                                       m_original_tess_eval,
                                        m_original_geom,
                                        m_original_comp);
     m_overdraw_program = tracker->useProgram(m_original_program,
-                                             m_modified_vs,
+                                             m_original_vs,
                                              overdraw_fs,
-                                             m_modified_tess_eval,
-                                             m_modified_tess_control,
+                                             m_original_tess_control,
+                                             m_original_tess_eval,
                                              m_original_geom,
                                              m_original_comp);
     tracker->useProgram(m_original_program);
@@ -561,8 +561,8 @@ RetraceRender::revertExperiments(StateTrack *tracker) {
     m_rt_program = tracker->useProgram(m_original_program,
                                        m_original_vs,
                                        simple_fs,
-                                       m_original_tess_eval,
                                        m_original_tess_control,
+                                       m_original_tess_eval,
                                        m_original_geom,
                                        m_original_comp);
   if (m_overdraw_program > -1)
@@ -570,8 +570,8 @@ RetraceRender::revertExperiments(StateTrack *tracker) {
     m_overdraw_program = tracker->useProgram(m_original_program,
                                              m_original_vs,
                                              overdraw_fs,
-                                             m_original_tess_eval,
                                              m_original_tess_control,
+                                             m_original_tess_eval,
                                              m_original_geom,
                                              m_original_comp);
 }

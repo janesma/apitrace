@@ -878,11 +878,11 @@ StateTrack::onAssembly(ShaderType st, AssemblyType at,
     case kFragment:
       sa = &program_to_fragment[current_program];
       break;
-    case kTessEval:
-      sa = &program_to_tess_eval[current_program];
-      break;
     case kTessControl:
       sa = &program_to_tess_control[current_program];
+      break;
+    case kTessEval:
+      sa = &program_to_tess_eval[current_program];
       break;
     case kGeometry:
       sa = &program_to_geom[current_program];

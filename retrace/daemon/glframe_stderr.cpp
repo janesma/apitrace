@@ -262,15 +262,6 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
   if (vs_simd8.length() > 0)
     cb->onAssembly(kVertex, kSimd8, vs_simd8);
 
-  if (tess_eval_ir.length() > 0)
-    cb->onAssembly(kTessEval, kIr, tess_eval_ir);
-  if (tess_eval_ssa.length() > 0)
-    cb->onAssembly(kTessEval, kNirSsa, tess_eval_ssa);
-  if (tess_eval_final.length() > 0)
-    cb->onAssembly(kTessEval, kNirFinal, tess_eval_final);
-  if (tess_eval_simd8.length() > 0)
-    cb->onAssembly(kTessEval, kSimd8, tess_eval_simd8);
-
   if (tess_control_ir.length() > 0)
     cb->onAssembly(kTessControl, kIr, tess_control_ir);
   if (tess_control_ssa.length() > 0)
@@ -279,6 +270,15 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
     cb->onAssembly(kTessControl, kNirFinal, tess_control_final);
   if (tess_control_simd8.length() > 0)
     cb->onAssembly(kTessControl, kSimd8, tess_control_simd8);
+
+  if (tess_eval_ir.length() > 0)
+    cb->onAssembly(kTessEval, kIr, tess_eval_ir);
+  if (tess_eval_ssa.length() > 0)
+    cb->onAssembly(kTessEval, kNirSsa, tess_eval_ssa);
+  if (tess_eval_final.length() > 0)
+    cb->onAssembly(kTessEval, kNirFinal, tess_eval_final);
+  if (tess_eval_simd8.length() > 0)
+    cb->onAssembly(kTessEval, kSimd8, tess_eval_simd8);
 
   if (geom_ir.length() > 0)
     cb->onAssembly(kGeometry, kIr, geom_ir);

@@ -61,8 +61,8 @@ enum ShaderType {
   kShaderTypeUnknown,
   kVertex,
   kFragment,
-  kTessEval,
   kTessControl,
+  kTessEval,
   kGeometry,
   kCompute
 };

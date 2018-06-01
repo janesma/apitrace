@@ -117,7 +117,7 @@ class RetraceRender {
     m_original_geom,
     m_original_comp,
     m_modified_fs, m_modified_vs,
-    m_modified_tess_eval, m_modified_tess_control,
+    m_modified_tess_control, m_modified_tess_eval,
     m_modified_geom, m_modified_comp;
   int m_rt_program, m_overdraw_program, m_retrace_program, m_original_program;
   bool m_end_of_frame, m_highlight_rt, m_changes_context;
