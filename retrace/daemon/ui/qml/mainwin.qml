@@ -2,12 +2,14 @@ import QtQuick 2.2
 import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.1
+import QtQuick.Window 2.2
 import ApiTrace 1.0
 import Qt.labs.settings 1.0
 
 ApplicationWindow {
-    width: 1000
-    height: 800
+    width: Screen.width
+    height: Screen.height
+    title: "FrameRetrace"
     visible: true
     id: mainWindow
 
