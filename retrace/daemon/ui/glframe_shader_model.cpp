@@ -71,6 +71,12 @@ QRenderShadersList::onShaderAssembly(RenderId renderId,
                                      const ShaderAssembly &geom,
                                      const ShaderAssembly &comp) {
   ScopedLock s(m_protect);
+  if (selectionCount == SelectionId(0)) {
+    // Last callback was made for the selection.  Update the UI.
+    emit onRendersChanged();
+    return;
+  }
+
   if (selectionCount != m_current_selection) {
     m_renders.clear();
     m_shader_assemblies.clear();
@@ -87,7 +93,6 @@ QRenderShadersList::onShaderAssembly(RenderId renderId,
         (comp.shader == m_shader_assemblies[i][5].shader)) {
       m_renders[i].push_back(renderId);
       m_render_strings[i].append(QString(",%1").arg(renderId.index()));
-      emit onRendersChanged();
       return;
     }
   }
@@ -118,8 +123,6 @@ QRenderShadersList::onShaderAssembly(RenderId renderId,
     // so the UI does not reset to the zero index when shader
     // compilation delivers new content.
     setIndexDirect(m_index);
-
-  emit onRendersChanged();
 }
 
 QStringList

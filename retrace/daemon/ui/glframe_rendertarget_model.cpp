@@ -69,6 +69,17 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
     m_labels.clear();
   }
 
+  if ((selectionCount == SelectionId(0)) &&
+      (experimentCount == ExperimentId(0))) {
+    // final rt image
+    emit renderTargetsChanged();
+    emit renderTargetLabelsChanged();
+    return;
+  }
+
+  if (selectionCount != m_sel || experimentCount != m_exp)
+    assert(false);
+
   ++m_index;
   if (data.empty()) {
     // error case
@@ -98,8 +109,6 @@ QRenderTargetModel::onRenderTarget(SelectionId selectionCount,
        << m_index << ".png";
     glretrace::FrameImages::instance()->AddImage(ss.str().c_str(), data);
   }
-  emit renderTargetsChanged();
-  emit renderTargetLabelsChanged();
 }
 
 

@@ -234,11 +234,11 @@ FrameRetraceModel::onShaderAssembly(RenderId renderId,
                                     const ShaderAssembly &geom,
                                     const ShaderAssembly &comp) {
   ScopedLock s(m_protect);
-  if (m_selection_count != selectionCount)
+  if (selectionCount.count() && m_selection_count != selectionCount)
     // retrace is out of date
     return;
   assert(experimentCount <= m_experiment_count);
-  if (m_experiment_count != experimentCount)
+  if (experimentCount.count() && m_experiment_count != experimentCount)
     // retrace is out of date
     return;
   // do not emit onShaders().  The QShader model (reference) is

@@ -204,8 +204,8 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
       assert(response.has_rendertarget());
       auto rt = response.rendertarget();
       if (rt.selection_count() == (unsigned int)-1) {
+        OnFrameRetrace::uvec v;
         if (!success) {
-          OnFrameRetrace::uvec v;
           // error case: send an empty image so the UI can display a
           // default image.
           m_callback->onRenderTarget(*m_sel_count,
@@ -213,7 +213,11 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
                                      "no attachment",
                                      v);
         }
-        // last response
+        // last response.  Send an empty message triggering UI update.
+        m_callback->onRenderTarget(SelectionId(0),
+                                   ExperimentId(0),
+                                   "",
+                                   v);
         return;
       }
 
@@ -324,9 +328,17 @@ class RetraceShaderAssemblyRequest : public IRetraceRequest {
       }
       assert(response.has_shaderassembly());
       auto shader = response.shaderassembly();
-      if (shader.render_id() == (unsigned int)-1)
-        // all responses sent
+      if (shader.render_id() == (unsigned int)-1) {
+        // all responses sent.  Send a final empty shader assembly
+        // event, which notifies UI to update.
+        ShaderAssembly sa;
+        m_callback->onShaderAssembly(
+            RenderId(0),
+            SelectionId(0),
+            ExperimentId(0),
+            sa, sa, sa, sa, sa, sa);
         break;
+      }
       const auto &shader_assembly = m_proto_msg.shaderassembly();
       const auto &selection = shader_assembly.render_selection();
       const SelectionId sel(selection.selection_count());
