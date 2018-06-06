@@ -327,6 +327,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         memcpy(d.data(), png.str().c_str(), bytes);
         if (callback)
           callback->onRenderTarget(selection.id, experimentCount, label, d);
+        delete i;
       }
     }
   }
