@@ -307,6 +307,7 @@ void
 StdErrRedirect::init() {
   setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
   setenv("vblank_mode", "0", 1);
+  setenv("MESA_GLSL_CACHE_DISABLE", "1", 1);
   pipe2(out_pipe, O_NONBLOCK);
   fcntl(out_pipe[1], F_SETPIPE_SZ, 1048576);
   dup2(out_pipe[1], STDERR_FILENO);
