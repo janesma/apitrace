@@ -287,14 +287,14 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
       rt_indices.push_back(kStencil);
     }
 
-    for (auto rt_num : rt_indices) {
-      Image *i = glstate::getDrawBufferImage(rt_num);
-      if (!i) {
-        GRLOG(WARN, "Failed to obtain draw buffer image for render id");
-        if (callback)
-          callback->onError(RETRACE_WARN, "Failed to obtain draw buffer image");
-      } else if (callback) {
-        // construct the appropriate label for the image
+    if (callback) {
+      for (auto rt_num : rt_indices) {
+        Image *i = glstate::getDrawBufferImage(rt_num);
+        if (!i) {
+          // it is typical for some render targets to be inaccessible
+          continue;
+        }
+        // else construct the appropriate label for the image
         std::string label;
         switch (rt_num) {
           case kDepth:
@@ -325,8 +325,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         const int bytes = png.str().size();
         d.resize(bytes);
         memcpy(d.data(), png.str().c_str(), bytes);
-        if (callback)
-          callback->onRenderTarget(selection.id, experimentCount, label, d);
+        callback->onRenderTarget(selection.id, experimentCount, label, d);
         delete i;
       }
     }

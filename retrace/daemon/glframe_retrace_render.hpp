@@ -126,6 +126,7 @@ class RetraceRender {
   class UniformOverride;
   UniformOverride *m_uniform_override;
   StateOverride *m_state_override,
+                *m_highlight_rt_override,
                 *m_geometry_rt_override,
                 *m_overdraw_rt_override;
   TextureOverride *m_texture_override;

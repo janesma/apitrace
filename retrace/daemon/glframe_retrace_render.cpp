@@ -169,6 +169,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
       m_disabled(false),
       m_simple_shader(false),
       m_state_override(new StateOverride()),
+      m_highlight_rt_override(new StateOverride()),
       m_geometry_rt_override(new StateOverride()),
       m_overdraw_rt_override(new StateOverride()),
       m_texture_override(new TextureOverride(tex2x2)) {
@@ -241,6 +242,10 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   // in the constructor
   m_uniform_override = new UniformOverride();
 
+  // configure highlight override for render targets
+  m_highlight_rt_override->setState(StateKey("Fragment", "GL_BLEND"),
+                                    0, "false");
+
   // configure wireframe override for render targets
   const StateKey wireframe_key("Primitive/Polygon", "GL_POLYGON_MODE");
   const StateKey width("Primitive/Line", "GL_LINE_WIDTH");
@@ -249,6 +254,8 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   m_geometry_rt_override->setState(wireframe_key, 1, "GL_LINE");
   m_geometry_rt_override->setState(width, 0, "1.5");
   m_geometry_rt_override->setState(depth, 0, "false");
+  m_geometry_rt_override->setState(StateKey("Fragment", "GL_BLEND"),
+                                   0, "false");
 
   // configure the overdraw override for render targets
   const StateKey blend_color("Fragment", "GL_BLEND_COLOR");
@@ -274,6 +281,7 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
 RetraceRender::~RetraceRender() {
   delete m_uniform_override;
   delete m_state_override;
+  delete m_highlight_rt_override;
   delete m_geometry_rt_override;
   delete m_overdraw_rt_override;
   delete m_texture_override;
@@ -296,23 +304,11 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
     delete(call);
   }
 
-  bool blend_enabled = false;
-  if ((type == GEOMETRY_RENDER ||
-       m_simple_shader ||
-       type == HIGHLIGHT_RENDER) &&
+  if ((m_simple_shader ||
+       type == HIGHLIGHT_RENDER ||
+       type == GEOMETRY_RENDER) &&
       (m_rt_program > -1)) {
-    blend_enabled = GlFunctions::IsEnabled(GL_BLEND);
-    GlFunctions::Disable(GL_BLEND);
     StateTrack::useProgramGL(m_rt_program);
-    GlFunctions::ValidateProgram(m_rt_program);
-    GLint result;
-    GlFunctions::GetProgramiv(m_rt_program, GL_VALIDATE_STATUS, &result);
-    if (result == GL_FALSE) {
-      std::vector<char> buf(1024);
-      GLsizei s;
-      GlFunctions::GetProgramInfoLog(m_rt_program, 1024, &s, buf.data());
-      GRLOGF(ERR, "Highlight program not validated: %s", buf.data());
-    }
   } else if ((type == OVERDRAW_RENDER) &&
              m_overdraw_program > -1) {
     StateTrack::useProgramGL(m_overdraw_program);
@@ -324,7 +320,10 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
   m_state_override->overrideState();
   m_texture_override->overrideTexture();
 
-  if (type == GEOMETRY_RENDER)
+  if (m_simple_shader ||
+      type == HIGHLIGHT_RENDER)
+    m_highlight_rt_override->overrideState();
+  else if (type == GEOMETRY_RENDER)
     m_geometry_rt_override->overrideState();
   else if (type == OVERDRAW_RENDER)
     m_overdraw_rt_override->overrideState();
@@ -339,17 +338,13 @@ RetraceRender::retraceRenderTarget(const StateTrack &tracker,
     m_retracer->retrace(*call);
   delete(call);
 
-  if (type == GEOMETRY_RENDER)
-    m_geometry_rt_override->restoreState();
-  else if (type == OVERDRAW_RENDER)
-    m_overdraw_rt_override->restoreState();
+  m_highlight_rt_override->restoreState();
+  m_geometry_rt_override->restoreState();
+  m_overdraw_rt_override->restoreState();
 
   m_uniform_override->restoreUniforms();
   m_state_override->restoreState();
   m_texture_override->restoreTexture();
-
-  if (blend_enabled)
-    GlFunctions::Enable(GL_BLEND);
 
   StateTrack::useProgramGL(m_original_program);
 }
