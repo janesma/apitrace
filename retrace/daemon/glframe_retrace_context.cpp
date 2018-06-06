@@ -99,7 +99,7 @@ RetraceContext::RetraceContext(RenderId current_render,
     if (new_render_buffer != current_render_buffer) {
       if (m_renders.size() > 1)  // don't record the very first draw as
                                // ending a render target
-        end_render_target_regions.push_back(RenderId(m_renders.size() - 1));
+        m_end_render_target_regions.push_back(RenderId(m_renders.size() - 1));
       current_render_buffer = new_render_buffer;
     }
   }
@@ -132,7 +132,7 @@ bool isSelected(RenderId id, const RenderSelection &s) {
 
 RenderId
 RetraceContext::lastRenderForRTRegion(RenderId render) const {
-  for (auto rt_render : end_render_target_regions)
+  for (auto rt_render : m_end_render_target_regions)
     if (rt_render > render)
       return RenderId(rt_render() - 1);
   // last render for the context is the final render for the last
@@ -191,6 +191,31 @@ normalize_image(Image *image, int rt_num) {
   }
 }
 
+void clear_all() {
+  // clear each attachment individually, in case the current context
+  // lacks support for one.  disregard errors for unsupported
+  // attachments.
+  glretrace::GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
+  glretrace::GlFunctions::Clear(GL_DEPTH_BUFFER_BIT);
+  glretrace::GlFunctions::Clear(GL_STENCIL_BUFFER_BIT);
+  glretrace::GlFunctions::Clear(GL_ACCUM_BUFFER_BIT);
+
+  GLint count;
+  glretrace::GlFunctions::GetIntegerv(GL_MAX_DRAW_BUFFERS, &count);
+  const float zero[] = {0, 0, 0, 0};
+  for (int i = 0; i < count; ++i) {
+    glretrace::GlFunctions::ClearBufferfv(GL_COLOR, i, zero);
+  }
+  float default_depth;
+  glretrace::GlFunctions::GetFloatv(GL_DEPTH_CLEAR_VALUE, &default_depth);
+  glretrace::GlFunctions::ClearBufferfv(GL_DEPTH, 0, &default_depth);
+  GLint default_stencil;
+  glretrace::GlFunctions::GetIntegerv(GL_STENCIL_CLEAR_VALUE, &default_stencil);
+  glretrace::GlFunctions::ClearBufferiv(GL_STENCIL, 0, &default_stencil);
+  // ignore errors from unsupported clears
+  glretrace::GlFunctions::GetError();
+}
+
 void
 RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
                                     const RenderSelection &selection,
@@ -219,17 +244,10 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
       return;
   }
 
-  // TODO(majanes) possibly should be clearing on the first selected
-  // render of the last selected framebuffer
   if (selection.series.front().begin == current_render->first) {
     // this is the first render of the selection
     if ((options & glretrace::CLEAR_BEFORE_RENDER)) {
-      GlFunctions::Clear(GL_COLOR_BUFFER_BIT);
-      GlFunctions::Clear(GL_DEPTH_BUFFER_BIT);
-      GlFunctions::Clear(GL_STENCIL_BUFFER_BIT);
-      GlFunctions::Clear(GL_ACCUM_BUFFER_BIT);
-      // ignore errors from unsupported clears
-      GlFunctions::GetError();
+      clear_all();
     }
   }
 
@@ -328,6 +346,10 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
         callback->onRenderTarget(selection.id, experimentCount, label, d);
         delete i;
       }
+
+      // after reporting the RT image, clear all attachments to
+      // prevent artifacts from appearing in subsequent retraces.
+      clear_all();
     }
   }
 
@@ -337,6 +359,7 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
                                                 unselected_type);
     ++current_render;
   }
+  clear_all();
 }
 
 void

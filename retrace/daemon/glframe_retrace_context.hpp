@@ -129,7 +129,7 @@ class RetraceContext {
   trace::Call *m_context_switch;
   RenderBookmark m_context_start;
   std::map<RenderId, RetraceRender*> m_renders;
-  std::vector<RenderId> end_render_target_regions;
+  std::vector<RenderId> m_end_render_target_regions;
   bool m_ends_frame;
 
   RenderId lastRenderForRTRegion(RenderId render) const;
