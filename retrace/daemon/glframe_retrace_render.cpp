@@ -76,14 +76,22 @@ isCompute(const trace::Call &call) {
 }
 
 bool
-isClear(const trace::Call &call) {
-  return (strncmp("glClearBuffer", call.name(), strlen("glClearBuffer")) == 0);
+is_clear(const trace::Call &call) {
+  if (strncmp("glClearBuffer", call.name(),
+              strlen("glClearBuffer")) == 0)
+    return true;
+  if (strncmp("glClearNamedFramebuffer", call.name(),
+              strlen("glClearNamedFramebuffer")) == 0)
+    return true;
+  if (strcmp("glClear", call.name()) == 0)
+    return true;
+  return false;
 }
 
 bool
 RetraceRender::isRender(const trace::Call &call) {
   return ((call.flags & trace::CALL_FLAG_RENDER) || isCompute(call)
-          || isClear(call));
+          || is_clear(call));
 }
 
 bool
