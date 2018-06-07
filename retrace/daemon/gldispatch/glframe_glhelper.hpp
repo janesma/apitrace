@@ -194,6 +194,10 @@ class GlFunctions {
   static void Scissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
   static void ClearStencil(GLint s);
+  static void ClearBufferfv(GLenum buffer, GLint drawbuffer,
+                            const GLfloat *value);
+  static void ClearBufferiv(GLenum buffer, GLint drawbuffer,
+                            const GLint *value);
   static void StencilOpSeparate(
       GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
   static void StencilFuncSeparate(
