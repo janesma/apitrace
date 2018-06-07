@@ -62,6 +62,7 @@ StateTrack::TrackMap StateTrack::lookup;
 StateTrack::StateTrack(OutputPoller *p)
     : m_poller(p),
       current_program(0),
+      current_pipeline(0),
       empty_shader() {
 }
 
