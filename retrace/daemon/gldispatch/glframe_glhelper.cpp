@@ -704,6 +704,28 @@ GlFunctions::GetStringi(GLenum pname, GLuint index) {
   return ((GETSTRINGI)pGetStringi)(pname, index);
 }
 
+void GlFunctions::GetGlExtensions(std::string &extensions)
+{
+	const GLubyte *ext;
+	GLint count = 0;
+
+	extensions.clear();
+
+	ext = GlFunctions::GetString(GL_NUM_EXTENSIONS);
+	if (ext) {
+		extensions = (const char *)ext;
+		return;
+	}
+
+	GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
+
+	for (int i = 0; i < count; i++) {
+		ext = GlFunctions::GetStringi(GL_EXTENSIONS, i);
+		extensions += " ";
+		extensions += (const char *)ext;
+	}
+}
+
 void GlFunctions::GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
                                         GLchar *queryName, GLuint *dataSize,
                                         GLuint *noCounters, GLuint *noInstances,

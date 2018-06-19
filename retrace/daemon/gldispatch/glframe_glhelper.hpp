@@ -88,6 +88,7 @@ class GlFunctions {
   static void GetIntegerv(GLenum pname, GLint *params);
   static const GLubyte *GetString(GLenum pname);
   static const GLubyte *GetStringi(GLenum pname, GLuint index);
+  static void GetGlExtensions(std::string &extensions);
   static void GetPerfQueryInfoINTEL(GLuint queryId, GLuint queryNameLength,
                                     GLchar *queryName, GLuint *dataSize,
                                     GLuint *noCounters, GLuint *noInstances,
