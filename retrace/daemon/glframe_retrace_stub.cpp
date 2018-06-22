@@ -205,7 +205,8 @@ class RetraceRenderTargetRequest : public IRetraceRequest {
       auto rt = response.rendertarget();
       if (rt.selection_count() == (unsigned int)-1) {
         OnFrameRetrace::uvec v;
-        if (!success) {
+        if (!success &&
+            m_proto_msg.rendertarget().type() == ApiTrace::NORMAL_RENDER) {
           // error case: send an empty image so the UI can display a
           // default image.
           m_callback->onRenderTarget(*m_sel_count,

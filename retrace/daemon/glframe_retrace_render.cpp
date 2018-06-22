@@ -255,15 +255,20 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
                                     0, "false");
 
   // configure wireframe override for render targets
-  const StateKey wireframe_key("Primitive/Polygon", "GL_POLYGON_MODE");
-  const StateKey width("Primitive/Line", "GL_LINE_WIDTH");
-  const StateKey depth("Fragment/Depth", "GL_DEPTH_TEST");
-  m_geometry_rt_override->setState(wireframe_key, 0, "GL_LINE");
-  m_geometry_rt_override->setState(wireframe_key, 1, "GL_LINE");
-  m_geometry_rt_override->setState(width, 0, "1.5");
-  m_geometry_rt_override->setState(depth, 0, "false");
-  m_geometry_rt_override->setState(StateKey("Fragment", "GL_BLEND"),
-                                   0, "false");
+  GL::GetError();
+  GLint polygon_mode_supported;
+  GlFunctions::GetIntegerv(GL_POLYGON_MODE, &polygon_mode_supported);
+  if (GL_NO_ERROR == GL::GetError()) {
+    const StateKey wireframe_key("Primitive/Polygon", "GL_POLYGON_MODE");
+    const StateKey width("Primitive/Line", "GL_LINE_WIDTH");
+    const StateKey depth("Fragment/Depth", "GL_DEPTH_TEST");
+    m_geometry_rt_override->setState(wireframe_key, 0, "GL_LINE");
+    m_geometry_rt_override->setState(wireframe_key, 1, "GL_LINE");
+    m_geometry_rt_override->setState(width, 0, "1.5");
+    m_geometry_rt_override->setState(depth, 0, "false");
+    m_geometry_rt_override->setState(StateKey("Fragment", "GL_BLEND"),
+                                     0, "false");
+  }
 
   // configure the overdraw override for render targets
   const StateKey blend_color("Fragment", "GL_BLEND_COLOR");
@@ -272,7 +277,9 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
   m_overdraw_rt_override->setState(blend_color, 2, "0.15");
   m_overdraw_rt_override->setState(blend_color, 3, "0.0");
   m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND"), 0, "true");
-  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND_DST"),
+  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND_DST_ALPHA"),
+                                   0, "GL_ONE");
+  m_overdraw_rt_override->setState(StateKey("Fragment", "GL_BLEND_DST_RGB"),
                                    0, "GL_ONE");
   m_overdraw_rt_override->setState(StateKey("Fragment",
                                             "GL_BLEND_EQUATION_ALPHA"),

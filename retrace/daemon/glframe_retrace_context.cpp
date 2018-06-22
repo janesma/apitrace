@@ -56,6 +56,8 @@ using glretrace::StateTrack;
 using glretrace::WARN;
 using image::Image;
 
+static int geometry_render_supported = -1;
+
 RetraceContext::RetraceContext(RenderId current_render,
                                unsigned int tex2x2,
                                trace::AbstractParser *parser,
@@ -63,6 +65,15 @@ RetraceContext::RetraceContext(RenderId current_render,
                                StateTrack *tracker)
     : m_parser(parser), m_retracer(retracer),
       m_context_switch(NULL), m_ends_frame(false) {
+
+  if (geometry_render_supported == -1) {
+    GlFunctions::GetIntegerv(GL_POLYGON_MODE, &geometry_render_supported);
+    if (GL_NO_ERROR == GL::GetError())
+      geometry_render_supported = 1;
+    else
+      geometry_render_supported = 0;
+  }
+
   m_parser->getBookmark(m_start_bookmark);
   trace::Call *call = parser->parse_call();
   if (ThreadContext::changesContext(*call))
@@ -225,6 +236,9 @@ RetraceContext::retraceRenderTarget(ExperimentId experimentCount,
                                     OnFrameRetrace *callback) const {
   if (m_renders.empty())
     return;
+  if ((type == GEOMETRY_RENDER) && (!geometry_render_supported))
+    return;
+
   auto current_render = m_renders.begin();
 
   // for highlight renders, we only want to highlight what is
