@@ -342,25 +342,25 @@ PerfMetricGroup::publish(MetricId metric,
     GlFunctions::GetPerfMonitorCounterDataAMD(
             extant_monitor.second, GL_PERFMON_RESULT_AMD, data_size,
             reinterpret_cast<uint *>(buf.data()), &bytes_written);
-      const unsigned char *buf_ptr = buf.data();
-      const unsigned char *buf_end = buf_ptr + bytes_written;
-      while (buf_ptr < buf_end) {
-        const GLuint *group = reinterpret_cast<const GLuint *>(buf_ptr);
-        const GLuint *counter = group + 1;
-        buf_ptr += 2*sizeof(GLuint);
-        assert(*group == m_group_id);
-        if (metric != ALL_METRICS_IN_GROUP)
-          assert(metric.counter() == *counter);
-        MetricId parsed_metric(*group, *counter);
-        assert(m_metrics.find(parsed_metric) != m_metrics.end());
+    const unsigned char *buf_ptr = buf.data();
+    const unsigned char *buf_end = buf_ptr + bytes_written;
+    while (buf_ptr < buf_end) {
+      const GLuint *group = reinterpret_cast<const GLuint *>(buf_ptr);
+      const GLuint *counter = group + 1;
+      buf_ptr += 2*sizeof(GLuint);
+      assert(*group == m_group_id);
+      if (metric != ALL_METRICS_IN_GROUP)
+        assert(metric.counter() == *counter);
+      MetricId parsed_metric(*group, *counter);
+      assert(m_metrics.find(parsed_metric) != m_metrics.end());
 
-        float value;
-        int bytes_read;
-        m_metrics[parsed_metric]->getMetric(buf, &value, &bytes_read);
-        (*out_metrics)[parsed_metric][extant_monitor.first] = value;
-        buf_ptr += bytes_read;
-      }
-      m_free_monitors.push_back(extant_monitor.second);
+      float value;
+      int bytes_read;
+      m_metrics[parsed_metric]->getMetric(buf, &value, &bytes_read);
+      (*out_metrics)[parsed_metric][extant_monitor.first] = value;
+      buf_ptr += bytes_read;
+    }
+    m_free_monitors.push_back(extant_monitor.second);
   }
   m_extant_monitors.clear();
 }
