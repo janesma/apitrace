@@ -100,6 +100,7 @@ class PerfMetricGroup : public NoCopy, NoAssign {
   void selectMetric(MetricId metric);
 
  private:
+  void selectMetric(MetricId metric, bool enabled);
   std::string m_group_name;
   const int m_group_id, m_offset;
   std::vector<unsigned char> m_data_buf;
@@ -279,15 +280,31 @@ PerfMetricGroup::metrics(std::vector<MetricDescription> *m) const {
 
 void
 PerfMetricGroup::selectMetric(MetricId metric) {
+  selectMetric(m_metric, false);
   m_metric = metric;
   assert(m_extant_monitors.empty());
-  uint counter = m_metric.counter();
-  for (auto i : m_free_monitors)
-    GlFunctions::SelectPerfMonitorCountersAMD(i, true,
-                                              m_group_id, 1,
-                                              &counter);
+  selectMetric(m_metric, true);
+}
+
+void
+PerfMetricGroup::selectMetric(MetricId metric, bool enabled) {
+  std::vector<uint> counters;
+  if (metric == ALL_METRICS_IN_GROUP) {
+    for (auto metric : m_metrics) {
+      counters.push_back(metric.first.counter());
+    }
+  } else {
+    counters.push_back(metric.counter());
+  }
+  for (auto i : m_free_monitors) {
+    GlFunctions::SelectPerfMonitorCountersAMD(
+        i, enabled,
+        m_group_id, counters.size(),
+        counters.data());
+  }
   assert(!GL::GetError());
 }
+
 
 void
 PerfMetricGroup::begin(RenderId render) {
@@ -298,19 +315,7 @@ PerfMetricGroup::begin(RenderId render) {
     GlFunctions::GenPerfMonitorsAMD(m_free_monitors.size(),
                                     m_free_monitors.data());
     assert(!GL::GetError());
-    std::vector<uint> counters_to_activate;
-    if (m_metric == ALL_METRICS_IN_GROUP) {
-      for (auto metric : m_metrics) {
-        counters_to_activate.push_back(metric.first.counter());
-      }
-    } else {
-      counters_to_activate.push_back(m_metric.counter());
-    }
-    for (auto i : m_free_monitors)
-      GlFunctions::SelectPerfMonitorCountersAMD(
-          i, GL_TRUE,
-          m_group_id, counters_to_activate.size(),
-          counters_to_activate.data());
+    selectMetric(m_metric, true);
   }
   assert(!m_free_monitors.empty());
   GlFunctions::BeginPerfMonitorAMD(m_free_monitors.back());
