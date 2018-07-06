@@ -72,7 +72,7 @@ class PerfMetric : public NoCopy, NoAssign {
   MetricId id() const;
   const std::string &name() const;
   const std::string &description() const;
-  void getMetric(const std::vector<unsigned char> &data,
+  void getMetric(const unsigned char *p_value,
                  float *val,
                  int *bytes_read) const;
  private:
@@ -358,7 +358,7 @@ PerfMetricGroup::publish(MetricId metric,
 
       float value;
       int bytes_read;
-      m_metrics[parsed_metric]->getMetric(buf, &value, &bytes_read);
+      m_metrics[parsed_metric]->getMetric(buf_ptr, &value, &bytes_read);
       (*out_metrics)[parsed_metric][extant_monitor.first] = value;
       buf_ptr += bytes_read;
     }
@@ -412,21 +412,11 @@ PerfMetric::description() const {
 }
 
 void
-PerfMetric::getMetric(const std::vector<unsigned char> &data,
+PerfMetric::getMetric(const unsigned char *p_value,
                       float *val,
                       int *bytes_read) const {
-  int buf_index = 0;
-  const GLuint *group = reinterpret_cast<const GLuint*>(&data[buf_index]);
-  buf_index += sizeof(GLuint);
-  assert(*group == m_group_id);
-  const GLuint *metric = reinterpret_cast<const GLuint*>(&data[buf_index]);
-  buf_index += sizeof(GLuint);
-  assert(*metric == m_counter_num);
-  const unsigned char *p_value = &data[buf_index];
-  const int header_size = 2 * sizeof(GLuint);
   switch (m_counter_type) {
   case kInt64Counter: {
-    assert(data.size() == header_size + sizeof(int64_t));
     uint64_t uval = *reinterpret_cast<const uint64_t *>(p_value);
     *val = static_cast<float>(uval);
     *bytes_read = sizeof(uint64_t);
@@ -434,13 +424,11 @@ PerfMetric::getMetric(const std::vector<unsigned char> &data,
   }
   case kPercentCounter:
   case kFloatCounter: {
-    assert(data.size() == header_size + sizeof(float));
     *val = *reinterpret_cast<const float *>(p_value);
     *bytes_read = sizeof(float);
     break;
   }
   case kUnsignedCounter: {
-    assert(data.size() == header_size + sizeof(uint32_t));
     uint32_t uval = *reinterpret_cast<const uint32_t *>(p_value);
     *val = static_cast<float>(uval);
     *bytes_read = sizeof(uint32_t);
