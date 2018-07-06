@@ -369,8 +369,6 @@ PerfMetricGroup::publish(MetricId metric,
 
 void
 PerfMetricGroup::end(RenderId render) {
-  if (m_metric == ALL_METRICS_IN_GROUP)
-    return;
   auto i = m_extant_monitors.find(render);
   if (i == m_extant_monitors.end())
     return;
@@ -578,10 +576,6 @@ PerfMetricsAMD::beginContext() {
 void
 PerfMetricsAMD::endContext() {
   if (m_current_context) {
-    m_current_context->end();
-    // possibly called end twice on the same monitor
-    // TODO(majanes): fix this -- end() should only be called when needed
-    GL::GetError();
     m_current_context->publish(&m_data);
   }
   m_current_context = NULL;
