@@ -191,7 +191,7 @@ PerfMetricsContextAMD::PerfMetricsContextAMD(OnFrameRetrace *cb)
       for (auto &d : metrics) {
         assert(known_metrics.find(d.name) == known_metrics.end());
         known_metrics[d.name] = d;
-        metric_map[d.id] = group_index;
+        metric_map[d.id] = m_groups.size() - 1;
       }
       offset += max_active_counters;
     }
