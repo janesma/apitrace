@@ -247,8 +247,10 @@ PerfMetricGroup::PerfMetricGroup(int group_id, int offset)
                                          &max_active_counters,
                                          num_counters, counters.data());
   assert(!GL::GetError());
-  while (offset < max_active_counters) {
-    PerfMetric *p = new PerfMetric(m_group_id, counters[offset]);
+  for (int i = 0;
+       (i < max_active_counters) && (i + offset < num_counters);
+       i++) {
+    PerfMetric *p = new PerfMetric(m_group_id, counters[offset + i]);
     m_metrics[p->id()] = p;
   }
 }
