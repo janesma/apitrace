@@ -118,8 +118,15 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
         std::getline(line_split, line, '\n');
         matches = sscanf(line.c_str(),
                          "SIMD%d", &wide);
-        assert(matches > 0);
-        current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
+        if (!matches) {
+          /* for non-intel drivers we won't have this line, just re-
+           * use fs_simd8 for the one possible FS mode:
+           */
+          current_target = &fs_simd8;
+        } else {
+          assert(matches > 0);
+          current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
+        }
 
         *current_target += line_copy + "\n";
       }
@@ -306,6 +313,7 @@ StdErrRedirect::~StdErrRedirect() {
 void
 StdErrRedirect::init() {
   setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
+  setenv("FD_SHADER_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
   setenv("vblank_mode", "0", 1);
   setenv("MESA_GLSL_CACHE_DISABLE", "1", 1);
   pipe2(out_pipe, O_NONBLOCK);
