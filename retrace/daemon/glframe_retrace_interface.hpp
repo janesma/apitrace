@@ -220,6 +220,7 @@ struct ShaderAssembly {
   std::string ir;
   std::string ssa;
   std::string nir;
+  std::string simd;
   std::string simd8;
   std::string simd16;
   std::string simd32;

@@ -896,6 +896,9 @@ StateTrack::onAssembly(ShaderType st, AssemblyType at,
   }
 
   switch (at) {
+    case kSimd:
+      sa->simd = assembly;
+      break;
     case kSimd8:
       sa->simd8 = assembly;
       break;

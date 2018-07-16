@@ -109,6 +109,7 @@ message ShaderAssembly {
   required string push_analysis = 15;
   required string code_hoisting = 16;
   required string code_sinking = 17;
+  required string simd = 18;
 }
 
 message ShaderAssemblyResponse {

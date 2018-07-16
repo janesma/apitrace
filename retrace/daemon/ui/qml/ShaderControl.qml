@@ -101,6 +101,24 @@ Item {
     }
 
     Component {
+        id: simdTab
+        ScrollView {
+            Flickable {
+                anchors.fill: parent
+                contentWidth: simd.width; contentHeight: simd.height
+                clip: true
+                TextEdit {
+                    id: simd
+                    font.family: "Monospace"
+                    readOnly: true
+                    selectByMouse: true
+                    text: model.simd
+                }
+            }
+        }
+    }
+    
+    Component {
         id: simd8Tab
         ScrollView {
             Flickable {
@@ -371,6 +389,9 @@ Item {
             }
             if (model.nirFinal != "") {
                 view.addTab("NIR", nirTab);
+            }
+            if (model.simd != "") {
+                view.addTab("Simd", simdTab);
             }
             if (model.simd8 != "") {
                 view.addTab("Simd8", simd8Tab);

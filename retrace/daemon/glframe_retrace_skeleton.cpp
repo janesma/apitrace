@@ -114,6 +114,7 @@ void set_shader_assembly(const ShaderAssembly &assembly,
   response->set_ir(assembly.ir);
   response->set_nir_ssa(assembly.ssa);
   response->set_nir_final(assembly.nir);
+  response->set_simd(assembly.simd);
   response->set_simd8(assembly.simd8);
   response->set_simd16(assembly.simd16);
   response->set_simd32(assembly.simd32);

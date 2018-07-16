@@ -80,6 +80,7 @@ enum AssemblyType {
   kPushAnalysis,
   kCodeHoisting,
   kCodeSinking,
+  kSimd,
   kSimd8,
   kSimd16,
   kSimd32,

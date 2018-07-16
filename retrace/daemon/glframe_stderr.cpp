@@ -42,7 +42,7 @@ StdErrRedirect::StdErrRedirect() {
 
 void
 StdErrRedirect::poll(int current_program, StateTrack *cb) {
-  std::string fs_ir, fs_simd8, fs_simd16, vs_ir, vs_simd8, line,
+  std::string fs_ir, fs_simd, fs_simd8, fs_simd16, vs_ir, vs_simd8, line,
       fs_nir_ssa, fs_nir_final, vs_nir_ssa, vs_nir_final,
       tess_eval_ir, tess_eval_ssa, tess_eval_final, tess_eval_simd8,
       tess_control_ir, tess_control_ssa, tess_control_final, tess_control_simd8,
@@ -122,9 +122,8 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
           /* for non-intel drivers we won't have this line, just re-
            * use fs_simd8 for the one possible FS mode:
            */
-          current_target = &fs_simd8;
+          current_target = &fs_simd;
         } else {
-          assert(matches > 0);
           current_target = ((wide == 16) ? &fs_simd16 : &fs_simd8);
         }
 
@@ -255,6 +254,8 @@ StdErrRedirect::poll(int current_program, StateTrack *cb) {
     cb->onAssembly(kFragment, kNirSsa, fs_nir_ssa);
   if (fs_nir_final.length() > 0)
     cb->onAssembly(kFragment, kNirFinal, fs_nir_final);
+  if (fs_simd.length() > 0)
+    cb->onAssembly(kFragment, kSimd, fs_simd);
   if (fs_simd8.length() > 0)
     cb->onAssembly(kFragment, kSimd8, fs_simd8);
   if (fs_simd16.length() > 0)

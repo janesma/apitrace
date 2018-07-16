@@ -269,6 +269,7 @@ void set_shader_assembly(const ApiTrace::ShaderAssembly &response,
   assembly->ir = response.ir();
   assembly->ssa = response.nir_ssa();
   assembly->nir = response.nir_final();
+  assembly->simd = response.simd();
   assembly->simd8 = response.simd8();
   assembly->simd16 = response.simd16();
   assembly->simd32 = response.simd32();
