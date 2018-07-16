@@ -144,7 +144,4 @@ endif ()
 add_subdirectory (context)
 add_subdirectory (server)
 add_subdirectory (gldispatch)
-
-if(EXISTS ${CMAKE_SOURCE_DIR}/retrace/daemon/amd_gpa/GPA)
-  add_subdirectory(amd_gpa)
-endif()
+add_subdirectory(amd_gpa)

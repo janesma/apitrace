@@ -44,13 +44,9 @@ set (DAEMON_TEST_OS_LIBS
   )
 endif()
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/retrace/daemon/amd_gpa/GPA)
-  set (AMD_GPA_LIB amdgpa)
-endif()
-
 target_link_libraries(retrace_daemon_test
   retrace_daemon
-  ${AMD_GPA_LIB}
+  amdgpa
   glretrace_common
   retrace_daemon
   retrace_gldispatch
