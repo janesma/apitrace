@@ -687,8 +687,18 @@ FrameRetraceModel::retrace_state() {
 }
 
 void
+FrameRetraceModel::onTexture(SelectionId selectionCount,
+                             ExperimentId experimentCount,
+                             RenderId renderId,
+                             TextureKey binding,
+                             const std::vector<TextureData> &images) {
+  assert(false);
+}
+
+void
 FrameRetraceModel::revertExperiments() {
   m_retrace.revertExperiments();
   m_experiment.onRevert();
   m_selection->experiment();
 }
+

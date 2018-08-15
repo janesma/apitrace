@@ -547,3 +547,10 @@ FrameRetrace::texture2x2(const RenderSelection &selection,
   for (auto i : m_contexts)
     i->texture2x2(selection, texture_2x2);
 }
+
+void
+FrameRetrace::retraceTextures(const RenderSelection &selection,
+                              ExperimentId experimentCount,
+                              OnFrameRetrace *callback) {
+  assert(false);
+}

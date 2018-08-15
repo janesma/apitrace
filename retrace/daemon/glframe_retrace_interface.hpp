@@ -276,6 +276,29 @@ struct StateKey {
   }
 };
 
+enum TextureTarget {
+  kTexture2d,
+  kTextureCube,
+  kTexture3d,
+  kTexture2dArray
+};
+struct TextureKey {
+  int unit;  // from zero up to  GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS minus one.
+  TextureTarget target;
+  int offset;  // for cube maps, 0-5.  For 3d/2dArray, the slice of the image
+};
+
+struct TextureData {
+  // from https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glTexImage2D.xhtml
+  int level;
+  std::string internalFormat;
+  int width;
+  int height;
+  std::string format;
+  std::string type;
+  std::vector<unsigned char> image_data;
+};
+
 // Serializable asynchronous callbacks made from remote
 // implementations of IFrameRetrace.
 class OnFrameRetrace {
@@ -327,6 +350,11 @@ class OnFrameRetrace {
                        RenderId renderId,
                        StateKey item,
                        const std::vector<std::string> &value) = 0;
+  virtual void onTexture(SelectionId selectionCount,
+                         ExperimentId experimentCount,
+                         RenderId renderId,
+                         TextureKey binding,
+                         const std::vector<TextureData> &images) = 0;
 };
 
 // Serializable asynchronous retrace requests.
@@ -396,6 +424,9 @@ class IFrameRetrace {
                         const StateKey &item,
                         int offset,
                         const std::string &value) = 0;
+  virtual void retraceTextures(const RenderSelection &selection,
+                               ExperimentId experimentCount,
+                               OnFrameRetrace *callback) = 0;
   virtual void revertExperiments() = 0;
 };
 

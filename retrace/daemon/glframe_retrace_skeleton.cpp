@@ -693,3 +693,12 @@ FrameRetraceSkeleton::onState(SelectionId selectionCount,
     response->add_value(i);
   writeResponse(m_socket, proto_response, &m_buf);
 }
+
+void
+FrameRetraceSkeleton::onTexture(SelectionId selectionCount,
+                                ExperimentId experimentCount,
+                                RenderId renderId,
+                                TextureKey binding,
+                                const std::vector<TextureData> &images) {
+  assert(false);
+}

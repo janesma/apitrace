@@ -102,6 +102,11 @@ class FrameRetraceSkeleton : public Thread,
                        RenderId renderId,
                        StateKey item,
                        const std::vector<std::string> &value);
+  virtual void onTexture(SelectionId selectionCount,
+                         ExperimentId experimentCount,
+                         RenderId renderId,
+                         TextureKey binding,
+                         const std::vector<TextureData> &images);
 
  protected:
   bool m_force_upload;  // for unit test

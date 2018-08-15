@@ -127,6 +127,9 @@ class FrameRetrace : public IFrameRetrace {
                 const StateKey &item,
                 int offset,
                 const std::string &value);
+  void retraceTextures(const RenderSelection &selection,
+                       ExperimentId experimentCount,
+                       OnFrameRetrace *callback);
   void revertExperiments();
 
  private:

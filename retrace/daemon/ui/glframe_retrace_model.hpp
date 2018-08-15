@@ -191,6 +191,11 @@ class FrameRetraceModel : public QObject,
                RenderId renderId,
                StateKey item,
                const std::vector<std::string> &value);
+  void onTexture(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 TextureKey binding,
+                 const std::vector<TextureData> &images);
 
   int frameCount() const { ScopedLock s(m_protect); return m_frame_count; }
   float maxMetric() const { ScopedLock s(m_protect); return m_max_metric; }

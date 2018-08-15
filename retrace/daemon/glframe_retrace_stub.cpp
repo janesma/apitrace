@@ -1510,3 +1510,10 @@ FrameRetraceStub::texture2x2(const RenderSelection &selection,
                              bool texture_2x2) {
   m_thread->push(new Texture2x2Request(selection, texture_2x2));
 }
+
+void
+FrameRetraceStub::retraceTextures(const RenderSelection &selection,
+                                  ExperimentId experimentCount,
+                                  OnFrameRetrace *callback) {
+  assert(false);
+}

@@ -133,10 +133,15 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                          UniformDimension dimension,
                  const std::vector<unsigned char> &data) { assert(false); }
   void onState(SelectionId selectionCount,
-                       ExperimentId experimentCount,
-                       RenderId renderId,
-                       StateKey item,
+               ExperimentId experimentCount,
+               RenderId renderId,
+               StateKey item,
                const std::vector<std::string> &value) { assert(false); }
+  void onTexture(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 TextureKey binding,
+                 const std::vector<TextureData> &images) { assert(false); }
 
   void filter(const QString& f);
 
