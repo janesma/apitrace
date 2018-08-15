@@ -53,6 +53,8 @@ using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
 using glretrace::StateKey;
+using glretrace::TextureData;
+using glretrace::TextureKey;
 using glretrace::UniformDimension;
 using glretrace::UniformType;
 
@@ -120,7 +122,22 @@ class NullCallback : public OnFrameRetrace {
                RenderId renderId,
                StateKey item,
                const std::vector<std::string> &value) {}
+  void onTexture(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 TextureKey binding,
+                 const std::vector<TextureData> &images) {
+    ++textureCallBacks;
+    // TODO(Nick) record the data in the callback so it can be
+    // verified in the test harness
+  }
+
+  NullCallback() : renderTargetCount(0),
+                   textureCallBacks(0),
+                   file_error(false) {}
+
   int renderTargetCount;
+  int textureCallBacks;
   SelectionId last_selection;
   std::string compile_error;
   std::vector<std::string> fs, vs;
@@ -303,4 +320,19 @@ TEST_F(RetraceTest, ShaderAssembly) {
   EXPECT_EQ(cb.fs.size(), 2);
   EXPECT_EQ(cb.fs[0], expected);
   EXPECT_EQ(cb.fs[1], expected);
+}
+
+TEST_F(RetraceTest, Texture) {
+  retrace::setUp();
+  GlFunctions::Init();
+
+  NullCallback cb;
+  FrameRetrace rt;
+  get_md5(test_file, &md5, &fileSize);
+  rt.openFile(test_file, md5, fileSize, 7, 1, &cb);
+  RenderSelection selection;
+  selection.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
+  EXPECT_EQ(cb.textureCallBacks, 0);
+  rt.retraceTextures(selection, ExperimentId(0), &cb);
+  EXPECT_GT(cb.textureCallBacks, 0);
 }

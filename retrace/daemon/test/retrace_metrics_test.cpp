@@ -92,6 +92,11 @@ class MetricsCallback : public OnFrameRetrace {
                RenderId renderId,
                StateKey item,
                const std::vector<std::string> &value) {}
+  void onTexture(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 TextureKey binding,
+                 const std::vector<TextureData> &images) {}
   std::vector<MetricId> ids;
   std::vector<std::string> names;
   std::vector<MetricSeries> data;

@@ -57,6 +57,8 @@ using glretrace::ServerSocket;
 using glretrace::ShaderAssembly;
 using glretrace::StateKey;
 using glretrace::Socket;
+using glretrace::TextureKey;
+using glretrace::TextureData;
 using glretrace::UniformDimension;
 using glretrace::UniformType;
 
@@ -121,6 +123,9 @@ class FileTransfer : public IFrameRetrace {
                 const StateKey &item,
                 int offset,
                 const std::string &value) {}
+  void retraceTextures(const RenderSelection &selection,
+                       ExperimentId experimentCount,
+                       OnFrameRetrace *callback) {}
   void revertExperiments() {}
 };
 
@@ -175,6 +180,11 @@ class FileTransferCB : public OnFrameRetrace {
                RenderId renderId,
                StateKey item,
                const std::vector<std::string> &value) {}
+  void onTexture(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId renderId,
+                 TextureKey binding,
+                 const std::vector<TextureData> &images) {}
   bool m_needUpload;
 };
 
