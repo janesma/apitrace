@@ -144,17 +144,10 @@ class PerfMetricsContextAMD : public NoCopy, NoAssign {
 
 PerfMetricsContextAMD::PerfMetricsContextAMD(OnFrameRetrace *cb)
   : current_group(NULL) {
-  GLint count;
-  bool has_metrics = false;
-  GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
-  for (int i = 0; i < count; ++i) {
-    const GLubyte *name = GlFunctions::GetStringi(GL_EXTENSIONS, i);
-    if (strcmp((const char*)name, "GL_AMD_performance_monitor") == 0) {
-      has_metrics = true;
-      break;
-    }
-  }
-  if (!has_metrics)
+  std::string extensions;
+
+  GlFunctions::GetGlExtensions(&extensions);
+  if (extensions.find("GL_AMD_performance_monitor") == std::string::npos)
     return;
 
   int num_groups;

@@ -28,6 +28,7 @@
 #include "glframe_metrics.hpp"
 
 #include <string.h>
+#include <string>
 
 #include "glframe_metrics_intel.hpp"
 #include "glframe_metrics_amd.hpp"
@@ -38,19 +39,17 @@ using glretrace::PerfMetrics;
 using glretrace::OnFrameRetrace;
 
 PerfMetrics *PerfMetrics::Create(OnFrameRetrace *callback) {
-  GLint count;
-  GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
+  std::string extensions;
 
   const GLubyte *renderer = GlFunctions::GetString(GL_RENDERER);
   if (strstr((const char*)renderer, "AMD") != NULL)
       return new glretrace::PerfMetricsAMDGPA(callback);
 
-  for (int i = 0; i < count; ++i) {
-    const GLubyte *name = GlFunctions::GetStringi(GL_EXTENSIONS, i);
-    if (strcmp((const char*)name, "GL_AMD_performance_monitor") == 0)
-      return new PerfMetricsAMD(callback);
-    if (strcmp((const char*)name, "GL_INTEL_performance_query") == 0)
-      return new PerfMetricsIntel(callback);
-  }
+  GlFunctions::GetGlExtensions(&extensions);
+  if (extensions.find("GL_AMD_performance_monitor") != std::string::npos)
+    return new PerfMetricsAMD(callback);
+  if (extensions.find("GL_INTEL_performance_query") != std::string::npos)
+    return new PerfMetricsIntel(callback);
+
   return new glretrace::DummyMetrics();
 }
