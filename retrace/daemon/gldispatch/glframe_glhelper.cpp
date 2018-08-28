@@ -713,7 +713,7 @@ GlFunctions::GetGlExtensions(std::string *extensions) {
 
   extensions->clear();
 
-  ext = GlFunctions::GetString(GL_NUM_EXTENSIONS);
+  ext = GlFunctions::GetString(GL_EXTENSIONS);
   if (ext) {
     *extensions = (const char *)ext;
     return;
