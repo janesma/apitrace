@@ -25,12 +25,15 @@
  *   Mark Janes <mark.a.janes@intel.com>
  **************************************************************************/
 
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include <string>
 #include <vector>
 #include "glframe_state.hpp"
 
 namespace glretrace {
-
+class Context;
 class StdErrRedirect : public OutputPoller {
  public:
   StdErrRedirect();
@@ -75,6 +78,25 @@ class WinShaders : public OutputPoller {
  private:
   std::string m_dump_dir;
   std::string m_dump_pattern;
+};
+
+class ShaderCallback : public OutputPoller {
+ public:
+  explicit ShaderCallback(StateTrack *cb) : m_cb(cb) {}
+  void poll(int current_program, StateTrack *cb) {}
+  void pollBatch(SelectionId selectionCount,
+                 ExperimentId experimentCount,
+                 RenderId id,
+                 OnFrameRetrace *cb) {}
+  void flush() {}
+  ~ShaderCallback();
+  void init();
+  void _callback(GLenum source, GLenum type, GLuint id,
+                 GLenum severity, GLsizei length,
+                 const GLchar *message) const;
+ private:
+  StateTrack *m_cb;
+  std::vector<Context *> m_known_contexts;
 };
 
 }  // namespace glretrace

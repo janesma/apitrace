@@ -34,8 +34,13 @@
 
 #include "glframe_stderr.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_glhelper.hpp"
+#include "glretrace.hpp"
 
+using glretrace::GlFunctions;
+using glretrace::ShaderCallback;
 using glretrace::StdErrRedirect;
+using glretrace::getCurrentContext;
 
 StdErrRedirect::StdErrRedirect() {
 }
@@ -350,3 +355,44 @@ StdErrRedirect::flush() {
     bytes = read(out_pipe[0], buf.data(), buf.size() - 1);
   }
 }
+void shader_callback(GLenum source, GLenum type, GLuint id,
+                     GLenum severity, GLsizei length, const GLchar *message,
+                     const void *userParam) {
+  const ShaderCallback* s = reinterpret_cast<const ShaderCallback*>(userParam);
+  s->_callback(source, type, id, severity, length, message);
+}
+
+
+void
+ShaderCallback::init() {
+  // only initialize debug output for new contexts
+  Context *c = getCurrentContext();
+  for (auto i : m_known_contexts)
+    if (c == i)
+      return;
+  m_known_contexts.push_back(c);
+
+  // turn off all messages
+  GlFunctions::DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE,
+                                   0, NULL, GL_FALSE);
+  // turn on shader messages
+  GlFunctions::DebugMessageControl(GL_DEBUG_SOURCE_SHADER_COMPILER,
+                                   GL_DEBUG_TYPE_OTHER,
+                                   GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL,
+                                   GL_TRUE);
+
+  GlFunctions::DebugMessageCallback(shader_callback, this);
+  GlFunctions::Enable(GL_DEBUG_OUTPUT);
+  // we want to handle this gracefully
+  // glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+}
+
+
+void
+ShaderCallback::_callback(GLenum source, GLenum type, GLuint id,
+                          GLenum severity, GLsizei length,
+                          const GLchar *message) const {
+  std::cout << message;
+}
+
+ShaderCallback::~ShaderCallback() {}
