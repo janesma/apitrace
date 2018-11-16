@@ -56,6 +56,7 @@ struct RenderBookmark {
 class PerfMetrics;
 class RetraceRender;
 class RetraceContext;
+class ShaderCallback;
 class FrameRetrace : public IFrameRetrace {
  public:
   FrameRetrace();
@@ -136,8 +137,9 @@ class FrameRetrace : public IFrameRetrace {
 
   RenderBookmark frame_start;
   std::vector<RetraceContext*> m_contexts;
+  ShaderCallback *m_shaderCallback;
   StateTrack m_tracker;
-  PerfMetrics * m_metrics;
+  PerfMetrics *m_metrics;
 
   // each entry is the last render in an RT region
   std::vector<RenderId> render_target_regions;

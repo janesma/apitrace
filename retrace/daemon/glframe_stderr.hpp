@@ -29,6 +29,7 @@
 #include <GL/glext.h>
 
 #include <string>
+#include <map>
 #include <vector>
 #include "glframe_state.hpp"
 
@@ -82,21 +83,44 @@ class WinShaders : public OutputPoller {
 
 class ShaderCallback : public OutputPoller {
  public:
-  explicit ShaderCallback(StateTrack *cb) : m_cb(cb) {}
-  void poll(int current_program, StateTrack *cb) {}
+  ShaderCallback();
+  void poll(int current_program, StateTrack *cb);
   void pollBatch(SelectionId selectionCount,
                  ExperimentId experimentCount,
                  RenderId id,
                  OnFrameRetrace *cb) {}
   void flush() {}
   ~ShaderCallback();
-  void init();
+  void init() {}
+  void enable_debug_env();
+  void enable_debug_context();
   void _callback(GLenum source, GLenum type, GLuint id,
                  GLenum severity, GLsizei length,
-                 const GLchar *message) const;
+                 const GLchar *message);
+
  private:
-  StateTrack *m_cb;
+  typedef void (ShaderCallback::*handler)(GLsizei length,
+                                          const GLchar *message);
+
+  void find_handler(GLuint id, GLsizei length,
+                    const GLchar *message);
+  void null_handler(GLsizei length, const GLchar *message);
+  void native_handler(GLsizei length, const GLchar *message);
+  void ir_handler(GLsizei length, const GLchar *message);
+  void nir_handler(GLsizei length, const GLchar *message);
+  void nir_final_handler(GLsizei length, const GLchar *message);
+  bool handle_partial_message(GLsizei length, const GLchar *message);
+
+  std::map<GLuint, handler> m_handlers;
   std::vector<Context *> m_known_contexts;
+  std::map<ShaderType,
+           std::map<AssemblyType, std::string>
+           > m_cached_assemblies;
+  int m_current_program;
+  StateTrack *m_cb;
+  std::map<std::string, handler> m_tokens;
+  GLint m_max_len;
+  mutable std::string m_buf;
 };
 
 }  // namespace glretrace

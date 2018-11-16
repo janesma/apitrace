@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -321,12 +322,9 @@ StdErrRedirect::init() {
   setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
   setenv("FD_SHADER_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
   setenv("vblank_mode", "0", 1);
-  setenv("MESA_GLSL_CACHE_DISABLE", "1", 1);
-  pipe2(out_pipe, O_NONBLOCK);
-  fcntl(out_pipe[1], F_SETPIPE_SZ, 1048576);
-  dup2(out_pipe[1], STDERR_FILENO);
-  close(out_pipe[1]);
-  buf.resize(1024);
+  int dev_null = open("/dev/null", O_WRONLY);
+  dup2(dev_null, STDERR_FILENO);
+  close(dev_null);
 }
 
 void
@@ -358,13 +356,34 @@ StdErrRedirect::flush() {
 void shader_callback(GLenum source, GLenum type, GLuint id,
                      GLenum severity, GLsizei length, const GLchar *message,
                      const void *userParam) {
-  const ShaderCallback* s = reinterpret_cast<const ShaderCallback*>(userParam);
+  ShaderCallback* s = reinterpret_cast<ShaderCallback*>(
+      const_cast<void*>(userParam));
   s->_callback(source, type, id, severity, length, message);
 }
 
+ShaderCallback::ShaderCallback()
+    : m_tokens({{"GLSL IR for native ", &ShaderCallback::ir_handler},
+          {"NIR (SSA form) for ", &ShaderCallback::nir_handler},
+          {"NIR for ",  &ShaderCallback::nir_handler},
+          {"NIR (final form) for ", &ShaderCallback::nir_final_handler},
+          {"Native code for ", &ShaderCallback::native_handler}}) {
+}
 
 void
-ShaderCallback::init() {
+ShaderCallback::enable_debug_env() {
+  // enable shader dumps
+  setenv("INTEL_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
+  setenv("FD_SHADER_DEBUG", "vs,fs,tcs,tes,gs,cs", 1);
+  setenv("vblank_mode", "0", 1);
+  // shader dumps also go to stderr, which is distracting.  Pipe to /dev/null
+  int dev_null = open("/dev/null", O_WRONLY);
+  dup2(dev_null, STDERR_FILENO);
+  close(dev_null);
+}
+
+void
+ShaderCallback::enable_debug_context() {
+  // initialize debug context
   // only initialize debug output for new contexts
   Context *c = getCurrentContext();
   for (auto i : m_known_contexts)
@@ -380,19 +399,200 @@ ShaderCallback::init() {
                                    GL_DEBUG_TYPE_OTHER,
                                    GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL,
                                    GL_TRUE);
-
+  GlFunctions::GetIntegerv(GL_MAX_DEBUG_MESSAGE_LENGTH, &m_max_len);
   GlFunctions::DebugMessageCallback(shader_callback, this);
   GlFunctions::Enable(GL_DEBUG_OUTPUT);
   // we want to handle this gracefully
   // glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 }
 
+void
+ShaderCallback::find_handler(GLuint id, GLsizei length,
+                             const GLchar *message) {
+  for (auto i : m_tokens) {
+    const char * token = i.first.c_str();
+    if (strncmp(message,
+              token,
+                strlen(token)) == 0) {
+      m_handlers[id] = i.second;
+      return;
+    }
+  }
+  // else message cannot be parsed
+  m_handlers[id] = &ShaderCallback::null_handler;
+
+  // disable subsequent messages from the same source
+  GlFunctions::DebugMessageControl(GL_DEBUG_SOURCE_SHADER_COMPILER,
+                                   GL_DEBUG_TYPE_OTHER,
+                                   GL_DEBUG_SEVERITY_NOTIFICATION, 1, &id,
+                                   GL_FALSE);
+}
+
+void
+ShaderCallback::null_handler(GLsizei length,
+                             const GLchar *message) {
+}
+
+void
+ShaderCallback::ir_handler(GLsizei length,
+                           const GLchar *message) {
+  // TODO(majanes)
+  if (handle_partial_message(length, message))
+    return;
+
+  static const std::map<std::string, ShaderType> tokens =
+      {{"GLSL IR for native vertex shader", kVertex},
+       {"GLSL IR for native fragment shader", kFragment},
+       {"GLSL IR for native tessellation control shader", kTessControl},
+       {"GLSL IR for native tessellation evaluation shader", kTessEval},
+       {"GLSL IR for native geometry shader", kGeometry},
+       {"GLSL IR for native compute shader", kCompute}};
+  for (auto i : tokens) {
+    if (m_buf.compare(0, i.first.length(), i.first) == 0) {
+      m_cached_assemblies[i.second][kIr] = m_buf;
+        m_buf = "";
+        return;
+    }
+  }
+  m_buf = "";
+}
+
+void
+ShaderCallback::native_handler(GLsizei length,
+                               const GLchar *message) {
+  // TODO(majanes)
+  if (handle_partial_message(length, message))
+    return;
+
+  static const std::map<std::string, ShaderType> tokens =
+      {{"vertex", kVertex},
+       {"fragment", kFragment},
+       {"tessellation control", kTessControl},
+       {"tessellation evaluation", kTessEval},
+       {"geometry", kGeometry},
+       {"compute", kCompute}};
+
+  std::stringstream line_split(m_buf);
+  std::string line;
+  std::getline(line_split, line, '\n');
+  for (auto i : tokens) {
+    if (strstr(line.c_str(), i.first.c_str()) != NULL) {
+      std::stringstream word_split(line);
+      std::string word;
+      while (std::getline(word_split, word, ' ')) {
+        int program;
+        if (0 < sscanf(word.c_str(), "GLSL%d", &program) &&
+            program != m_current_program) {
+          std::cout << "mismatched program: "
+                    << m_current_program << " " << program
+                    << std::endl;
+          m_buf = "";
+          return;
+        }
+      }
+      std::getline(line_split, line, '\n');
+      AssemblyType t = kSimd;
+      int width = 0;
+      sscanf(line.c_str(), "SIMD%d", &width);
+      if (width == 8)
+        t = kSimd8;
+      else if (width == 16)
+        t = kSimd16;
+      else if (width == 32)
+        t = kSimd32;
+      m_cached_assemblies[i.second][t] = m_buf;
+      m_buf = "";
+      return;
+    }
+  }
+  m_buf = "";
+}
+
+void
+ShaderCallback::nir_handler(GLsizei length,
+                            const GLchar *message) {
+  if (handle_partial_message(length, message))
+    return;
+
+  static const std::map<std::string, ShaderType> tokens =
+      {{"NIR (SSA form) for vertex shader", kVertex},
+       {"NIR (SSA form) for fragment shader", kFragment},
+       {"NIR (SSA form) for tessellation control shader", kTessControl},
+       {"NIR (SSA form) for tessellation evaluation shader", kTessEval},
+       {"NIR (SSA form) for geometry shader", kGeometry},
+       {"NIR (SSA form) for compute shader", kCompute},
+       {"NIR for VS program ", kVertex},
+       {"NIR for FS program ", kFragment},
+       {"NIR for TCS program ", kTessControl},
+       {"NIR for TES program ", kTessEval},
+       {"NIR for GS program ", kGeometry},
+       {"NIR for CS program ", kCompute}};
+  for (auto i : tokens) {
+    if (m_buf.compare(0, i.first.length(), i.first) == 0) {
+      m_cached_assemblies[i.second][kNirSsa] = m_buf;
+      m_buf = "";
+      return;
+    }
+  }
+  m_buf = "";
+}
+
+void
+ShaderCallback::nir_final_handler(GLsizei length,
+                                  const GLchar *message) {
+  if (handle_partial_message(length, message))
+    return;
+
+  static const std::map<std::string, ShaderType> tokens =
+      {{"NIR (final form) for vertex shader", kVertex},
+       {"NIR (final form) for fragment shader", kFragment},
+       {"NIR (final form) for tessellation control shader", kTessControl},
+       {"NIR (final form) for tessellation evaluation shader", kTessEval},
+       {"NIR (final form) for geometry shader", kGeometry},
+       {"NIR (final form) for compute shader", kCompute}};
+  for (auto i : tokens) {
+    if (m_buf.compare(0, i.first.length(), i.first) == 0) {
+      m_cached_assemblies[i.second][kNirFinal] = m_buf;
+      m_buf = "";
+      return;
+    }
+  }
+  m_buf = "";
+}
 
 void
 ShaderCallback::_callback(GLenum source, GLenum type, GLuint id,
                           GLenum severity, GLsizei length,
-                          const GLchar *message) const {
-  std::cout << message;
+                          const GLchar *message) {
+  auto i = m_handlers.find(id);
+  if (i == m_handlers.end()) {
+    // find handler
+    find_handler(id, length, message);
+    i = m_handlers.find(id);
+  }
+  auto func = i->second;
+  (this->*func)(length, message);
+}
+
+bool
+ShaderCallback::handle_partial_message(GLsizei length,
+                                       const GLchar *message) {
+  m_buf += message;
+  if (length >= m_max_len - 1) {
+    return true;
+  }
+  return false;
 }
 
 ShaderCallback::~ShaderCallback() {}
+
+void
+ShaderCallback::poll(int current_program, StateTrack *cb) {
+  m_current_program = current_program;
+  for (auto i : m_cached_assemblies) {
+    for (auto j : i.second) {
+        cb->onAssembly(i.first, j.first, j.second);
+    }
+  }
+  m_cached_assemblies.clear();
+}

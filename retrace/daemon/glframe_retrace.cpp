@@ -67,6 +67,7 @@ using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
+using glretrace::ShaderCallback;
 using glretrace::StateKey;
 using glretrace::StateTrack;
 using glretrace::StdErrRedirect;
@@ -88,7 +89,8 @@ static MesaBatch batchControl;
 #endif
 
 FrameRetrace::FrameRetrace()
-    : m_tracker(&assemblyOutput),
+    : m_shaderCallback(new ShaderCallback()),
+      m_tracker(m_shaderCallback),
       m_metrics(NULL) {
 }
 
@@ -171,7 +173,7 @@ FrameRetrace::openFile(const std::string &filename,
     callback->onError(RETRACE_WARN, msg.str());
   }
 
-  assemblyOutput.init();
+  m_shaderCallback->enable_debug_env();
   retrace::debug = 0;
   retracer.addCallbacks(glretrace::gl_callbacks);
   retracer.addCallbacks(glretrace::glx_callbacks);
@@ -199,6 +201,9 @@ FrameRetrace::openFile(const std::string &filename,
     if (strcmp(call->sig->name, "glDeleteShader") != 0) {
       retracer.retrace(*call);
       m_tracker.track(*call);
+      if (ThreadContext::changesContext(*call)) {
+        m_shaderCallback->enable_debug_context();
+      }
     }
     const bool frame_boundary = RetraceRender::endsFrame(*call);
     if (!owned_by_thread_tracker)
