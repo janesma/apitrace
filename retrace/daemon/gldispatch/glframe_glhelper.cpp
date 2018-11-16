@@ -169,6 +169,10 @@ static void *pGetQueryiv = NULL;
 static void *pGetQueryObjectiv = NULL;
 static void *pGetQueryObjectui64v = NULL;
 static void *pQueryCounter = NULL;
+
+static void *pDebugMessageControl = NULL;
+static void *pDebugMessageCallback = NULL;
+
 }  // namespace
 
 static void * _GetProcAddress(const char *name) {
@@ -479,6 +483,10 @@ GlFunctions::Init(void *lookup_fn) {
   assert(pGetQueryObjectui64v);
   pQueryCounter = _GetProcAddress("glQueryCounter");
   assert(pQueryCounter);
+  pDebugMessageControl = _GetProcAddress("glDebugMessageControl");
+  assert(pDebugMessageControl);
+  pDebugMessageCallback = _GetProcAddress("glDebugMessageCallback");
+  assert(pDebugMessageCallback);
 }
 
 GLuint
@@ -1439,3 +1447,22 @@ GlFunctions::QueryCounter(GLuint id, GLenum target) {
   typedef void (*QUERYCOUNTER)(GLuint id, GLenum target);
   return ((QUERYCOUNTER)pQueryCounter)(id, target);
 }
+
+void
+GlFunctions::DebugMessageControl(GLenum source, GLenum type,
+                                 GLenum severity, GLsizei count,
+                                 const GLuint *ids, GLboolean enabled) {
+  typedef void (*DEBUGMESSAGECONTROL) (GLenum source, GLenum type,
+                                       GLenum severity, GLsizei count,
+                                       const GLuint *ids, GLboolean enabled);
+  return ((DEBUGMESSAGECONTROL)pDebugMessageControl)(source, type, severity,
+                                                     count, ids, enabled);
+}
+
+void
+GlFunctions::DebugMessageCallback(GLDEBUGPROC callback, const void *userParam) {
+  typedef void (*DEBUGMESSAGECALLBACK) (GLDEBUGPROC callback,
+                                        const void *userParam);
+  return ((DEBUGMESSAGECALLBACK)pDebugMessageCallback)(callback, userParam);
+}
+

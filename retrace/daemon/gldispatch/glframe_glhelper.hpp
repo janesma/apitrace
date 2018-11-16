@@ -244,6 +244,12 @@ class GlFunctions {
   static void GetQueryObjectui64v(GLuint id, GLenum pname, GLuint64 *params);
   static void QueryCounter(GLuint id, GLenum target);
 
+  static void DebugMessageControl(GLenum source, GLenum type,
+                                  GLenum severity, GLsizei count,
+                                   const GLuint *ids, GLboolean enabled);
+  static void DebugMessageCallback(GLDEBUGPROC callback,
+                                   const void *userParam);
+
  private:
   GlFunctions();
   static bool m_is_initialized;
