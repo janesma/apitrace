@@ -120,6 +120,9 @@ class RetraceContext {
                    const StateKey &item);
   void texture2x2(const RenderSelection &selection,
                   bool enable);
+  void retraceTextures(const RenderSelection &selection,
+                       ExperimentId experimentCount,
+                       OnFrameRetrace *callback);
   void revertExperiments(StateTrack *tracker);
 
  private:

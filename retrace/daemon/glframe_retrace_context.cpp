@@ -40,6 +40,8 @@
 #include "glframe_retrace_render.hpp"
 #include "glframe_uniforms.hpp"
 #include "glstate.hpp"
+#include "glstate_internal.hpp"
+#include "state_writer.hpp"
 
 using glretrace::BatchControl;
 using glretrace::ExperimentId;
@@ -677,4 +679,26 @@ RetraceContext::texture2x2(const RenderSelection &selection,
   for (auto r : m_renders)
     if (isSelected(r.first, selection))
       r.second->texture2x2(enable);
+}
+
+void RetraceContext::retraceTextures(const RenderSelection &selection,
+                                     ExperimentId experimentCount,
+                                     OnFrameRetrace *callback) {
+  trace::ParseBookmark bm;
+  m_parser->getBookmark(bm);
+  assert(bm.offset == m_start_bookmark.offset);
+  glstate::Context c;
+  // this is a dumping version of the state writer.  Run the gtest to
+  // step through the texture collection.
+  StateWriter *sw = createJSONStateWriter(std::cout);
+  for (auto r : m_renders) {
+    // r.second->retrace(tracker);
+    if (isSelected(r.first, selection)) {
+      // TextureUnits units = getActiveTextureUnits();
+      glstate::dumpTextures(*sw, c);
+      // finally get the pixels back to the user.
+      // callback->onTextures(/* selection, counts, texture data, etc */);
+    }
+  }
+  delete sw;
 }
