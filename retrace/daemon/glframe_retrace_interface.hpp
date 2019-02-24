@@ -284,7 +284,7 @@ enum TextureTarget {
 };
 struct TextureKey {
   int unit;  // from zero up to  GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS minus one.
-  TextureTarget target;
+  int target;  // GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, etc
   int offset;  // for cube maps, 0-5.  For 3d/2dArray, the slice of the image
 };
 

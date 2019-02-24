@@ -38,6 +38,7 @@
 #include "glframe_logger.hpp"
 #include "glframe_metrics.hpp"
 #include "glframe_retrace_render.hpp"
+#include "glframe_state_enums.hpp"
 #include "glframe_uniforms.hpp"
 #include "glstate.hpp"
 #include "glstate_internal.hpp"
@@ -54,7 +55,11 @@ using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
 using glretrace::RetraceContext;
 using glretrace::StateKey;
+using glretrace::state_name_to_enum;
+using glretrace::SelectionId;
 using glretrace::StateTrack;
+using glretrace::TextureKey;
+using glretrace::TextureData;
 using glretrace::WARN;
 using image::Image;
 
@@ -681,24 +686,240 @@ RetraceContext::texture2x2(const RenderSelection &selection,
       r.second->texture2x2(enable);
 }
 
+class TextureCollector : public StateWriter {
+ public:
+  TextureCollector(RenderId render,
+                   SelectionId selectionCount,
+                   ExperimentId experimentCount,
+                   OnFrameRetrace *callback)
+      : m_state(k_none),
+        m_render(render),
+        m_selection_id(selectionCount),
+        m_experiment_id(experimentCount),
+        m_cb(callback) {}
+  ~TextureCollector() {}
+
+  // sample object to show state machine iteration:
+  //   {
+  //   "textures": {
+  //     "GL_TEXTURE0, GL_TEXTURE_2D, level = 0": {
+  //       "__class__": "image",
+  //       "__width__": 2,
+  //       "__height__": 2,
+  //       "__depth__": 1,
+  //       "__format__": "GL_RGBA",
+  //       "__data__": "iV"
+  // A/3T6pQBAAAAAElFTkSuQmCC"
+  //     }
+  //   }
+  // }
+
+  virtual void
+  beginObject(void) {}
+
+  virtual void
+  endObject(void) {}
+
+  virtual void
+  beginMember(const char * name) {
+    switch (m_state) {
+      case k_none:
+        if (strcmp(name, "textures") == 0)
+          m_state = k_textures;
+        else
+          assert(false);
+        return;
+      case k_a_texture:
+        if (strcmp(name, "__class__") ==0) {
+          m_state = k_class;
+        } else if (strcmp(name, "__width__") ==0) {
+          m_state = k_width;
+        } else if (strcmp(name, "__height__") ==0) {
+          m_state = k_height;
+        } else if (strcmp(name, "__depth__") ==0) {
+          m_state = k_depth;
+        } else if (strcmp(name, "__format__") ==0) {
+          m_state = k_format;
+        } else if (strcmp(name, "__data__") ==0) {
+          m_state = k_data;
+        } else {
+          assert(false);
+          return;
+        }
+        return;
+      case k_textures: {
+        // new texture
+        m_textures.push_back(TextureData());
+        // split name on comma
+        std::vector<std::string> words;
+        std::string word;
+        std::istringstream name_s(name);
+        while (std::getline(name_s, word, ',')) {
+          word.erase(0, word.find_first_not_of(" "));
+          words.push_back(word);
+        }
+        m_key.unit = state_name_to_enum(words[0]);
+        m_key.target = state_name_to_enum(words[1]);
+        const char* level_prefix = "level = ";
+        assert(strncmp(level_prefix,
+                       words[2].c_str(),
+                       strlen(level_prefix)) == 0);
+        m_key.offset = atoi(words[2].c_str() + strlen(level_prefix));
+        m_state = k_a_texture;
+        return;
+      }
+      case k_width:
+      case k_height:
+      case k_depth:
+      case k_data:
+      case k_class:
+      case k_format:
+        assert(false);
+        return;
+    }
+  }
+
+  virtual void
+  endMember(void) {
+    switch (m_state) {
+      case k_none:
+        assert(false);
+        return;
+      case k_width:
+      case k_height:
+      case k_depth:
+      case k_data:
+      case k_class:
+      case k_format:
+        m_state = k_a_texture;
+        return;
+      case k_a_texture:
+        m_state = k_textures;
+        return;
+      case k_textures:
+        m_cb->onTexture(m_selection_id,
+                        m_experiment_id,
+                        m_render,
+                        m_key,
+                        m_textures);
+        m_state = k_none;
+        return;
+    }
+  }
+
+  virtual void beginArray(void) { assert(false); }
+
+  virtual void endArray(void) { assert(false); }
+
+  virtual void
+  writeString(const char *s) {
+    switch (m_state) {
+      case k_none:
+      case k_width:
+      case k_height:
+      case k_depth:
+      case k_data:
+      case k_textures:
+      case k_a_texture:
+        assert(false);
+        return;
+      case k_class:
+        m_textures.back().type = s;
+        return;
+      case k_format:
+        m_textures.back().format = s;
+        return;
+    }
+  }
+
+  virtual void
+  writeBlob(const void *bytes, size_t size) {
+    assert(m_state == k_data);
+    auto &image = m_textures.back().image_data;
+    image.resize(size);
+    memcpy(image.data(), bytes, size);
+  }
+
+  virtual void
+  writeNull(void) { assert(false); }
+
+  virtual void
+  writeBool(bool d) { assert(false); }
+
+  virtual void
+  writeSInt(signed long long d) {   // NOLINT
+    handleint(d);
+  }
+
+  virtual void
+  writeUInt(unsigned long long d) {   // NOLINT
+    handleint(d);
+  }
+
+  virtual void
+  writeFloat(float d) { assert(false); }
+
+  virtual void
+  writeFloat(double d) { assert(false); }
+
+ private:
+  void handleint(int d) {
+    switch (m_state) {
+      case k_none:
+      case k_textures:
+      case k_a_texture:
+      case k_class:
+      case k_format:
+      case k_data:
+        assert(false);
+        return;
+      case k_width:
+        m_textures.back().width = d;
+        return;
+      case k_height:
+        m_textures.back().height = d;
+        return;
+      case k_depth:
+        m_textures.back().level = d;
+        return;
+    }
+  }
+
+
+  TextureKey m_key;
+  std::vector<TextureData> m_textures;
+  enum MachineState {
+    k_none,
+    k_textures,
+    k_a_texture,
+    k_class,
+    k_width,
+    k_height,
+    k_depth,
+    k_format,
+    k_data } m_state;
+  RenderId m_render;
+  SelectionId m_selection_id;
+  ExperimentId m_experiment_id;
+  OnFrameRetrace *m_cb;
+};
+
 void RetraceContext::retraceTextures(const RenderSelection &selection,
                                      ExperimentId experimentCount,
+                                     const StateTrack &tracker,
                                      OnFrameRetrace *callback) {
   trace::ParseBookmark bm;
   m_parser->getBookmark(bm);
   assert(bm.offset == m_start_bookmark.offset);
   glstate::Context c;
-  // this is a dumping version of the state writer.  Run the gtest to
-  // step through the texture collection.
-  StateWriter *sw = createJSONStateWriter(std::cout);
   for (auto r : m_renders) {
-    // r.second->retrace(tracker);
+    r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
+      TextureCollector t(r.first, selection.id, experimentCount, callback);
       // TextureUnits units = getActiveTextureUnits();
-      glstate::dumpTextures(*sw, c);
+      glstate::dumpTextures(t, c);
       // finally get the pixels back to the user.
       // callback->onTextures(/* selection, counts, texture data, etc */);
     }
   }
-  delete sw;
 }
