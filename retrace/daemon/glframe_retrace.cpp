@@ -552,5 +552,8 @@ void
 FrameRetrace::retraceTextures(const RenderSelection &selection,
                               ExperimentId experimentCount,
                               OnFrameRetrace *callback) {
-  assert(false);
+  // reset to beginning of frame
+  parser->setBookmark(frame_start.start);
+  for (auto i : m_contexts)
+       i->retraceTextures(selection, experimentCount, callback);
 }
