@@ -455,6 +455,28 @@ FrameRetraceSkeleton::Run() {
           m_frame->revertExperiments();
           break;
         }
+      case ApiTrace::TEXTURE_REQUEST:
+        {
+          assert(request.has_texture());
+          auto texture = request.texture();
+          RenderSelection selection;
+          makeRenderSelection(texture.selection(), &selection);
+          m_frame->retraceTextures(selection,
+                                   ExperimentId(texture.experiment_count()),
+                                   this);
+          // send empty message to signal the last response
+          RetraceResponse proto_response;
+          auto resp = proto_response.mutable_texture();
+          resp->set_selection_count(-1);
+          resp->set_experiment_count(-1);
+          resp->set_render_id(-1);
+          auto bind = resp->mutable_binding();
+          bind->set_unit(-1);
+          bind->set_target(-1);
+          bind->set_offset(-1);
+          writeResponse(m_socket, proto_response, &m_buf);
+          break;
+        }
     }
   }
 }
@@ -700,5 +722,25 @@ FrameRetraceSkeleton::onTexture(SelectionId selectionCount,
                                 RenderId renderId,
                                 TextureKey binding,
                                 const std::vector<TextureData> &images) {
-  assert(false);
+  RetraceResponse proto_response;
+  auto resp = proto_response.mutable_texture();
+  resp->set_selection_count(selectionCount());
+  resp->set_experiment_count(experimentCount());
+  resp->set_render_id(renderId());
+  auto bind = resp->mutable_binding();
+  bind->set_unit(binding.unit);
+  bind->set_target(binding.target);
+  bind->set_offset(binding.offset);
+  for (auto image : images) {
+    auto rimage = resp->add_images();
+    rimage->set_level(image.level);
+    rimage->set_internal_format(image.internalFormat);
+    rimage->set_width(image.width);
+    rimage->set_height(image.height);
+    rimage->set_format(image.format);
+    rimage->set_type(image.type);
+    rimage->set_image_data(image.image_data.data(),
+                           image.image_data.size());
+  }
+  writeResponse(m_socket, proto_response, &m_buf);
 }
