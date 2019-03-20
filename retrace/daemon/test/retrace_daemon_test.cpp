@@ -33,10 +33,13 @@
 
 #include "glws.hpp"
 
-#include "retrace_test.hpp"
-#include "glframe_retrace.hpp"
 #include "glframe_glhelper.hpp"
 #include "glframe_logger.hpp"
+#include "glframe_retrace.hpp"
+#include "glframe_retrace_skeleton.hpp"
+#include "glframe_retrace_stub.hpp"
+#include "glframe_socket.hpp"
+#include "retrace_test.hpp"
 
 using glretrace::ErrorSeverity;
 using glretrace::ExperimentId;
@@ -127,6 +130,8 @@ class NullCallback : public OnFrameRetrace {
                  RenderId renderId,
                  TextureKey binding,
                  const std::vector<TextureData> &images) {
+    if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION))
+      return;
     ++textureCallBacks;
     saved_binding = binding;
     saved_images = images;
@@ -345,4 +350,37 @@ TEST_F(RetraceTest, Texture) {
   EXPECT_EQ(cb.saved_images[0].width, 2);
   EXPECT_EQ(cb.saved_images[0].height, 2);
   EXPECT_EQ(cb.saved_images[0].format, "GL_RGBA");
+}
+
+TEST_F(RetraceTest, TextureStub) {
+  retrace::setUp();
+  GlFunctions::Init();
+
+  glretrace::Socket::Init();
+  glretrace::ServerSocket server(0);
+  FrameRetrace rt;
+  glretrace::FrameRetraceStub stub;
+  stub.Init("localhost", server.GetPort());
+  glretrace::FrameRetraceSkeleton skel(server.Accept(), &rt);
+  skel.Start();
+  NullCallback cb;
+  get_md5(test_file, &md5, &fileSize);
+  stub.openFile(test_file, md5, fileSize, 7, 1, &cb);
+  RenderSelection selection;
+  selection.series.push_back(RenderSequence(RenderId(1), RenderId(2)));
+  selection.id = SelectionId(0);
+  EXPECT_EQ(cb.textureCallBacks, 0);
+  stub.retraceTextures(selection, ExperimentId(0), &cb);
+  stub.Flush();
+  EXPECT_GT(cb.textureCallBacks, 0);
+  EXPECT_EQ(cb.saved_binding.unit, GL_TEXTURE0);
+  EXPECT_EQ(cb.saved_binding.target, GL_TEXTURE_2D);
+  EXPECT_EQ(cb.saved_binding.offset, 0);
+  EXPECT_EQ(cb.saved_images.size(), 1);
+  EXPECT_EQ(cb.saved_images[0].level, 1);
+  EXPECT_EQ(cb.saved_images[0].width, 2);
+  EXPECT_EQ(cb.saved_images[0].height, 2);
+  EXPECT_EQ(cb.saved_images[0].format, "GL_RGBA");
+  stub.Shutdown();
+  skel.Join();
 }
