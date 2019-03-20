@@ -30,6 +30,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <map>
 #include <string>
@@ -286,6 +287,9 @@ struct TextureKey {
   int unit;  // from zero up to  GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS minus one.
   int target;  // GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, etc
   int offset;  // for cube maps, 0-5.  For 3d/2dArray, the slice of the image
+
+  TextureKey() : unit(-1), target(-1), offset(-1) {}
+  TextureKey(int u, int t, int o) : unit(u), target(t), offset(o) {}
 };
 
 struct TextureData {
@@ -297,6 +301,22 @@ struct TextureData {
   std::string format;
   std::string type;
   std::vector<unsigned char> image_data;
+  TextureData() {}
+  TextureData(int l,
+              const std::string &iformat,
+              int w,
+              int h,
+              const std::string &fmt,
+              const std::string &t,
+              const std::string &data) : level(l),
+                                         internalFormat(iformat),
+                                         width(w),
+                                         height(h),
+                                         format(fmt),
+                                         type(t),
+                                         image_data(data.size()) {
+    memcpy(image_data.data(), data.c_str(), data.size());
+  }
 };
 
 // Serializable asynchronous callbacks made from remote

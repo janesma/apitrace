@@ -27,6 +27,7 @@ enum RequestType {
   REVERT_EXPERIMENTS_REQUEST = 16;
   WIREFRAME_REQUEST = 17;
   TEXTURE_2X2_REQUEST = 18;
+  TEXTURE_REQUEST = 19;
 };
 
 message OpenFileRequest {
@@ -275,6 +276,35 @@ message SetStateRequest {
   required string value = 4;
 }
 
+message TextureRequest {
+  required RenderSelection selection = 1;
+  required uint32 experiment_count = 2;
+}
+
+message TextureKey {
+  required uint32 unit = 1;
+  required uint32 target = 2;
+  required uint32 offset = 3;
+}
+
+message TextureData {
+  required uint32 level = 1;
+  required string internal_format = 2;
+  required uint32 width = 3;
+  required uint32 height = 4;
+  required string format = 5;
+  required string type = 6;
+  required bytes image_data = 7;
+}
+
+message TextureResponse {
+  required uint32 selection_count = 1;
+  required uint32 render_id = 2;
+  required uint32 experiment_count = 3;
+  required TextureKey binding = 4;
+  repeated TextureData images = 5;
+}
+
 message RetraceRequest {
   required RequestType requestType = 1;
   optional RenderTargetRequest renderTarget = 2;
@@ -294,6 +324,7 @@ message RetraceRequest {
   optional SetStateRequest set_state = 16;
   optional WireframeRequest wireframe = 17;
   optional Texture2x2Request texture_2x2 = 18;
+  optional TextureRequest texture = 19;
 }
 
 message RetraceResponse {
@@ -308,4 +339,5 @@ message RetraceResponse {
   optional BatchResponse batch = 9;
   optional UniformResponse uniform = 10;
   optional StateResponse state = 11;
+  optional TextureResponse texture = 12;
 }
