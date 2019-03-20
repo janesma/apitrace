@@ -1199,6 +1199,105 @@ class RevertExperimentsRequest : public IRetraceRequest {
  private:
 };
 
+class TextureRequest : public IRetraceRequest {
+ public:
+  TextureRequest(SelectionId *current_selection,
+                 ExperimentId *current_experiment,
+                 std::mutex *protect,
+                 const RenderSelection &selection,
+                 OnFrameRetrace *cb)
+      : m_sel_count(current_selection),
+        m_exp_count(current_experiment),
+        m_protect(protect),
+        m_callback(cb) {
+    m_proto_msg.set_requesttype(ApiTrace::TEXTURE_REQUEST);
+    auto request = m_proto_msg.mutable_texture();
+    auto selectionRequest = request->mutable_selection();
+    makeRenderSelection(selection, selectionRequest);
+    request->set_experiment_count(current_experiment->count());
+  }
+  virtual void retrace(RetraceSocket *s) {
+    {
+      std::lock_guard<std::mutex> l(*m_protect);
+      const auto &sel = m_proto_msg.texture().selection();
+      const SelectionId id(sel.selection_count());
+      if (*m_sel_count != id)
+        // more recent selection was made while this was enqueued
+        return;
+      const ExperimentId eid(m_proto_msg.texture().experiment_count());
+      if (*m_exp_count != eid)
+        // more recent experiment was made while this was enqueued
+        return;
+    }
+    RetraceResponse response;
+    // sends single request, read multiple responses
+    if (!s->request(m_proto_msg)) {
+      m_callback->onError(RETRACE_FATAL, "FrameRetrace server died.");
+      return;
+    }
+    while (true) {
+      response.Clear();
+      if (!s->response(&response)) {
+        m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
+        return;
+      }
+      assert(response.has_texture());
+      const auto &texture_response = response.texture();
+      if (texture_response.render_id() == (unsigned int)-1) {
+        // all responses sent.  Send a bogus state to inform the
+        // model that textures are complete
+        m_callback->onTexture(SelectionId(SelectionId::INVALID_SELECTION),
+                              ExperimentId(ExperimentId::INVALID_EXPERIMENT-1),
+                              RenderId(RenderId::INVALID_RENDER),
+                              glretrace::TextureKey(),
+                              std::vector<glretrace::TextureData>());
+        break;
+      }
+
+      const auto selection = SelectionId(texture_response.selection_count());
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_sel_count != selection)
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
+      const auto experiment = ExperimentId(texture_response.experiment_count());
+      {
+        std::lock_guard<std::mutex> l(*m_protect);
+        if (*m_exp_count != experiment)
+          // more recent selection was made while retrace was being
+          // executed.
+          continue;
+      }
+      const RenderId rid(texture_response.render_id());
+      auto &binding = texture_response.binding();
+      glretrace::TextureKey k(binding.unit(),
+                              binding.target(),
+                              binding.offset());
+      std::vector<glretrace::TextureData> images;
+      for (auto image : texture_response.images()) {
+        images.push_back(glretrace::TextureData(image.level(),
+                                                image.internal_format(),
+                                                image.width(),
+                                                image.height(),
+                                                image.format(),
+                                                image.type(),
+                                                image.image_data()));
+      }
+      m_callback->onTexture(selection, experiment, rid,
+                            k, images);
+    }
+  }
+
+ private:
+  const SelectionId * const m_sel_count;
+  const ExperimentId * const m_exp_count;
+  std::mutex *m_protect;
+  RetraceRequest m_proto_msg;
+  OnFrameRetrace *m_callback;
+};
+
 class NullRequest : public IRetraceRequest {
  public:
   // to pump the thread, and force it to stop
@@ -1515,5 +1614,14 @@ void
 FrameRetraceStub::retraceTextures(const RenderSelection &selection,
                                   ExperimentId experimentCount,
                                   OnFrameRetrace *callback) {
-  assert(false);
+  {
+    std::lock_guard<std::mutex> l(m_mutex);
+    m_current_render_selection = selection.id;
+    assert(m_current_experiment <= experimentCount);
+    m_current_experiment = experimentCount;
+  }
+  m_thread->push(new TextureRequest(&m_current_render_selection,
+                                    &m_current_experiment,
+                                    &m_mutex,
+                                    selection, callback));
 }
