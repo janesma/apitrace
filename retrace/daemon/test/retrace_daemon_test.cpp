@@ -128,8 +128,8 @@ class NullCallback : public OnFrameRetrace {
                  TextureKey binding,
                  const std::vector<TextureData> &images) {
     ++textureCallBacks;
-    // TODO(Nick) record the data in the callback so it can be
-    // verified in the test harness
+    saved_binding = binding;
+    saved_images = images;
   }
 
   NullCallback() : renderTargetCount(0),
@@ -143,6 +143,8 @@ class NullCallback : public OnFrameRetrace {
   std::vector<std::string> fs, vs;
   std::map<RenderId, std::vector<std::string>> calls;
   bool file_error;
+  TextureKey saved_binding;
+  std::vector<TextureData> saved_images;
 };
 
 void
@@ -335,4 +337,12 @@ TEST_F(RetraceTest, Texture) {
   EXPECT_EQ(cb.textureCallBacks, 0);
   rt.retraceTextures(selection, ExperimentId(0), &cb);
   EXPECT_GT(cb.textureCallBacks, 0);
+  EXPECT_EQ(cb.saved_binding.unit, GL_TEXTURE0);
+  EXPECT_EQ(cb.saved_binding.target, GL_TEXTURE_2D);
+  EXPECT_EQ(cb.saved_binding.offset, 0);
+  EXPECT_EQ(cb.saved_images.size(), 1);
+  EXPECT_EQ(cb.saved_images[0].level, 1);
+  EXPECT_EQ(cb.saved_images[0].width, 2);
+  EXPECT_EQ(cb.saved_images[0].height, 2);
+  EXPECT_EQ(cb.saved_images[0].format, "GL_RGBA");
 }
