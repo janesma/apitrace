@@ -393,6 +393,15 @@ ApplicationWindow {
                     stateModel: frameRetrace.stateModel
                 }
             }
+            Tab {
+                title: "Textures"
+                id: textureTab
+                anchors.fill: parent
+                clip: true
+                TextureControl {
+                    textureModel: frameRetrace.textureModel
+                }
+            }
         }
     }
 }

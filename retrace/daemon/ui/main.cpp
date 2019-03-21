@@ -54,6 +54,7 @@
 #include "glframe_shader_model.hpp"
 #include "glframe_socket.hpp"
 #include "glframe_state_model.hpp"
+#include "glframe_texture_model.hpp"
 #include "glframe_uniform_model.hpp"
 #include "glretrace.hpp"
 
@@ -131,6 +132,8 @@ int main(int argc, char *argv[]) {
                                           "QStateModel");
   qmlRegisterType<glretrace::QStateValue>("ApiTrace", 1, 0,
                                           "QStateValue");
+  qmlRegisterType<glretrace::QTextureModel>("ApiTrace", 1, 0,
+                                            "QTextureModel");
 
   glretrace::FrameImages::Create();
 

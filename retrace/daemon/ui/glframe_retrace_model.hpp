@@ -57,6 +57,7 @@ class QSelection;
 class QRenderTargetModel;
 class QUniformsModel;
 class QStateModel;
+class QTextureModel;
 
 class QRenderBookmark : public QObject {
   Q_OBJECT
@@ -124,6 +125,8 @@ class FrameRetraceModel : public QObject,
              READ uniformModel CONSTANT)
   Q_PROPERTY(glretrace::QStateModel* stateModel
              READ stateModel CONSTANT)
+  Q_PROPERTY(glretrace::QTextureModel* textureModel
+             READ textureModel CONSTANT)
 
  public:
   FrameRetraceModel();
@@ -204,6 +207,7 @@ class FrameRetraceModel : public QObject,
   QExperimentModel *experiments() { return &m_experiment; }
   QUniformsModel *uniformModel() { return m_uniforms; }
   QStateModel *stateModel() { return m_stateModel; }
+  QTextureModel *textureModel() { return m_textureModel; }
   QApiModel *api() { return &m_api; }
   QBatchModel *batch() { return &m_batch; }
   QRenderTargetModel *rendertarget() { return m_rendertarget; }
@@ -242,6 +246,7 @@ class FrameRetraceModel : public QObject,
   void retrace_batch();
   void retrace_uniforms();
   void retrace_state();
+  void retrace_textures();
   void refreshBarMetrics();
 
   enum TabIndex {
@@ -252,7 +257,8 @@ class FrameRetraceModel : public QObject,
     kMetrics,
     kExperiments,
     kUniforms,
-    kState
+    kState,
+    kTextures
   };
 
   mutable std::mutex m_protect;
@@ -264,6 +270,8 @@ class FrameRetraceModel : public QObject,
   QRenderTargetModel *m_rendertarget;
   QUniformsModel *m_uniforms;
   QStateModel *m_stateModel;
+  QTextureModel *m_textureModel;
+
   FrameState *m_state;
   QSelection *m_selection;
   SelectionId m_selection_count;
