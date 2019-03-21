@@ -43,6 +43,8 @@ set (UI_SRC
   glframe_state_model.cpp
   glframe_uniform_model.hpp
   glframe_uniform_model.cpp
+  glframe_texture_model.hpp
+  glframe_texture_model.cpp
   )
 
 add_executable(frameretrace

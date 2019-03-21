@@ -935,10 +935,7 @@ void RetraceContext::retraceTextures(const RenderSelection &selection,
     r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
       TextureCollector t(r.first, selection.id, experimentCount, callback);
-      // TextureUnits units = getActiveTextureUnits();
       glstate::dumpTextures(t, c);
-      // finally get the pixels back to the user.
-      // callback->onTextures(/* selection, counts, texture data, etc */);
     }
   }
 }

@@ -42,6 +42,7 @@
 #include "glframe_socket.hpp"
 #include "glframe_uniform_model.hpp"
 #include "glframe_state_model.hpp"
+#include "glframe_texture_model.hpp"
 
 using glretrace::DEBUG;
 using glretrace::ERR;
@@ -55,6 +56,7 @@ using glretrace::QBarGraphRenderer;
 using glretrace::QMetric;
 using glretrace::QRenderBookmark;
 using glretrace::QSelection;
+using glretrace::QTextureModel;
 using glretrace::RenderId;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
@@ -69,6 +71,7 @@ FrameRetraceModel::FrameRetraceModel()
       m_rendertarget(new QRenderTargetModel(this)),
       m_uniforms(new QUniformsModel(&m_retrace)),
       m_stateModel(new QStateModel(&m_retrace)),
+      m_textureModel(new QTextureModel()),
       m_state(NULL),
       m_selection(NULL),
       m_selection_count(0),
@@ -489,6 +492,8 @@ FrameRetraceModel::onSelect(SelectionId id, QList<int> selection) {
     m_metrics_table.onSelect(id, selection);
   if (m_current_tab == kState)
     retrace_state();
+  if (m_current_tab == kTextures)
+    retrace_textures();
 
   // refresh other tabs
   if (m_current_tab != kRenderTarget)
@@ -505,6 +510,8 @@ FrameRetraceModel::onSelect(SelectionId id, QList<int> selection) {
     m_metrics_table.onSelect(id, selection);
   if (m_current_tab != kState)
     retrace_state();
+  if (m_current_tab != kTextures)
+    retrace_textures();
 }
 
 void
@@ -622,6 +629,8 @@ FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
     m_metrics_table.onExperiment(experiment_count);
   if (m_current_tab == kState)
     retrace_state();
+  if (m_current_tab == kTextures)
+    retrace_textures();
 
   // refresh the rest of the tabs
   if (m_current_tab != kRenderTarget)
@@ -636,6 +645,8 @@ FrameRetraceModel::onExperiment(ExperimentId experiment_count) {
     m_metrics_table.onExperiment(experiment_count);
   if (m_current_tab != kState)
     retrace_state();
+  if (m_current_tab != kTextures)
+    retrace_textures();
 }
 
 void
@@ -687,12 +698,23 @@ FrameRetraceModel::retrace_state() {
 }
 
 void
+FrameRetraceModel::retrace_textures() {
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(m_selection_count,
+                                     m_cached_selection,
+                                     &sel);
+  m_textureModel->clear();
+  m_retrace.retraceTextures(sel, m_experiment_count, this);
+}
+
+void
 FrameRetraceModel::onTexture(SelectionId selectionCount,
                              ExperimentId experimentCount,
                              RenderId renderId,
                              TextureKey binding,
                              const std::vector<TextureData> &images) {
-  assert(false);
+  m_textureModel->onTexture(selectionCount, experimentCount,
+                            renderId, binding, images);
 }
 
 void

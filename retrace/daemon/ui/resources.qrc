@@ -16,5 +16,6 @@
         <file>qml/UniformControl.qml</file>
         <file>qml/StateControl.qml</file>
         <file>qml/ComboBoxFitContents.qml</file>
+        <file>qml/TextureControl.qml</file>
     </qresource>
 </RCC>
