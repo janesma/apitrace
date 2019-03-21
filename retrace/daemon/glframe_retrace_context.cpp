@@ -748,8 +748,6 @@ class TextureCollector : public StateWriter {
         }
         return;
       case k_textures: {
-        // new texture
-        m_textures.push_back(TextureData());
         // split name on comma
         std::vector<std::string> words;
         std::string word;
@@ -758,13 +756,32 @@ class TextureCollector : public StateWriter {
           word.erase(0, word.find_first_not_of(" "));
           words.push_back(word);
         }
-        m_key.unit = state_name_to_enum(words[0]);
-        m_key.target = state_name_to_enum(words[1]);
+        int next_unit = state_name_to_enum(words[0]);
+        int next_target = state_name_to_enum(words[1]);
+
+        if ((m_key.unit > -1) &&
+            ((next_unit != m_key.unit) ||
+             (next_target != m_key.target))
+            ) {
+          // new binding.  Send the cached textures before proceeding
+          assert(m_textures.size());
+          m_cb->onTexture(m_selection_id,
+                          m_experiment_id,
+                          m_render,
+                          m_key,
+                          m_textures);
+          m_textures.clear();
+        }
+        m_key.unit = next_unit;
+        m_key.target = next_target;
+
+        // new texture
+        m_textures.push_back(TextureData());
         const char* level_prefix = "level = ";
         assert(strncmp(level_prefix,
                        words[2].c_str(),
                        strlen(level_prefix)) == 0);
-        m_key.offset = atoi(words[2].c_str() + strlen(level_prefix));
+        m_textures.back().level = atoi(words[2].c_str() + strlen(level_prefix));
         m_state = k_a_texture;
         return;
       }
@@ -797,12 +814,14 @@ class TextureCollector : public StateWriter {
         m_state = k_textures;
         return;
       case k_textures:
-        m_cb->onTexture(m_selection_id,
-                        m_experiment_id,
-                        m_render,
-                        m_key,
-                        m_textures);
-        m_state = k_none;
+        if (m_textures.size()) {
+          m_cb->onTexture(m_selection_id,
+                          m_experiment_id,
+                          m_render,
+                          m_key,
+                          m_textures);
+          m_state = k_none;
+        }
         return;
     }
   }
@@ -880,7 +899,7 @@ class TextureCollector : public StateWriter {
         m_textures.back().height = d;
         return;
       case k_depth:
-        m_textures.back().level = d;
+        m_key.offset = d;
         return;
     }
   }
