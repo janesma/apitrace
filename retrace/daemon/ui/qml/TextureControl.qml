@@ -51,26 +51,31 @@ Item {
                 }
             }
         }
-        ScrollView {
+        SplitView {
             Layout.preferredWidth: 1000
-            Layout.preferredHeight: parent.height
-            Layout.fillWidth: true
-            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-            Rectangle {
-                anchors.fill: parent
-                color: red
+            ScrollView {
+                Layout.preferredWidth: 200
+                Layout.preferredHeight: parent.height
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+                ListView {
+                    model: 
+                    Rectangle {
+                    anchors.fill: parent
+                    color: red
+                }
+                // Flickable {
+                //     anchors.fill: parent
+                //     contentWidth: api.width; contentHeight: api.height
+                //     clip: true
+                //     TextEdit {
+                //         id: api
+                //         readOnly: true
+                //         selectByMouse: true
+                //         text: apiModel.apiCalls
+                //     }
+                // }
             }
-            // Flickable {
-            //     anchors.fill: parent
-            //     contentWidth: api.width; contentHeight: api.height
-            //     clip: true
-            //     TextEdit {
-            //         id: api
-            //         readOnly: true
-            //         selectByMouse: true
-            //         text: apiModel.apiCalls
-            //     }
-            // }
         }
     }
 }

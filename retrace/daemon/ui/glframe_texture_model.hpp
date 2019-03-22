@@ -42,13 +42,30 @@
 namespace glretrace {
 
 class QBoundTexture : public QObject, NoCopy, NoAssign, NoMove {
-};
-
-class QTextureUnits : public QObject, NoCopy, NoAssign, NoMove {
   Q_OBJECT
  public:
-  QTextureUnits() {}
-  ~QTextureUnits() {}
+  QBoundTexture() {}
+  ~QBoundTexture() {}
+  void onTexture(ExperimentId experimentCount,
+                 RenderId render,
+                 const TextureKey &binding,
+                 const std::vector<TextureData> &images);
+  Q_INVOKABLE void selectLevel(int index);
+  Q_PROPERTY(QStringList details READ details NOTIFY detailsChanged)
+ private:
+  std::vector<QStringList> m_details;
+  QStringList m_levels;
+  QStringList m_image_urls;
+};
+
+class RenderTextures {
+ public:
+  void onTexture(ExperimentId experimentCount,
+                 RenderId render,
+                 const TextureKey &binding,
+                 const std::vector<TextureData> &images);
+ private:
+  std::map<QString, QBoundTexture*> m_binding_desc_to_texture;
 };
 
 class QTextureModel : public QObject,
@@ -56,6 +73,7 @@ class QTextureModel : public QObject,
   Q_OBJECT
   // Q_PROPERTY(QString apiCalls READ apiCalls NOTIFY onTextureCalls)
   Q_PROPERTY(QStringList renders READ renders NOTIFY rendersChanged)
+  Q_PROPERTY(QStringList bindings READ bindings NOTIFY bindingsChanged)
  public:
   QTextureModel();
   ~QTextureModel();
@@ -64,7 +82,7 @@ class QTextureModel : public QObject,
   void onTexture(SelectionId selectionCount,
                  ExperimentId experimentCount,
                  RenderId renderId,
-                 TextureKey binding,
+                 const TextureKey &binding,
                  const std::vector<TextureData> &images);
   Q_INVOKABLE void setIndex(int index);
   void clear();
@@ -74,9 +92,10 @@ class QTextureModel : public QObject,
   void rendersChanged();
 
  private:
-  std::map<RenderId, QTextureUnits*> m_texture_units;
+  std::map<RenderId, RenderTextures*> m_texture_units;
   std::vector<RenderId> m_render_index;
   QStringList m_renders;
+  QStringList m_bindings;
   SelectionId m_sel_count;
   ExperimentId m_exp_count;
   int m_index;

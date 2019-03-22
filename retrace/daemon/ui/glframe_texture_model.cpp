@@ -31,12 +31,18 @@
 #include <vector>
 
 #include "glframe_os.hpp"
+#include "glframe_retrace_images.hpp"
 #include "glframe_qutil.hpp"
+#include "glframe_state_enums.hpp"
 
 using glretrace::QTextureModel;
 using glretrace::RenderId;
 using glretrace::ScopedLock;
 using glretrace::SelectionId;
+using glretrace::FrameImages;
+using glretrace::RenderTextures;
+using glretrace::state_name_to_enum;
+using glretrace::QBoundTexture;
 
 QTextureModel::QTextureModel() {}
 QTextureModel::~QTextureModel() {}
@@ -51,7 +57,7 @@ void
 QTextureModel::onTexture(SelectionId selectionCount,
                          ExperimentId experimentCount,
                          RenderId renderId,
-                         TextureKey binding,
+                         const TextureKey &binding,
                          const std::vector<TextureData> &images) {
   if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION)) {
     for (auto i : m_texture_units) {
@@ -74,8 +80,10 @@ QTextureModel::onTexture(SelectionId selectionCount,
   }
 
   if (m_texture_units.find(renderId) == m_texture_units.end()) {
-    m_texture_units[renderId] = new QTextureUnits();
+    m_texture_units[renderId] = new RenderTextures();
   }
+  m_texture_units[renderId]->onTexture(experimentCount, renderId,
+                                       binding, images);
 }
 
 void
@@ -95,4 +103,63 @@ QTextureModel::clear() {
     // possible use-after-delete here
     delete i.second;
   m_texture_units.clear();
+}
+
+
+void
+RenderTextures::onTexture(ExperimentId experimentCount,
+                          RenderId render,
+                          const TextureKey &binding,
+                          const std::vector<TextureData> &images) {
+  // generate binding descriptor
+  QString desc = QString("%1 %2 offset %3").arg(
+      state_enum_to_name(binding.unit).c_str(),
+      state_enum_to_name(binding.target).c_str(),
+      QString::number(binding.offset));
+
+  if (m_binding_desc_to_texture.find(desc) ==
+      m_binding_desc_to_texture.end()) {
+    m_binding_desc_to_texture[desc] = new QBoundTexture();
+  }
+
+  m_binding_desc_to_texture[desc]->onTexture(experimentCount,
+                                             render, binding,
+                                             images);
+}
+
+void
+QBoundTexture::onTexture(ExperimentId experimentCount,
+                         RenderId render,
+                         const TextureKey &binding,
+                         const std::vector<TextureData> &images) {
+  FrameImages *fi = FrameImages::instance();
+  assert(m_details.empty());
+  int expected_level = 0;
+  for (auto i : images) {
+    {
+      assert(expected_level == i.level);
+      QStringList level_details;
+      level_details.append(QString("Level: %1").arg(i.level));
+      level_details.append(QString("Width: %1").arg(i.width));
+      level_details.append(QString("Height: %1").arg(i.height));
+      level_details.append(QString("Type: %1").arg(i.type.c_str()));
+      level_details.append(QString("Format: %1").arg(i.format.c_str()));
+      level_details.append(QString("Internal Format: %1").arg(
+          i.internalFormat.c_str()));
+      // TODO(majanes): avoid copy here
+      m_details.push_back(level_details);
+      m_levels.push_back(QString("Level: %1").arg(i.level));
+
+      QString fmt = "image:://myimageprovider/texture/exp_%1/"
+                    "ren_%2/%3_%4_%5/level_%6.png";
+      QString url(fmt.arg(QString::number(experimentCount.count()),
+                          QString::number(render.index()),
+                          state_enum_to_name(binding.unit).c_str(),
+                          state_enum_to_name(binding.target).c_str(),
+                          QString::number(binding.offset),
+                          QString::number(i.level)));
+      assert(!i.image_data.empty());
+      fi->AddImage(url.toStdString().c_str(), i.image_data);
+    }
+  }
 }
