@@ -50,12 +50,16 @@ class QBoundTexture : public QObject, NoCopy, NoAssign, NoMove {
                  RenderId render,
                  const TextureKey &binding,
                  const std::vector<TextureData> &images);
-  Q_INVOKABLE void selectLevel(int index);
+  Q_INVOKABLE void selectLevel(int index) { m_index = index; }
   Q_PROPERTY(QStringList details READ details NOTIFY detailsChanged)
+  QStringList details() { return m_details[m_index]; }
+ signals:
+  void detailsChanged();
  private:
   std::vector<QStringList> m_details;
   QStringList m_levels;
   QStringList m_image_urls;
+  int m_index;
 };
 
 class RenderTextures {
@@ -64,6 +68,8 @@ class RenderTextures {
                  RenderId render,
                  const TextureKey &binding,
                  const std::vector<TextureData> &images);
+  QStringList bindings();
+  QBoundTexture *texture(QString q) { return m_binding_desc_to_texture[q]; }
  private:
   std::map<QString, QBoundTexture*> m_binding_desc_to_texture;
 };
@@ -71,9 +77,11 @@ class RenderTextures {
 class QTextureModel : public QObject,
                       NoCopy, NoAssign, NoMove {
   Q_OBJECT
-  // Q_PROPERTY(QString apiCalls READ apiCalls NOTIFY onTextureCalls)
   Q_PROPERTY(QStringList renders READ renders NOTIFY rendersChanged)
   Q_PROPERTY(QStringList bindings READ bindings NOTIFY bindingsChanged)
+  Q_PROPERTY(glretrace::QBoundTexture* texture
+             READ texture
+             NOTIFY textureChanged)
  public:
   QTextureModel();
   ~QTextureModel();
@@ -84,12 +92,17 @@ class QTextureModel : public QObject,
                  RenderId renderId,
                  const TextureKey &binding,
                  const std::vector<TextureData> &images);
-  Q_INVOKABLE void setIndex(int index);
+  Q_INVOKABLE void selectRender(int index);
+  Q_INVOKABLE void selectBinding(QString b);
   void clear();
+  QStringList bindings() { return m_bindings; }
+  QBoundTexture *texture() { return m_currentTexture; }
 
  signals:
   void indexChanged();
   void rendersChanged();
+  void bindingsChanged();
+  void textureChanged();
 
  private:
   std::map<RenderId, RenderTextures*> m_texture_units;
@@ -98,6 +111,7 @@ class QTextureModel : public QObject,
   QStringList m_bindings;
   SelectionId m_sel_count;
   ExperimentId m_exp_count;
+  QBoundTexture* m_currentTexture;
   int m_index;
   mutable std::mutex m_protect;
 };

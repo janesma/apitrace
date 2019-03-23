@@ -31,7 +31,7 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                textureModel.setIndex(index);
+                                textureModel.selectRender(index);
                                 texture_selection.currentIndex = index;
                             }
                         }
@@ -40,42 +40,55 @@ Item {
                 Keys.onDownPressed: {
                     if (texture_selection.currentIndex + 1 < texture_selection.count) {
                         texture_selection.currentIndex += 1;
-                        textureModel.setIndex(texture_selection.currentIndex);
+                        textureModel.selectRender(texture_selection.currentIndex);
                     }
                 }
                 Keys.onUpPressed: {
                     if (texture_selection.currentIndex > 0) {
                         texture_selection.currentIndex -= 1;
-                        textureModel.setIndex(texture_selection.currentIndex);
+                        textureModel.selectRender(texture_selection.currentIndex);
                     }
                 }
             }
         }
-        SplitView {
-            Layout.preferredWidth: 1000
-            ScrollView {
-                Layout.preferredWidth: 200
-                Layout.preferredHeight: parent.height
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                ListView {
-                    model: 
-                    Rectangle {
-                    anchors.fill: parent
-                    color: red
+        ScrollView {
+            Layout.preferredWidth: 100
+            Layout.preferredHeight: parent.height
+            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            ListView {
+                id: binding_selection
+                focus: true
+                model: textureModel.bindings
+                highlight: Rectangle { color: "lightsteelblue"; radius: 5; }
+                delegate: Component {
+                    Item {
+                        height: binding_text.height
+                        width: binding_text.width
+                        Text {
+                            id: binding_text
+                            text: modelData
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                textureModel.selectBinding(modelData);
+                                binding_selection.currentIndex = index;
+                            }
+                        }
+                    }
                 }
-                // Flickable {
-                //     anchors.fill: parent
-                //     contentWidth: api.width; contentHeight: api.height
-                //     clip: true
-                //     TextEdit {
-                //         id: api
-                //         readOnly: true
-                //         selectByMouse: true
-                //         text: apiModel.apiCalls
-                //     }
-                // }
             }
         }
+            // Flickable {
+            //     anchors.fill: parent
+            //     contentWidth: api.width; contentHeight: api.height
+            //     clip: true
+            //     TextEdit {
+            //         id: api
+            //         readOnly: true
+            //         selectByMouse: true
+            //         text: apiModel.apiCalls
+            //     }
+            // }
     }
 }

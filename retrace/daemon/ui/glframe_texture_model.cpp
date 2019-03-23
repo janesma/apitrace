@@ -66,14 +66,14 @@ QTextureModel::onTexture(SelectionId selectionCount,
     }
     // all textures received
     emit rendersChanged();
-    setIndex(0);
+    selectRender(0);
     return;
   }
 
-  {
+  if (m_sel_count != selectionCount || m_exp_count != experimentCount) {
+    clear();
     ScopedLock s(m_protect);
-    if (m_sel_count != selectionCount || m_exp_count != experimentCount) {
-      clear();
+    {
       m_sel_count = selectionCount;
       m_exp_count = experimentCount;
     }
@@ -87,24 +87,36 @@ QTextureModel::onTexture(SelectionId selectionCount,
 }
 
 void
-QTextureModel::setIndex(int index) {
+QTextureModel::selectRender(int index) {
   {
     ScopedLock s(m_protect);
     m_index = index;
   }
-  emit indexChanged();
+  m_bindings = m_texture_units[m_render_index[index]]->bindings();
+  emit bindingsChanged();
+}
+
+void
+QTextureModel::selectBinding(QString b) {
+  {
+    ScopedLock s(m_protect);
+    m_currentTexture = m_texture_units[m_render_index[m_index]]->texture(b);
+  }
+  emit textureChanged();
 }
 
 void
 QTextureModel::clear() {
-  m_renders.clear();
-  m_render_index.clear();
-  for (auto i : m_texture_units)
-    // possible use-after-delete here
-    delete i.second;
-  m_texture_units.clear();
+  {
+    ScopedLock s(m_protect);
+    m_renders.clear();
+    m_render_index.clear();
+    for (auto i : m_texture_units)
+      // possible use-after-delete here
+      delete i.second;
+    m_texture_units.clear();
+  }
 }
-
 
 void
 RenderTextures::onTexture(ExperimentId experimentCount,
@@ -127,6 +139,14 @@ RenderTextures::onTexture(ExperimentId experimentCount,
                                              images);
 }
 
+QStringList
+RenderTextures::bindings() {
+  QStringList b;
+  for (auto i : m_binding_desc_to_texture)
+    b.push_back(i.first);
+  return b;
+}
+
 void
 QBoundTexture::onTexture(ExperimentId experimentCount,
                          RenderId render,
@@ -138,6 +158,7 @@ QBoundTexture::onTexture(ExperimentId experimentCount,
   for (auto i : images) {
     {
       assert(expected_level == i.level);
+      ++expected_level;
       QStringList level_details;
       level_details.append(QString("Level: %1").arg(i.level));
       level_details.append(QString("Width: %1").arg(i.width));
