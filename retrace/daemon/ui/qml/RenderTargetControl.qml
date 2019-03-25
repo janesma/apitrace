@@ -87,6 +87,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 source: rtModel.renderTargetImages[boundedIndex(rtIndex)]
                 cache: false
+                smooth: false
             }
         }
     }
