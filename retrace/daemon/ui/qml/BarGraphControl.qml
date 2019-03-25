@@ -260,7 +260,6 @@ Item {
             Layout.preferredHeight: 40
             Layout.fillWidth: true
             Layout.fillHeight: true
-            anchors.top: bargraph_item.bottom
             id: comboBoxes
             Text {
                 anchors.top: parent.top
