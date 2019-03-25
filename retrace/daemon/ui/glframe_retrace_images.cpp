@@ -59,15 +59,29 @@ FrameImages::AddImage(const char *path,
 }
 
 void
+FrameImages::AddTexture(const char *path,
+                      const std::vector<unsigned char> &buf) {
+  QString qs(path);
+  m_textures[qs].loadFromData(buf.data(), buf.size(), "PNG");
+}
+
+void
 FrameImages::Clear() {
   m_rts.clear();
+}
+
+void
+FrameImages::ClearTextures() {
+  m_textures.clear();
 }
 
 QImage
 FrameImages::requestImage(const QString &id,
                           QSize *size,
                           const QSize &requestedSize) {
-  if (m_rts.find(id) == m_rts.end())
-    return m_default;
-  return m_rts[id];
+  if (m_rts.find(id) != m_rts.end())
+    return m_rts[id];
+  if (m_textures.find(id) != m_textures.end())
+    return m_textures[id];
+  return m_default;
 }
