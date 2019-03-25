@@ -44,12 +44,15 @@ class FrameImages : public QQuickImageProvider {
                               QSize *size,
                               const QSize &requestedSize);
   void Clear();
+  void ClearTextures();
   void AddImage(const char *path, const std::vector<unsigned char> &buf);
+  void AddTexture(const char *path, const std::vector<unsigned char> &buf);
  private:
   FrameImages() : QQuickImageProvider(QQmlImageProviderBase::Image),
                   m_default(":/qml/images/no_render_target.png") {}
   QImage m_default;
   std::map<QString, QImage> m_rts;
+  std::map<QString, QImage> m_textures;
   static FrameImages *m_instance;
 };
 
