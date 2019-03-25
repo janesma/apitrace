@@ -8,13 +8,24 @@ import ApiTrace 1.0
 Item {
     property QTextureModel textureModel
 
+    // sample text for initial widths
+    Text {
+        id: renderWidth
+        visible: false
+        text: "40000"
+    }
+    Text {
+        id: bindingWidth
+        visible: false
+        text: "GL_TEXTURE_4 GL_TEXTURE_CUBE_MAP_POSITIVE_Y offset 1"
+    }
+    
+    
     SplitView {
         anchors.fill: parent
 
         ScrollView {
-            Layout.preferredWidth: 100
-            Layout.preferredHeight: parent.height
-            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            width: renderWidth.width
             ListView {
                 id: texture_selection
                 model: textureModel.renders
@@ -52,9 +63,7 @@ Item {
             }
         }
         ScrollView {
-            Layout.preferredWidth: 100
-            Layout.preferredHeight: parent.height
-            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
+            width: bindingWidth.width
             ListView {
                 id: binding_selection
                 focus: true
@@ -78,6 +87,12 @@ Item {
                     }
                 }
             }
+        }
+        Rectangle {
+            Layout.fillWidth: true
+            height:parent.height
+            color: "lightsteelblue"
+            radius: 5
         }
             // Flickable {
             //     anchors.fill: parent
