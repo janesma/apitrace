@@ -60,9 +60,12 @@ QTextureModel::onTexture(SelectionId selectionCount,
                          const TextureKey &binding,
                          const std::vector<TextureData> &images) {
   if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION)) {
-    for (auto i : m_texture_units) {
-      m_render_index.push_back(i.first);
-      m_renders.push_back(QString("%1").arg(i.first.index()));
+    {
+      ScopedLock s(m_protect);
+      for (auto i : m_texture_units) {
+        m_render_index.push_back(i.first);
+        m_renders.push_back(QString("%1").arg(i.first.index()));
+      }
     }
     // all textures received
     emit rendersChanged();
@@ -72,13 +75,14 @@ QTextureModel::onTexture(SelectionId selectionCount,
 
   if (m_sel_count != selectionCount || m_exp_count != experimentCount) {
     clear();
-    ScopedLock s(m_protect);
     {
+      ScopedLock s(m_protect);
       m_sel_count = selectionCount;
       m_exp_count = experimentCount;
     }
   }
 
+  ScopedLock s(m_protect);
   if (m_texture_units.find(renderId) == m_texture_units.end()) {
     m_texture_units[renderId] = new RenderTextures();
   }
@@ -91,8 +95,8 @@ QTextureModel::selectRender(int index) {
   {
     ScopedLock s(m_protect);
     m_index = index;
+    m_bindings = m_texture_units[m_render_index[index]]->bindings();
   }
-  m_bindings = m_texture_units[m_render_index[index]]->bindings();
   emit bindingsChanged();
 }
 
