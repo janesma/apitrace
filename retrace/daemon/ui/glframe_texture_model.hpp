@@ -43,18 +43,27 @@ namespace glretrace {
 
 class QBoundTexture : public QObject, NoCopy, NoAssign, NoMove {
   Q_OBJECT
+
  public:
-  QBoundTexture() {}
+  explicit QBoundTexture(QObject *parent = NULL);
   ~QBoundTexture() {}
   void onTexture(ExperimentId experimentCount,
                  RenderId render,
                  const TextureKey &binding,
                  const std::vector<TextureData> &images);
-  Q_INVOKABLE void selectLevel(int index) { m_index = index; }
+  Q_INVOKABLE void selectLevel(int index);
   Q_PROPERTY(QStringList details READ details NOTIFY detailsChanged)
-  QStringList details() { return m_details[m_index]; }
+  Q_PROPERTY(QStringList levels READ levels NOTIFY levelsChanged)
+  Q_PROPERTY(QString image READ image NOTIFY imageChanged)
+
+  QStringList details();
+  QStringList levels() { return m_levels; }
+  QString image();
  signals:
   void detailsChanged();
+  void levelsChanged();
+  void imageChanged();
+
  private:
   std::vector<QStringList> m_details;
   QStringList m_levels;
@@ -64,6 +73,7 @@ class QBoundTexture : public QObject, NoCopy, NoAssign, NoMove {
 
 class RenderTextures {
  public:
+  explicit RenderTextures(QObject *parent) : q_parent(parent) {}
   void onTexture(ExperimentId experimentCount,
                  RenderId render,
                  const TextureKey &binding,
@@ -72,6 +82,7 @@ class RenderTextures {
   QBoundTexture *texture(QString q) { return m_binding_desc_to_texture[q]; }
  private:
   std::map<QString, QBoundTexture*> m_binding_desc_to_texture;
+  QObject *q_parent;
 };
 
 class QTextureModel : public QObject,
@@ -112,6 +123,7 @@ class QTextureModel : public QObject,
   SelectionId m_sel_count;
   ExperimentId m_exp_count;
   QBoundTexture* m_currentTexture;
+  QBoundTexture m_defaultTexture;
   int m_index;
   mutable std::mutex m_protect;
 };

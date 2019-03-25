@@ -134,6 +134,8 @@ int main(int argc, char *argv[]) {
                                           "QStateValue");
   qmlRegisterType<glretrace::QTextureModel>("ApiTrace", 1, 0,
                                             "QTextureModel");
+  qmlRegisterType<glretrace::QBoundTexture>("ApiTrace", 1, 0,
+                                            "QBoundTexture");
 
   glretrace::FrameImages::Create();
 

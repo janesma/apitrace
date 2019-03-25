@@ -12,20 +12,29 @@ Item {
     Text {
         id: renderWidth
         visible: false
-        text: "40000"
+        text: "4000"
     }
     Text {
         id: bindingWidth
         visible: false
         text: "GL_TEXTURE_4 GL_TEXTURE_CUBE_MAP_POSITIVE_Y offset 1"
     }
-    
+    Text {
+        id: aBigDetailString
+        visible: false
+        text: "Format: GL_COMPRESSED_RGB_S3TC_DXT1_EXT"
+    }
+    Text {
+        id: levelWidth
+        visible: false
+        text: "Level:10"
+    }
     
     SplitView {
         anchors.fill: parent
 
         ScrollView {
-            width: renderWidth.width
+            width: renderWidth.width * 2
             ListView {
                 id: texture_selection
                 model: textureModel.renders
@@ -63,7 +72,7 @@ Item {
             }
         }
         ScrollView {
-            width: bindingWidth.width
+            width: bindingWidth.width * 1.3
             ListView {
                 id: binding_selection
                 focus: true
@@ -88,22 +97,38 @@ Item {
                 }
             }
         }
-        Rectangle {
-            Layout.fillWidth: true
-            height:parent.height
-            color: "lightsteelblue"
-            radius: 5
+        Column {
+            width: aBigDetailString.width
+            height: parent.height
+            ComboBox {
+                id: levelSelect
+                model: textureModel.texture.levels
+                width: parent.width
+                onCurrentIndexChanged: {
+                    textureModel.texture.selectLevel(currentIndex);
+                }
+            }
+            ListView {
+                id: details
+                model: textureModel.texture.details
+                // anchors.top: levelSelect.bottom
+                width: parent.width
+                height: parent.height - levelSelect.height
+                delegate: Component {
+                    Item {
+                        height: details_text.height
+                        Text {
+                            id: details_text
+                            text: modelData
+                        }
+                    }
+                }
+            }
         }
-            // Flickable {
-            //     anchors.fill: parent
-            //     contentWidth: api.width; contentHeight: api.height
-            //     clip: true
-            //     TextEdit {
-            //         id: api
-            //         readOnly: true
-            //         selectByMouse: true
-            //         text: apiModel.apiCalls
-            //     }
-            // }
+        Image {
+            fillMode: Image.PreserveAspectFit
+            source: textureModel.texture.image
+            smooth: false
+        }
     }
 }
