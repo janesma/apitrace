@@ -77,6 +77,7 @@ Item {
                                 shader_selection.currentIndex = index;
                                 compileButton.visible=false;
                                 compileRow.visible=false
+                                shader_selection.forceActiveFocus();
                             }
                         }
                     }
