@@ -108,6 +108,12 @@ class QTextureModel : public QObject,
   void clear();
   QStringList bindings() { return m_bindings; }
   QBoundTexture *texture() { return m_currentTexture; }
+  void retraceTextures(IFrameRetrace *retrace,
+                       const QList<int> &renders,
+                       SelectionId selection_count,
+                       ExperimentId experiment_count,
+                       OnFrameRetrace *callback);
+
 
  signals:
   void indexChanged();

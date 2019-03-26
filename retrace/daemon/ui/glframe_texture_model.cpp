@@ -56,38 +56,59 @@ QTextureModel::renders() const {
 }
 
 void
+QTextureModel::retraceTextures(IFrameRetrace *retrace,
+                               const QList<int> &renders,
+                               SelectionId selectionCount,
+                               ExperimentId experimentCount,
+                               OnFrameRetrace *callback) {
+  assert(m_sel_count != selectionCount || m_exp_count != experimentCount);
+  clear();
+  if (experimentCount.count() > m_exp_count.count()) {
+    // existing textures are out of date
+    FrameImages *fi = FrameImages::instance();
+    fi->ClearTextures();
+    {
+      ScopedLock s(m_protect);
+      for (auto i : m_texture_units)
+        delete i.second;
+      m_texture_units.clear();
+    }
+  }
+
+  {
+    ScopedLock s(m_protect);
+    for (auto i : renders) {
+      m_render_index.push_back(RenderId(i));
+      m_renders.push_back(QString("%1").arg(i));
+    }
+    m_sel_count = selectionCount;
+    m_exp_count = experimentCount;
+  }
+
+  // only retrace the textures that are not cached
+  QList<int> uncached_renders;
+  for (auto r : renders) {
+    if (m_texture_units.find(RenderId(r)) == m_texture_units.end())
+      uncached_renders.push_back(r);
+  }
+  RenderSelection sel;
+  glretrace::renderSelectionFromList(selectionCount,
+                                     uncached_renders,
+                                     &sel);
+  retrace->retraceTextures(sel, experimentCount, callback);
+}
+
+void
 QTextureModel::onTexture(SelectionId selectionCount,
                          ExperimentId experimentCount,
                          RenderId renderId,
                          const TextureKey &binding,
                          const std::vector<TextureData> &images) {
   if (selectionCount == SelectionId(SelectionId::INVALID_SELECTION)) {
-    {
-      ScopedLock s(m_protect);
-      for (auto i : m_texture_units) {
-        m_render_index.push_back(i.first);
-        m_renders.push_back(QString("%1").arg(i.first.index()));
-      }
-    }
     // all textures received
     emit rendersChanged();
     selectRender(0);
     return;
-  }
-
-  if (m_sel_count != selectionCount || m_exp_count != experimentCount) {
-    clear();
-    if (experimentCount.count() > m_exp_count.count()) {
-      // existing textures are out of date
-      FrameImages *fi = FrameImages::instance();
-      fi->ClearTextures();
-    }
-
-    {
-      ScopedLock s(m_protect);
-      m_sel_count = selectionCount;
-      m_exp_count = experimentCount;
-    }
   }
 
   ScopedLock s(m_protect);
@@ -103,30 +124,51 @@ QTextureModel::selectRender(int index) {
   {
     ScopedLock s(m_protect);
     m_index = index;
-    if (m_render_index.size() <= index)
+    if (m_render_index.size() <= index) {
       m_bindings = QStringList();
-    else
-      m_bindings = m_texture_units[m_render_index[index]]->bindings();
+    } else {
+      RenderId r = m_render_index[index];
+      if (m_texture_units.find(r) == m_texture_units.end()) {
+        m_bindings = QStringList();
+      } else {
+        m_bindings = m_texture_units[m_render_index[index]]->bindings();
+      }
+    }
   }
   emit bindingsChanged();
   selectBinding(m_cached_binding_selection);
 }
 
+class Emit {
+ public:
+  explicit Emit(QTextureModel *m) : model(m) {}
+  ~Emit() {
+    model->textureChanged();
+  }
+  QTextureModel *model;
+};
+
 void
 QTextureModel::selectBinding(QString b) {
+  Emit e(this);
   {
     ScopedLock s(m_protect);
-    if (m_index >= m_render_index.size()) {
-      m_currentTexture = &m_defaultTexture;
-    } else {
-      m_currentTexture = m_texture_units[m_render_index[m_index]]->texture(b);
-      if (m_currentTexture == NULL) {
-        m_currentTexture = &m_defaultTexture;
-      }
-    }
+    m_currentTexture = &m_defaultTexture;
+
+    if (m_index >= m_render_index.size())
+      return;
+
+    const auto render = m_render_index[m_index];
+    if (m_texture_units.find(render) == m_texture_units.end())
+      return;
+
+    auto unit = m_texture_units[render];
+    auto tex = unit->texture(b);
+    if (!tex)
+      return;
+    m_currentTexture = tex;
     m_cached_binding_selection = b;
   }
-  emit textureChanged();
 }
 
 void
@@ -135,10 +177,10 @@ QTextureModel::clear() {
     ScopedLock s(m_protect);
     m_renders.clear();
     m_render_index.clear();
-    for (auto i : m_texture_units)
-      // TODO(majanes) possible use-after-delete here
-      delete i.second;
-    m_texture_units.clear();
+    // for (auto i : m_texture_units)
+    //   // TODO(majanes) possible use-after-delete here
+    //   delete i.second;
+    // m_texture_units.clear();
   }
 }
 

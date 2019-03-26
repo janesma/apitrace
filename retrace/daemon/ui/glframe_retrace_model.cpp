@@ -699,12 +699,11 @@ FrameRetraceModel::retrace_state() {
 
 void
 FrameRetraceModel::retrace_textures() {
-  RenderSelection sel;
-  glretrace::renderSelectionFromList(m_selection_count,
-                                     m_cached_selection,
-                                     &sel);
-  m_textureModel->clear();
-  m_retrace.retraceTextures(sel, m_experiment_count, this);
+  m_textureModel->retraceTextures(&m_retrace,
+                                  m_cached_selection,
+                                  m_selection_count,
+                                  m_experiment_count,
+                                  this);
 }
 
 void
