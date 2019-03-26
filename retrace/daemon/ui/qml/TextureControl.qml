@@ -20,7 +20,7 @@ Item {
         text: "GL_TEXTURE_4 GL_TEXTURE_CUBE_MAP_POSITIVE_Y offset 1"
     }
     Text {
-        id: aBigDetailString
+        id: detailWidth
         visible: false
         text: "Format: GL_COMPRESSED_RGB_S3TC_DXT1_EXT"
     }
@@ -95,10 +95,14 @@ Item {
                         }
                     }
                 }
+                onModelChanged: {
+                    binding_selection.currentIndex = index;
+                    textureModel.selectBinding(modelData);
+                }
             }
         }
         Column {
-            width: aBigDetailString.width
+            width: detailWidth.width
             height: parent.height
             ComboBox {
                 id: levelSelect
