@@ -103,16 +103,22 @@ QTextureModel::selectRender(int index) {
       m_bindings = m_texture_units[m_render_index[index]]->bindings();
   }
   emit bindingsChanged();
+  selectBinding(m_cached_binding_selection);
 }
 
 void
 QTextureModel::selectBinding(QString b) {
   {
     ScopedLock s(m_protect);
-    if (m_index > m_render_index.size())
+    if (m_index >= m_render_index.size()) {
       m_currentTexture = &m_defaultTexture;
-    else
+    } else {
       m_currentTexture = m_texture_units[m_render_index[m_index]]->texture(b);
+      if (m_currentTexture == NULL) {
+        m_currentTexture = &m_defaultTexture;
+      }
+    }
+    m_cached_binding_selection = b;
   }
   emit textureChanged();
 }
@@ -206,6 +212,7 @@ QBoundTexture::onTexture(ExperimentId experimentCount,
       fi->AddTexture(imageProvider.toStdString().c_str(), i.image_data);
     }
   }
+  emit levelsChanged();
 }
 
 QStringList
@@ -228,3 +235,4 @@ QBoundTexture::image() {
     return QString("image://myimageprovider/default.image.url");
   return m_image_urls[m_index];
 }
+

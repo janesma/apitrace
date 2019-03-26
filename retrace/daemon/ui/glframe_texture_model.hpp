@@ -125,6 +125,7 @@ class QTextureModel : public QObject,
   QBoundTexture* m_currentTexture;
   QBoundTexture m_defaultTexture;
   int m_index;
+  QString m_cached_binding_selection;
   mutable std::mutex m_protect;
 };
 
