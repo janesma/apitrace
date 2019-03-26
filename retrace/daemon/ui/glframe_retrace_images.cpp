@@ -62,6 +62,8 @@ void
 FrameImages::AddTexture(const char *path,
                       const std::vector<unsigned char> &buf) {
   QString qs(path);
+  if (m_textures.find(qs) != m_textures.end())
+    return;
   m_textures[qs].loadFromData(buf.data(), buf.size(), "PNG");
 }
 

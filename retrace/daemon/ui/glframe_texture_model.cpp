@@ -77,6 +77,12 @@ QTextureModel::onTexture(SelectionId selectionCount,
 
   if (m_sel_count != selectionCount || m_exp_count != experimentCount) {
     clear();
+    if (experimentCount.count() > m_exp_count.count()) {
+      // existing textures are out of date
+      FrameImages *fi = FrameImages::instance();
+      fi->ClearTextures();
+    }
+
     {
       ScopedLock s(m_protect);
       m_sel_count = selectionCount;
