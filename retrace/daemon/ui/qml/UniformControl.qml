@@ -50,6 +50,7 @@ Item {
                             onClicked: {
                                 uniformModel.setIndex(index);
                                 render_selection.currentIndex = index;
+                                render_selection.forceActiveFocus();
                             }
                         }
                     }
