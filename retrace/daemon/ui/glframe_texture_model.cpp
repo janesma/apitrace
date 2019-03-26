@@ -97,7 +97,10 @@ QTextureModel::selectRender(int index) {
   {
     ScopedLock s(m_protect);
     m_index = index;
-    m_bindings = m_texture_units[m_render_index[index]]->bindings();
+    if (m_render_index.size() <= index)
+      m_bindings = QStringList();
+    else
+      m_bindings = m_texture_units[m_render_index[index]]->bindings();
   }
   emit bindingsChanged();
 }
@@ -121,7 +124,7 @@ QTextureModel::clear() {
     m_renders.clear();
     m_render_index.clear();
     for (auto i : m_texture_units)
-      // possible use-after-delete here
+      // TODO(majanes) possible use-after-delete here
       delete i.second;
     m_texture_units.clear();
   }
