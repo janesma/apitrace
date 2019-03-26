@@ -95,10 +95,6 @@ Item {
                         }
                     }
                 }
-                onModelChanged: {
-                    binding_selection.currentIndex = index;
-                    textureModel.selectBinding(modelData);
-                }
             }
         }
         Column {
@@ -111,11 +107,13 @@ Item {
                 onCurrentIndexChanged: {
                     textureModel.texture.selectLevel(currentIndex);
                 }
+                onModelChanged: {
+                    levelSelect.currentIndex = 0;
+                }
             }
             ListView {
                 id: details
                 model: textureModel.texture.details
-                // anchors.top: levelSelect.bottom
                 width: parent.width
                 height: parent.height - levelSelect.height
                 delegate: Component {
