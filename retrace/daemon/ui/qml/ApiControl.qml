@@ -72,6 +72,7 @@ Item {
                             onClicked: {
                                 apiModel.setIndex(index);
                                 api_selection.currentIndex = index;
+                                api_selection.forceActiveFocus();
                             }
                         }
                     }
