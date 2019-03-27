@@ -34,6 +34,7 @@
 #include "glframe_retrace_images.hpp"
 #include "glframe_qutil.hpp"
 #include "glframe_state_enums.hpp"
+#include "glframe_logger.hpp"
 
 using glretrace::QTextureModel;
 using glretrace::RenderId;
@@ -189,6 +190,8 @@ RenderTextures::onTexture(ExperimentId experimentCount,
                           RenderId render,
                           const TextureKey &binding,
                           const std::vector<TextureData> &images) {
+  assert(binding.unit >= 0);
+
   // generate binding descriptor
   QString desc = QString("%1 %2 offset %3").arg(
       state_enum_to_name(binding.unit).c_str(),
@@ -233,12 +236,8 @@ QBoundTexture::onTexture(ExperimentId experimentCount,
                          const TextureKey &binding,
                          const std::vector<TextureData> &images) {
   FrameImages *fi = FrameImages::instance();
-  assert(m_details.empty());
-  int expected_level = 0;
   for (auto i : images) {
     {
-      assert(expected_level == i.level);
-      ++expected_level;
       QStringList level_details;
       level_details.append(QString("Width: %1").arg(i.width));
       level_details.append(QString("Height: %1").arg(i.height));

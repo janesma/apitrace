@@ -28,7 +28,11 @@
 #include "glframe_retrace_images.hpp"
 #include <assert.h>
 
+#include <sstream>
 #include <vector>
+
+#include "glframe_logger.hpp"
+#include "image.hpp"
 
 using glretrace::FrameImages;
 
@@ -64,7 +68,23 @@ FrameImages::AddTexture(const char *path,
   QString qs(path);
   if (m_textures.find(qs) != m_textures.end())
     return;
-  m_textures[qs].loadFromData(buf.data(), buf.size(), "PNG");
+  const unsigned char pngSignature[] = {0x89, 0x50, 0x4E, 0x47,
+                                        0x0D, 0x0A, 0x1A, 0x0A, 0};
+  if (memcmp(pngSignature, buf.data(), sizeof(pngSignature)) == 0) {
+    m_textures[qs].loadFromData(buf.data(), buf.size(), "PNG");
+    return;
+  }
+
+  // else convert to png from PNM, which ApiTrace uses to store
+  // single-channel images
+  image::Image *i = image::readPNM(
+      reinterpret_cast<const char*>(buf.data()), buf.size());
+  std::ostringstream pngConversion;
+  i->writePNG(pngConversion, true);
+  m_textures[qs].loadFromData(
+      reinterpret_cast<const uchar *>(pngConversion.str().c_str()),
+      pngConversion.str().size(), "PNG");
+  delete i;
 }
 
 void

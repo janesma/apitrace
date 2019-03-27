@@ -756,20 +756,27 @@ class TextureCollector : public StateWriter {
           word.erase(0, word.find_first_not_of(" "));
           words.push_back(word);
         }
-        int next_unit = state_name_to_enum(words[0]);
-        int next_target = state_name_to_enum(words[1]);
 
-        if ((m_key.unit > -1) &&
-            ((next_unit != m_key.unit) ||
-             (next_target != m_key.target))
-            ) {
+        // defaults will be used for image load store (unsupported)
+        int next_unit = -1;
+        int next_target = -1;
+        if (words.size() > 1) {
+          next_unit = state_name_to_enum(words[0]);
+          next_target= state_name_to_enum(words[1]);
+        }
+
+        if ((next_unit != m_key.unit) ||
+             (next_target != m_key.target)) {
           // new binding.  Send the cached textures before proceeding
-          assert(m_textures.size());
-          m_cb->onTexture(m_selection_id,
-                          m_experiment_id,
-                          m_render,
-                          m_key,
-                          m_textures);
+          if (m_key.unit > -1) {
+            // supported unit (not image load store)
+            assert(m_textures.size());
+            m_cb->onTexture(m_selection_id,
+                            m_experiment_id,
+                            m_render,
+                            m_key,
+                            m_textures);
+          }
           m_textures.clear();
         }
         m_key.unit = next_unit;
@@ -777,11 +784,17 @@ class TextureCollector : public StateWriter {
 
         // new texture
         m_textures.push_back(TextureData());
-        const char* level_prefix = "level = ";
-        assert(strncmp(level_prefix,
-                       words[2].c_str(),
-                       strlen(level_prefix)) == 0);
-        m_textures.back().level = atoi(words[2].c_str() + strlen(level_prefix));
+
+        // by default, image load store textures will be invalid
+        m_textures.back().level = -1;
+        if (m_key.unit > -1) {
+          const char* level_prefix = "level = ";
+          assert(strncmp(level_prefix,
+                         words[2].c_str(),
+                         strlen(level_prefix)) == 0);
+          m_textures.back().level = atoi(words[2].c_str() +
+                                         strlen(level_prefix));
+        }
         m_state = k_a_texture;
         return;
       }
@@ -815,11 +828,12 @@ class TextureCollector : public StateWriter {
         return;
       case k_textures:
         if (m_textures.size()) {
-          m_cb->onTexture(m_selection_id,
-                          m_experiment_id,
-                          m_render,
-                          m_key,
-                          m_textures);
+          if (m_key.unit > -1)
+            m_cb->onTexture(m_selection_id,
+                            m_experiment_id,
+                            m_render,
+                            m_key,
+                            m_textures);
           m_state = k_none;
         }
         return;
@@ -934,6 +948,13 @@ void RetraceContext::retraceTextures(const RenderSelection &selection,
   for (auto r : m_renders) {
     r.second->retrace(tracker);
     if (isSelected(r.first, selection)) {
+      // // for debugging texture data
+      // std::ostringstream os;
+      // StateWriter *dump = createJSONStateWriter(os);
+      // glstate::dumpTextures(*dump, c);
+      // // glframe_logger.hpp will probably drop data.  Increase BUF_SIZE
+      // GRLOGF(WARN, "JSON dump of texture: %s", os.str().c_str());
+
       TextureCollector t(r.first, selection.id, experimentCount, callback);
       glstate::dumpTextures(t, c);
     }
