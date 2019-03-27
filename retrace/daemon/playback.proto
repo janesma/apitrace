@@ -287,6 +287,13 @@ message TextureKey {
   required uint32 offset = 3;
 }
 
+
+message TextureDataResponse {
+  required uint32 experiment_count = 1;
+  required string md5sum = 2;
+  required bytes image_data = 3;
+}
+
 message TextureData {
   required uint32 level = 1;
   required string internal_format = 2;
@@ -294,9 +301,8 @@ message TextureData {
   required uint32 height = 4;
   required string format = 5;
   required string type = 6;
-  required bytes image_data = 7;
+  required string md5sum = 7;
 }
-
 message TextureResponse {
   required uint32 selection_count = 1;
   required uint32 render_id = 2;
@@ -339,5 +345,6 @@ message RetraceResponse {
   optional BatchResponse batch = 9;
   optional UniformResponse uniform = 10;
   optional StateResponse state = 11;
-  optional TextureResponse texture = 12;
+  optional TextureDataResponse textureData = 12;
+  optional TextureResponse texture = 13;
 }

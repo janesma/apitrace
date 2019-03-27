@@ -102,6 +102,9 @@ class FrameRetraceSkeleton : public Thread,
                        RenderId renderId,
                        StateKey item,
                        const std::vector<std::string> &value);
+  virtual void onTextureData(ExperimentId experimentCount,
+                             const std::string &md5sum,
+                             const std::vector<unsigned char> &image);
   virtual void onTexture(SelectionId selectionCount,
                          ExperimentId experimentCount,
                          RenderId renderId,

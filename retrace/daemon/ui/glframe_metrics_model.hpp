@@ -41,7 +41,6 @@
 #include "glframe_traits.hpp"
 
 namespace glretrace {
-
 class QSelection;
 class QMetricValue : public QObject,
                 NoCopy, NoAssign, NoMove {
@@ -137,6 +136,8 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                RenderId renderId,
                StateKey item,
                const std::vector<std::string> &value) { assert(false); }
+  void onTextureData(ExperimentId experimentCount, const std::string &md5sum,
+                     const std::vector<unsigned char> &image) { assert(false); }
   void onTexture(SelectionId selectionCount,
                  ExperimentId experimentCount,
                  RenderId renderId,

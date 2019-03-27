@@ -121,6 +121,15 @@ QTextureModel::onTexture(SelectionId selectionCount,
 }
 
 void
+QTextureModel::onTextureData(ExperimentId experimentCount,
+                             const std::string &md5sum,
+                             const std::vector<unsigned char> &image) {
+  const QString urlFmt = "texture/%1.png";
+  const QString url(urlFmt.arg(QString(md5sum.c_str())));
+  FrameImages::instance()->AddTexture(url.toStdString().c_str(), image);
+}
+
+void
 QTextureModel::selectRender(int index) {
   {
     ScopedLock s(m_protect);
@@ -235,7 +244,6 @@ QBoundTexture::onTexture(ExperimentId experimentCount,
                          RenderId render,
                          const TextureKey &binding,
                          const std::vector<TextureData> &images) {
-  FrameImages *fi = FrameImages::instance();
   for (auto i : images) {
     {
       QStringList level_details;
@@ -249,21 +257,9 @@ QBoundTexture::onTexture(ExperimentId experimentCount,
       m_details.push_back(level_details);
       m_levels.push_back(QString("Level: %1").arg(i.level));
 
-      QString imageProviderFmt = "texture/exp_%1/ren_%2/%3_%4_%5/level_%6.png";
-      QString imageProvider(imageProviderFmt.arg(
-          QString::number(experimentCount.count()),
-          QString::number(render.index()),
-          state_enum_to_name(binding.unit).c_str(),
-          state_enum_to_name(binding.target).c_str(),
-          QString::number(binding.offset),
-          QString::number(i.level)));
-
-      QString urlFmt = "image://myimageprovider/%1";
-      QString url(urlFmt.arg(imageProvider));
+      QString urlFmt = "image://myimageprovider/texture/%1.png";
+      QString url(urlFmt.arg(QString(i.md5sum.c_str())));
       m_image_urls.push_back(url);
-
-      assert(!i.image_data.empty());
-      fi->AddTexture(imageProvider.toStdString().c_str(), i.image_data);
     }
   }
   emit levelsChanged();

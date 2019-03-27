@@ -300,7 +300,7 @@ struct TextureData {
   int height;
   std::string format;
   std::string type;
-  std::vector<unsigned char> image_data;
+  std::string md5sum;
   TextureData() {}
   TextureData(int l,
               const std::string &iformat,
@@ -308,15 +308,13 @@ struct TextureData {
               int h,
               const std::string &fmt,
               const std::string &t,
-              const std::string &data) : level(l),
-                                         internalFormat(iformat),
-                                         width(w),
-                                         height(h),
-                                         format(fmt),
-                                         type(t),
-                                         image_data(data.size()) {
-    memcpy(image_data.data(), data.c_str(), data.size());
-  }
+              const std::string &md5) : level(l),
+                                        internalFormat(iformat),
+                                        width(w),
+                                        height(h),
+                                        format(fmt),
+                                        type(t),
+                                        md5sum(md5) {}
 };
 
 // Serializable asynchronous callbacks made from remote
@@ -370,6 +368,9 @@ class OnFrameRetrace {
                        RenderId renderId,
                        StateKey item,
                        const std::vector<std::string> &value) = 0;
+  virtual void onTextureData(ExperimentId experimentCount,
+                             const std::string &md5sum,
+                             const std::vector<unsigned char> &image) = 0;
   virtual void onTexture(SelectionId selectionCount,
                          ExperimentId experimentCount,
                          RenderId renderId,

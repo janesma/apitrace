@@ -1241,6 +1241,15 @@ class TextureRequest : public IRetraceRequest {
         m_callback->onError(RETRACE_FATAL, "FrameRetrace server died");
         return;
       }
+      if (response.has_texturedata()) {
+        const auto &texture = response.texturedata();
+        const auto &data = texture.image_data();
+        std::vector<unsigned char> image_data(data.size());
+        memcpy(image_data.data(), data.c_str(), data.size());
+        m_callback->onTextureData(ExperimentId(texture.experiment_count()),
+                                  texture.md5sum(), image_data);
+        continue;
+      }
       assert(response.has_texture());
       const auto &texture_response = response.texture();
       if (texture_response.render_id() == (unsigned int)-1) {
@@ -1283,7 +1292,7 @@ class TextureRequest : public IRetraceRequest {
                                                 image.height(),
                                                 image.format(),
                                                 image.type(),
-                                                image.image_data()));
+                                                image.md5sum()));
       }
       m_callback->onTexture(selection, experiment, rid,
                             k, images);

@@ -707,6 +707,13 @@ FrameRetraceModel::retrace_textures() {
 }
 
 void
+FrameRetraceModel::onTextureData(ExperimentId experimentCount,
+                                 const std::string &md5sum,
+                                 const std::vector<unsigned char> &image) {
+  m_textureModel->onTextureData(experimentCount, md5sum, image);
+}
+
+void
 FrameRetraceModel::onTexture(SelectionId selectionCount,
                              ExperimentId experimentCount,
                              RenderId renderId,

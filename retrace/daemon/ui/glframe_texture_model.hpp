@@ -98,6 +98,9 @@ class QTextureModel : public QObject,
   ~QTextureModel();
   // QString apiCalls();
   QStringList renders() const;
+  void onTextureData(ExperimentId experimentCount,
+                     const std::string &md5sum,
+                     const std::vector<unsigned char> &image);
   void onTexture(SelectionId selectionCount,
                  ExperimentId experimentCount,
                  RenderId renderId,

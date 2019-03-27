@@ -111,6 +111,8 @@ set (RETRACE_SOURCES
   glframe_uniforms.cpp
   glframe_uniforms.hpp
   glretrace_globals.cpp
+  glframe_retrace_texture.hpp
+  glframe_retrace_texture.cpp
   )  
 
 add_library(retrace_daemon STATIC

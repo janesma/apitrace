@@ -56,6 +56,7 @@ class MetricId;
 class OutputPoller;
 class PerfMetrics;
 class RetraceRender;
+class Textures;
 
 class RetraceContext {
  public:
@@ -135,6 +136,7 @@ class RetraceContext {
   std::map<RenderId, RetraceRender*> m_renders;
   std::vector<RenderId> m_end_render_target_regions;
   bool m_ends_frame;
+  Textures *m_textures;
 
   RenderId lastRenderForRTRegion(RenderId render) const;
 };

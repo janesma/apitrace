@@ -739,8 +739,20 @@ FrameRetraceSkeleton::onTexture(SelectionId selectionCount,
     rimage->set_height(image.height);
     rimage->set_format(image.format);
     rimage->set_type(image.type);
-    rimage->set_image_data(image.image_data.data(),
-                           image.image_data.size());
+    rimage->set_md5sum(image.md5sum);
   }
+  writeResponse(m_socket, proto_response, &m_buf);
+}
+
+
+void
+FrameRetraceSkeleton::onTextureData(ExperimentId experimentCount,
+                                    const std::string &md5sum,
+                                    const std::vector<unsigned char> &image) {
+  RetraceResponse proto_response;
+  auto resp = proto_response.mutable_texturedata();
+  resp->set_experiment_count(experimentCount());
+  resp->set_md5sum(md5sum);
+  resp->set_image_data(image.data(), image.size());
   writeResponse(m_socket, proto_response, &m_buf);
 }
