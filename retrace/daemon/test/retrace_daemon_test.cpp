@@ -347,9 +347,9 @@ TEST_F(RetraceTest, Texture) {
   EXPECT_GT(cb.textureCallBacks, 0);
   EXPECT_EQ(cb.saved_binding.unit, GL_TEXTURE0);
   EXPECT_EQ(cb.saved_binding.target, GL_TEXTURE_2D);
-  EXPECT_EQ(cb.saved_binding.offset, 0);
+  EXPECT_EQ(cb.saved_binding.offset, 1);
   EXPECT_EQ(cb.saved_images.size(), 1);
-  EXPECT_EQ(cb.saved_images[0].level, 1);
+  EXPECT_EQ(cb.saved_images[0].level, 0);
   EXPECT_EQ(cb.saved_images[0].width, 2);
   EXPECT_EQ(cb.saved_images[0].height, 2);
   EXPECT_EQ(cb.saved_images[0].format, "GL_RGBA");
@@ -378,9 +378,9 @@ TEST_F(RetraceTest, TextureStub) {
   EXPECT_GT(cb.textureCallBacks, 0);
   EXPECT_EQ(cb.saved_binding.unit, GL_TEXTURE0);
   EXPECT_EQ(cb.saved_binding.target, GL_TEXTURE_2D);
-  EXPECT_EQ(cb.saved_binding.offset, 0);
+  EXPECT_EQ(cb.saved_binding.offset, 1);
   EXPECT_EQ(cb.saved_images.size(), 1);
-  EXPECT_EQ(cb.saved_images[0].level, 1);
+  EXPECT_EQ(cb.saved_images[0].level, 0);
   EXPECT_EQ(cb.saved_images[0].width, 2);
   EXPECT_EQ(cb.saved_images[0].height, 2);
   EXPECT_EQ(cb.saved_images[0].format, "GL_RGBA");
