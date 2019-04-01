@@ -73,8 +73,8 @@ RetraceContext::RetraceContext(RenderId current_render,
       m_textures(new Textures) {
 
   if (geometry_render_supported == -1) {
-    GLint pgm;
-    GlFunctions::GetIntegerv(GL_POLYGON_MODE, &pgm);
+    GLint pgm[2];
+    GlFunctions::GetIntegerv(GL_POLYGON_MODE, pgm);
     if (GL_NO_ERROR == GL::GetError())
       geometry_render_supported = 1;
     else

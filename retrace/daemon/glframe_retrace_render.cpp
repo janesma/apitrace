@@ -256,8 +256,8 @@ RetraceRender::RetraceRender(unsigned int tex2x2,
 
   // configure wireframe override for render targets
   GL::GetError();
-  GLint polygon_mode_supported;
-  GlFunctions::GetIntegerv(GL_POLYGON_MODE, &polygon_mode_supported);
+  GLint polygon_mode_supported[2];
+  GlFunctions::GetIntegerv(GL_POLYGON_MODE, polygon_mode_supported);
   if (GL_NO_ERROR == GL::GetError()) {
     const StateKey wireframe_key("Primitive/Polygon", "GL_POLYGON_MODE");
     const StateKey width("Primitive/Line", "GL_LINE_WIDTH");
