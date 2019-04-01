@@ -290,6 +290,7 @@ struct TextureKey {
 
   TextureKey() : unit(-1), target(-1), offset(-1) {}
   TextureKey(int u, int t, int o) : unit(u), target(t), offset(o) {}
+  bool valid() { return unit != -1 && target != -1 && offset != -1; }
 };
 
 struct TextureData {

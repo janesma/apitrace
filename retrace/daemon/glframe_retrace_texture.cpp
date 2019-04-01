@@ -130,7 +130,7 @@ class TextureCollector : public StateWriter {
         if ((next_unit != m_key.unit) ||
              (next_target != m_key.target)) {
           // new binding.  Send the cached textures before proceeding
-          if (m_key.unit > -1) {
+          if (m_key.valid()) {
             // supported unit (not image load store)
             assert(m_textures.size());
             m_cb->onTexture(m_selection_id,
@@ -147,9 +147,13 @@ class TextureCollector : public StateWriter {
         // new texture
         m_textures.push_back(TextureData());
 
-        // by default, image load store textures will be invalid
+        // image load store textures and GL_TEXTURE_BUFFER bindings
+        // will be invalid
+        if (m_key.target == GL_TEXTURE_BUFFER)
+          m_key.target = -1;
         m_textures.back().level = -1;
-        if (m_key.unit > -1) {
+
+        if (m_key.valid()) {
           const char* level_prefix = "level = ";
           assert(strncmp(level_prefix,
                          words[2].c_str(),
