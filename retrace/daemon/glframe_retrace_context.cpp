@@ -472,6 +472,12 @@ RetraceContext::retraceAllMetrics(const RenderSelection &selection,
     }
   }
 
+  // play to end of context
+  while (current_render != m_renders.end()) {
+    current_render->second->retrace(tracker);
+    ++current_render;
+  }
+
   // CleanPerf destructor will end context
 }
 
