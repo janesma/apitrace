@@ -104,6 +104,11 @@ class RetraceSocket {
     m_sock.ReadVec(&m_buf);
     ArrayInputStream array_in(m_buf.data(), read_size);
     CodedInputStream coded_in(&array_in);
+
+    // 64MB, from coded_stream.h.  Textures are bigger than this
+    static const int kDefaultTotalBytesLimit = 64 << 20;
+    coded_in.SetTotalBytesLimit(2 * kDefaultTotalBytesLimit,
+                                kDefaultTotalBytesLimit);
     CodedInputStream::Limit msg_limit = coded_in.PushLimit(read_size);
     resp->ParseFromCodedStream(&coded_in);
     coded_in.PopLimit(msg_limit);
