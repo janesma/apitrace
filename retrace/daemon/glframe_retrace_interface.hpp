@@ -151,6 +151,7 @@ class SelectionId {
   uint32_t count() const { return value & (~ID_PREFIX_MASK); }
   bool operator<=(const SelectionId &o) const { return value <= o.value; }
   bool operator>(const SelectionId &o) const { return value > o.value; }
+  bool operator<(const SelectionId &o) const { return value < o.value; }
   bool operator==(const SelectionId &o) const { return value == o.value; }
   bool operator!=(const SelectionId &o) const { return value != o.value; }
   static const uint32_t INVALID_SELECTION = (-1 & ~ID_PREFIX_MASK);
@@ -450,6 +451,8 @@ class IFrameRetrace {
                                ExperimentId experimentCount,
                                OnFrameRetrace *callback) = 0;
   virtual void revertExperiments() = 0;
+  virtual void cancel(SelectionId selectionCount,
+                      ExperimentId experimentCount) = 0;
 };
 
 class FrameState {

@@ -72,8 +72,8 @@ int main(int argc, char *argv[]) {
   int port = parse_args(argc, argv);
   // port = 53135;
   GRLOGF(glretrace::WARN, "server port: %d", port);
-  ServerSocket sock(port);
-  FrameRetraceSkeleton skel(sock.Accept());
+  ServerSocket sock(port), cancel_sock(port + 1);
+  FrameRetraceSkeleton skel(sock.Accept(), cancel_sock.Accept());
   skel.Run();
   Socket::Cleanup();
   Logger::Destroy();

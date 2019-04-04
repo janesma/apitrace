@@ -35,6 +35,7 @@
 #include "glframe_retrace_interface.hpp"
 #include "glframe_retrace.hpp"
 #include "trace_parser.hpp"
+#include "glframe_cancellation.hpp"
 
 namespace trace {
 class AbstractParser;
@@ -64,7 +65,8 @@ class RetraceContext {
                  unsigned int tex2x2,
                  trace::AbstractParser *parser,
                  retrace::Retracer *retracer,
-                 StateTrack *tracker);
+                 StateTrack *tracker,
+                 const CancellationPolicy &cancel);
   void retraceRenderTarget(ExperimentId experimentCount,
                            const RenderSelection &selection,
                            RenderTargetType type,
@@ -137,6 +139,7 @@ class RetraceContext {
   std::vector<RenderId> m_end_render_target_regions;
   bool m_ends_frame;
   Textures *m_textures;
+  const CancellationPolicy &m_cancelPolicy;
 
   RenderId lastRenderForRTRegion(RenderId render) const;
 };

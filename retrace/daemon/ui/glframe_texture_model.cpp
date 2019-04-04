@@ -112,12 +112,15 @@ QTextureModel::onTexture(SelectionId selectionCount,
     return;
   }
 
-  ScopedLock s(m_protect);
-  if (m_texture_units.find(renderId) == m_texture_units.end()) {
-    m_texture_units[renderId] = new RenderTextures(this);
+  {
+    ScopedLock s(m_protect);
+    if (m_texture_units.find(renderId) == m_texture_units.end()) {
+      m_texture_units[renderId] = new RenderTextures(this);
+    }
+    m_texture_units[renderId]->onTexture(experimentCount, renderId,
+                                         binding, images);
   }
-  m_texture_units[renderId]->onTexture(experimentCount, renderId,
-                                       binding, images);
+  emit rendersChanged();
 }
 
 void

@@ -113,6 +113,8 @@ set (RETRACE_SOURCES
   glretrace_globals.cpp
   glframe_retrace_texture.hpp
   glframe_retrace_texture.cpp
+  glframe_cancellation.hpp
+  glframe_cancellation.cpp
   )  
 
 add_library(retrace_daemon STATIC

@@ -38,6 +38,7 @@
 #include "glframe_retrace_interface.hpp"
 #include "glframe_state.hpp"
 #include "glframe_thread_context.hpp"
+#include "glframe_cancellation.hpp"
 
 namespace glretrace {
 
@@ -131,6 +132,8 @@ class FrameRetrace : public IFrameRetrace {
                        ExperimentId experimentCount,
                        OnFrameRetrace *callback);
   void revertExperiments();
+  void cancel(SelectionId selectionCount,
+              ExperimentId experimentCount);
 
  private:
   // these are global
@@ -146,6 +149,7 @@ class FrameRetrace : public IFrameRetrace {
   std::vector<RenderId> render_target_regions;
 
   ThreadContext m_thread_context;
+  CancellationPolicy m_cancelPolicy;
 };
 
 } /* namespace glretrace */

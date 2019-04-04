@@ -40,6 +40,7 @@
 #include "glframe_socket.hpp"
 #include "playback.pb.h" // NOLINT
 
+using ApiTrace::CancellationEvent;
 using ApiTrace::RetraceRequest;
 using ApiTrace::RetraceResponse;
 using glretrace::ErrorSeverity;
@@ -56,6 +57,7 @@ using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
 using glretrace::Socket;
 using glretrace::StateKey;
+using glretrace::Thread;
 using glretrace::UniformDimension;
 using glretrace::UniformType;
 using glretrace::application_cache_directory;
@@ -64,16 +66,54 @@ using google::protobuf::io::ArrayOutputStream;
 using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
 
-FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *sock,
+
+namespace glretrace {
+class CancellationThread : public Thread {
+ public:
+  explicit CancellationThread(Socket *s, IFrameRetrace *f)
+      : Thread("cancellation thread"),
+        m_socket(s), m_retrace(f) { Start(); }
+  virtual void Run() {
+    std::vector<unsigned char> buf;
+    while (true) {
+      uint32_t msg_len;
+      if (!m_socket->Read(&msg_len))
+        return;
+      buf.resize(msg_len);
+      if (!m_socket->ReadVec(&buf))
+        return;
+      const size_t buf_size = buf.size();
+      ArrayInputStream array_in(buf.data(), buf_size);
+      CodedInputStream coded_in(&array_in);
+      CancellationEvent e;
+      CodedInputStream::Limit msg_limit = coded_in.PushLimit(buf_size);
+      e.ParseFromCodedStream(&coded_in);
+      coded_in.PopLimit(msg_limit);
+      m_retrace->cancel(SelectionId(e.selection_count()),
+                        ExperimentId(e.experiment_count()));
+    }
+  }
+
+ private:
+  Socket *m_socket;
+  IFrameRetrace *m_retrace;
+};
+
+}  // end namespace glretrace
+
+FrameRetraceSkeleton::FrameRetraceSkeleton(Socket *retrace_sock,
+                                           Socket *cancellation_socket,
                                            IFrameRetrace *frameretrace)
     : Thread("retrace_skeleton"),
       m_force_upload(false),
-      m_socket(sock),
+      m_socket(retrace_sock),
       m_frame(frameretrace),
       m_fatal_error(false),
       m_multi_metrics_response(new RetraceResponse) {
   if (!m_frame)
     m_frame = new FrameRetrace();
+  if (cancellation_socket)
+    m_cancel = new CancellationThread(cancellation_socket, m_frame);
 }
 
 void

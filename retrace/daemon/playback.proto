@@ -348,3 +348,8 @@ message RetraceResponse {
   optional TextureDataResponse textureData = 12;
   optional TextureResponse texture = 13;
 }
+
+message CancellationEvent {
+  required uint32 selection_count = 1;
+  required uint32 experiment_count = 2;
+}

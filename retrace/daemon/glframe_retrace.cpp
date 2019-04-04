@@ -231,7 +231,7 @@ FrameRetrace::openFile(const std::string &filename,
 
   while (true) {
     auto c = new RetraceContext(current_render, tex2x2, parser,
-                                &retracer, &m_tracker);
+                                &retracer, &m_tracker, m_cancelPolicy);
     // initialize metrics collector with context
     m_metrics->beginContext();
     m_metrics->endContext();
@@ -361,12 +361,18 @@ FrameRetrace::retraceAllMetrics(const RenderSelection &selection,
   for (auto i : m_contexts)
     i->retraceMetrics(NULL, m_tracker);
 
+  if (m_cancelPolicy.isCancelled(selection.id, experimentCount))
+    return;
+
   for (int i = 0; i < m_metrics->groupCount(); ++i) {
     m_metrics->selectGroup(i);
     parser->setBookmark(frame_start.start);
 
     for (auto i : m_contexts)
       i->retraceAllMetrics(selection, m_metrics, m_tracker);
+
+    if (m_cancelPolicy.isCancelled(selection.id, experimentCount))
+      break;
   }
   m_metrics->publish(experimentCount,
                      selection.id,
@@ -556,4 +562,10 @@ FrameRetrace::retraceTextures(const RenderSelection &selection,
   parser->setBookmark(frame_start.start);
   for (auto i : m_contexts)
     i->retraceTextures(selection, experimentCount, m_tracker, callback);
+}
+
+void
+FrameRetrace::cancel(SelectionId selectionCount,
+                     ExperimentId experimentCount) {
+  m_cancelPolicy.cancel(selectionCount, experimentCount);
 }

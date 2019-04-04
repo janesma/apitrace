@@ -1357,6 +1357,36 @@ class BufferQueue {
 
 namespace glretrace {
 
+class CancellationSocket {
+ public:
+  CancellationSocket(const char *host, int port)
+      : m_sock(host, port) {}
+  void cancel(SelectionId selectionCount,
+              ExperimentId experimentCount) {
+    if (m_sel == selectionCount && m_exp == experimentCount)
+      return;
+    m_sel = selectionCount;
+    m_exp = experimentCount;
+    ApiTrace::CancellationEvent e;
+    e.set_selection_count(selectionCount.count());
+    e.set_experiment_count(experimentCount.count());
+    m_buf.clear();
+    const uint32_t write_size = e.ByteSize();
+    m_buf.resize(write_size);
+    ArrayOutputStream array_out(m_buf.data(), write_size);
+    CodedOutputStream coded_out(&array_out);
+    e.SerializeToCodedStream(&coded_out);
+    m_sock.Write(write_size);
+    m_sock.WriteVec(m_buf);
+  }
+
+ private:
+  Socket m_sock;
+  std::vector<unsigned char> m_buf;
+  SelectionId m_sel;
+  ExperimentId m_exp;
+};
+
 class ThreadedRetrace : public Thread {
  public:
   explicit ThreadedRetrace(const char *host,
@@ -1390,17 +1420,23 @@ using glretrace::ThreadedRetrace;
 void
 FrameRetraceStub::Init(const char *host, int port) {
   assert(m_thread == NULL);
+  assert(m_cancellation == NULL);
   m_thread = new ThreadedRetrace(host, port);
   m_thread->Start();
+  m_cancellation = new CancellationSocket(host, port + 1);
 }
 
 void
 FrameRetraceStub::Shutdown() {
+  delete m_cancellation;
+  m_cancellation = NULL;
+
   if (!m_thread)
     return;
 
   m_thread->stop();
   delete m_thread;
+  m_thread = NULL;
 }
 
 void
@@ -1432,6 +1468,7 @@ FrameRetraceStub::retraceRenderTarget(ExperimentId experimentCount,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new RetraceRenderTargetRequest(&m_current_rt_selection,
                                                 &m_current_experiment,
                                                 &m_mutex,
@@ -1450,6 +1487,7 @@ FrameRetraceStub::retraceShaderAssembly(const RenderSelection &selection,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new RetraceShaderAssemblyRequest(&m_current_render_selection,
                                                   &m_current_experiment,
                                                   &m_mutex,
@@ -1479,6 +1517,7 @@ FrameRetraceStub::retraceAllMetrics(const RenderSelection &selection,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new RetraceAllMetricsRequest(&m_current_met_selection,
                                               &m_mutex,
                                               selection,
@@ -1542,6 +1581,7 @@ FrameRetraceStub::retraceBatch(const RenderSelection &selection,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new BatchRequest(&m_current_render_selection,
                                   &m_current_experiment,
                                   &m_mutex,
@@ -1558,6 +1598,7 @@ FrameRetraceStub::retraceUniform(const RenderSelection &selection,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new UniformRequest(&m_current_render_selection,
                                     &m_current_experiment,
                                     &m_mutex,
@@ -1587,6 +1628,7 @@ FrameRetraceStub::retraceState(const RenderSelection &selection,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new StateRequest(&m_current_render_selection,
                                   &m_current_experiment,
                                   &m_mutex,
@@ -1634,6 +1676,7 @@ FrameRetraceStub::retraceTextures(const RenderSelection &selection,
     assert(m_current_experiment <= experimentCount);
     m_current_experiment = experimentCount;
   }
+  m_cancellation->cancel(selection.id, experimentCount);
   m_thread->push(new TextureRequest(&m_current_render_selection,
                                     &m_current_experiment,
                                     &m_mutex,

@@ -67,10 +67,12 @@ RetraceContext::RetraceContext(RenderId current_render,
                                unsigned int tex2x2,
                                trace::AbstractParser *parser,
                                retrace::Retracer *retracer,
-                               StateTrack *tracker)
+                               StateTrack *tracker,
+                               const CancellationPolicy &cancel)
     : m_parser(parser), m_retracer(retracer),
       m_context_switch(NULL), m_ends_frame(false),
-      m_textures(new Textures) {
+      m_textures(new Textures),
+      m_cancelPolicy(cancel) {
 
   if (geometry_render_supported == -1) {
     GLint pgm[2];
@@ -591,7 +593,8 @@ RetraceContext::retraceBatch(const RenderSelection &selection,
   assert(bm.offset == m_start_bookmark.offset);
 
   for (auto r : m_renders) {
-    if (isSelected(r.first, selection)) {
+    if (isSelected(r.first, selection) &&
+        (!m_cancelPolicy.isCancelled(selection.id, experimentCount))) {
       GlFunctions::Finish();
       control->batchOn();
     } else {
@@ -703,6 +706,8 @@ RetraceContext::retraceTextures(const RenderSelection &selection,
   glstate::Context c;
   for (auto r : m_renders) {
     r.second->retrace(tracker);
+    if (m_cancelPolicy.isCancelled(selection.id, experimentCount))
+        continue;
     if (isSelected(r.first, selection)) {
       m_textures->retraceTextures(r.first, selection.id,
                                   experimentCount, callback);

@@ -37,6 +37,7 @@
 namespace glretrace {
 
 class ThreadedRetrace;
+class CancellationSocket;
 
 // offloads the request to a thread which serializes request to the
 // retrace process, and blocks on the result.
@@ -111,6 +112,8 @@ class FrameRetraceStub : public IFrameRetrace {
                                ExperimentId experimentCount,
                                OnFrameRetrace *callback);
   virtual void revertExperiments();
+  virtual void cancel(SelectionId selectionCount,
+                      ExperimentId experimentCount) { assert(false); }
 
  private:
   mutable std::mutex m_mutex;
@@ -118,6 +121,7 @@ class FrameRetraceStub : public IFrameRetrace {
     m_current_render_selection;
   mutable ExperimentId m_current_experiment;
   ThreadedRetrace *m_thread = NULL;
+  CancellationSocket *m_cancellation = NULL;
 };
 }  // namespace glretrace
 

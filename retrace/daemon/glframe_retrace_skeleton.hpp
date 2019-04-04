@@ -41,6 +41,7 @@ class RetraceResponse;
 namespace glretrace {
 class Socket;
 class FrameRetrace;
+class CancellationThread;
 
 // handles retrace requests coming in through a socket, executes them,
 // and formats responses back through the socket
@@ -49,8 +50,9 @@ class FrameRetraceSkeleton : public Thread,
  public:
   // call once, to set up the retrace socket, and shut it down at
   // exit
-  explicit FrameRetraceSkeleton(Socket *sock,
-                                IFrameRetrace *frameretrace = NULL);
+  FrameRetraceSkeleton(Socket *sock,
+                       Socket *cancel_socket,
+                       IFrameRetrace *frameretrace = NULL);
   virtual void Run();
 
   // callback responses, to be sent through the socket to the caller
@@ -118,6 +120,7 @@ class FrameRetraceSkeleton : public Thread,
   Socket *m_socket;
   std::vector<unsigned char> m_buf;
   IFrameRetrace *m_frame;
+  CancellationThread *m_cancel;
   int m_remaining_metrics_requests;
   bool m_fatal_error;
 
