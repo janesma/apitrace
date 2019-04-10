@@ -288,6 +288,15 @@ FrameRetraceSkeleton::Run() {
           RenderSelection selection;
           makeRenderSelection(met.selection(), &selection);
           m_multi_metrics_response->Clear();
+
+          // fill in required protobuf fields, in case the request is
+          // interrupted before there are callbacks.
+          auto metrics_response =
+              m_multi_metrics_response->mutable_metricsdata();
+          metrics_response->set_experiment_count(met.experiment_count());
+          metrics_response->set_selection_count(
+              met.selection().selection_count());
+
           m_frame->retraceAllMetrics(selection,
                                      ExperimentId(met.experiment_count()),
                                      this);
