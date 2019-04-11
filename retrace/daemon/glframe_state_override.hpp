@@ -48,13 +48,13 @@ class StateOverride {
   void overrideState() const;
   void restoreState() const;
 
-  void onState(SelectionId selId,
-               ExperimentId experimentCount,
-               RenderId renderId,
-               OnFrameRetrace *callback);
+  static void onState(SelectionId selId,
+                      ExperimentId experimentCount,
+                      RenderId renderId,
+                      OnFrameRetrace *callback);
 
-  void getState(const StateKey &item,
-                std::vector<uint32_t> *data);
+  static void getState(const StateKey &item,
+                       std::vector<uint32_t> *data);
   void revertExperiments();
   void revertState(const StateKey &item);
 
@@ -69,10 +69,10 @@ class StateOverride {
   typedef std::map<StateKey, std::vector<uint32_t>> KeyMap;
   void enact_state(const KeyMap &m) const;
   void enact_enabled_state(GLint setting, bool v) const;
-  void get_enabled_state(GLint k, std::vector<uint32_t> *data);
-  void get_integer_state(GLint k, std::vector<uint32_t> *data);
-  void get_float_state(GLint k, std::vector<uint32_t> *data);
-  void get_bool_state(GLint k, std::vector<uint32_t> *data);
+  static void get_enabled_state(GLint k, std::vector<uint32_t> *data);
+  static void get_integer_state(GLint k, std::vector<uint32_t> *data);
+  static void get_float_state(GLint k, std::vector<uint32_t> *data);
+  static void get_bool_state(GLint k, std::vector<uint32_t> *data);
 
   uint32_t interpret_value(const StateKey &item,
                            const std::string &value);
