@@ -37,6 +37,7 @@
 #include "glframe_metrics.hpp"
 #include "glframe_retrace_render.hpp"
 #include "glframe_retrace_texture.hpp"
+#include "glframe_state_override.hpp"
 #include "glframe_uniforms.hpp"
 #include "glretrace.hpp"
 #include "glstate.hpp"
@@ -51,11 +52,13 @@ using glretrace::OutputPoller;
 using glretrace::OnFrameRetrace;
 using glretrace::PerfMetrics;
 using glretrace::RenderId;
+using glretrace::RetraceRender;
 using glretrace::RenderOptions;
 using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
 using glretrace::RetraceContext;
 using glretrace::StateKey;
+using glretrace::StateOverride;
 using glretrace::SelectionId;
 using glretrace::StateTrack;
 using glretrace::Textures;
@@ -610,6 +613,22 @@ RetraceContext::retraceBatch(const RenderSelection &selection,
   control->batchOff();
 }
 
+class UniformHook : public RetraceRender::CallbackHook {
+ public:
+  UniformHook(SelectionId s, ExperimentId e,
+              RenderId r, OnFrameRetrace *c)
+      : m_s(s), m_e(e), m_r(r), m_c(c) {}
+  void onCallbackReady() const {
+    glretrace::Uniforms u;
+    u.onUniform(m_s, m_e, m_r, m_c);
+  }
+ private:
+  SelectionId m_s;
+  ExperimentId m_e;
+  RenderId m_r;
+  OnFrameRetrace *m_c;
+};
+
 void
 RetraceContext::retraceUniform(const RenderSelection &selection,
                                ExperimentId experimentCount,
@@ -622,9 +641,9 @@ RetraceContext::retraceUniform(const RenderSelection &selection,
   for (auto r : m_renders) {
     if (isSelected(r.first, selection)) {
       // pass down the context that is needed to make the uniform callback
-      const RetraceRender::CallbackContext c(selection.id,
-                                             experimentCount,
-                                             r.first, callback);
+      const UniformHook c(selection.id,
+                             experimentCount,
+                             r.first, callback);
       r.second->retrace(tracker, &c);
     } else {
       r.second->retrace(tracker);
@@ -641,6 +660,22 @@ RetraceContext::setUniform(const RenderSelection &selection,
       r.second->setUniform(name, index, data);
 }
 
+
+class StateHook : public RetraceRender::CallbackHook {
+ public:
+  StateHook(SelectionId s, ExperimentId e,
+            RenderId r, OnFrameRetrace *c)
+      : m_s(s), m_e(e), m_r(r), m_c(c) {}
+  void onCallbackReady() const {
+    StateOverride::onState(m_s, m_e, m_r, m_c);
+  }
+ private:
+  SelectionId m_s;
+  ExperimentId m_e;
+  RenderId m_r;
+  OnFrameRetrace *m_c;
+};
+
 void
 RetraceContext::retraceState(const RenderSelection &selection,
                              ExperimentId experimentCount,
@@ -648,10 +683,8 @@ RetraceContext::retraceState(const RenderSelection &selection,
                              OnFrameRetrace *callback) {
   for (auto r : m_renders) {
     if (isSelected(r.first, selection)) {
-      const RetraceRender::CallbackContext c(selection.id,
-                                             experimentCount,
-                                             r.first, callback);
-      r.second->retrace(tracker, NULL, &c);
+      const StateHook c(selection.id, experimentCount, r.first, callback);
+      r.second->retrace(tracker, &c);
     } else {
       r.second->retrace(tracker);
     }

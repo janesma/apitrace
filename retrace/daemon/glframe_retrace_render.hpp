@@ -58,22 +58,17 @@ class RetraceRender {
                 StateTrack *tracker);
   ~RetraceRender();
 
-  struct CallbackContext {
-    CallbackContext(SelectionId s, ExperimentId e,
-                    RenderId r, OnFrameRetrace *c)
-        : selection(s), experiment(e), render(r), callback(c) {}
-    SelectionId selection;
-    ExperimentId experiment;
-    RenderId render;
-    OnFrameRetrace *callback;
+  class CallbackHook {
+   public:
+    virtual void onCallbackReady() const = 0;
+    virtual ~CallbackHook() {}
   };
 
   void retraceRenderTarget(const StateTrack &tracker,
                            RenderTargetType type) const;
   void retrace(StateTrack *tracker) const;
   void retrace(const StateTrack &tracker,
-               const CallbackContext *uniform_context = NULL,
-               const CallbackContext *state_context = NULL) const;
+               const CallbackHook *hook = NULL) const;
   bool endsFrame() const { return m_end_of_frame; }
   bool replaceShaders(StateTrack *tracker,
                       const std::string &vs,
@@ -104,10 +99,6 @@ class RetraceRender {
 
  private:
   void overrideUniforms() const;
-  void onState(SelectionId selId,
-               ExperimentId experimentCount,
-               RenderId renderId,
-               OnFrameRetrace *callback) const;
 
   trace::AbstractParser *m_parser;
   retrace::Retracer *m_retracer;

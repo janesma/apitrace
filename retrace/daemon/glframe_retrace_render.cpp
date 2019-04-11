@@ -410,8 +410,7 @@ RetraceRender::retrace(StateTrack *tracker) const {
 
 void
 RetraceRender::retrace(const StateTrack &tracker,
-                       const CallbackContext *uniform_context,
-                       const CallbackContext *state_context) const {
+                       const CallbackHook *context) const {
   // check that the parser is in correct state
   trace::ParseBookmark bm;
   m_parser->getBookmark(bm);
@@ -451,15 +450,8 @@ RetraceRender::retrace(const StateTrack &tracker,
     m_retracer->retrace(*call);
   delete(call);
 
-  if (uniform_context) {
-    Uniforms u;
-    u.onUniform(uniform_context->selection, uniform_context->experiment,
-                uniform_context->render, uniform_context->callback);
-  }
-
-  if (state_context) {
-    onState(state_context->selection, state_context->experiment,
-            state_context->render, state_context->callback);
+  if (context) {
+    context->onCallbackReady();
   }
 
   m_state_override->restoreState();
@@ -530,14 +522,6 @@ void
 RetraceRender::setUniform(const std::string &name, int index,
                           const std::string &data) {
   m_uniform_override->setUniform(name, index, data);
-}
-
-void
-RetraceRender::onState(SelectionId selId,
-                       ExperimentId experimentCount,
-                       RenderId renderId,
-                       OnFrameRetrace *callback) const {
-  m_state_override->onState(selId, experimentCount, renderId, callback);
 }
 
 void
