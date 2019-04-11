@@ -727,6 +727,21 @@ RetraceContext::texture2x2(const RenderSelection &selection,
       r.second->texture2x2(enable);
 }
 
+class TextureHook : public RetraceRender::CallbackHook {
+ public:
+  TextureHook(Textures *t, SelectionId s, ExperimentId e,
+              RenderId r, OnFrameRetrace *c)
+      : m_textures(t), m_s(s), m_e(e), m_r(r), m_c(c) {}
+  void onCallbackReady() const {
+    m_textures->retraceTextures(m_r, m_s, m_e, m_c);
+  }
+ private:
+  Textures *m_textures;
+  SelectionId m_s;
+  ExperimentId m_e;
+  RenderId m_r;
+  OnFrameRetrace *m_c;
+};
 
 void
 RetraceContext::retraceTextures(const RenderSelection &selection,
@@ -738,12 +753,14 @@ RetraceContext::retraceTextures(const RenderSelection &selection,
   assert(bm.offset == m_start_bookmark.offset);
   glstate::Context c;
   for (auto r : m_renders) {
-    r.second->retrace(tracker);
-    if (m_cancelPolicy.isCancelled(selection.id, experimentCount))
-        continue;
-    if (isSelected(r.first, selection)) {
-      m_textures->retraceTextures(r.first, selection.id,
-                                  experimentCount, callback);
+    if (!isSelected(r.first, selection) ||
+        m_cancelPolicy.isCancelled(selection.id, experimentCount)) {
+      r.second->retrace(tracker);
+    } else {
+      TextureHook hook(m_textures,
+                       selection.id, experimentCount,
+                       r.first, callback);
+      r.second->retrace(tracker, &hook);
     }
   }
 }
