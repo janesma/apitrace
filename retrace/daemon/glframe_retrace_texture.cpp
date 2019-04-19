@@ -153,13 +153,13 @@ class TextureCollector : public StateWriter {
           m_key.target = -1;
         m_textures.back().level = -1;
 
-        if (m_key.valid()) {
+        if (words.size() > 2 && !m_textures.empty()) {
           const char* level_prefix = "level = ";
-          assert(strncmp(level_prefix,
-                         words[2].c_str(),
-                         strlen(level_prefix)) == 0);
-          m_textures.back().level = atoi(words[2].c_str() +
-                                         strlen(level_prefix));
+          if (strncmp(level_prefix,
+                      words[2].c_str(),
+                      strlen(level_prefix)) == 0)
+            m_textures.back().level = atoi(words[2].c_str() +
+                                           strlen(level_prefix));
         }
         m_state = k_a_texture;
         return;

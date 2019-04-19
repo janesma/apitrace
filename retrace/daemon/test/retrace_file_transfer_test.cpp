@@ -127,6 +127,8 @@ class FileTransfer : public IFrameRetrace {
                        ExperimentId experimentCount,
                        OnFrameRetrace *callback) {}
   void revertExperiments() {}
+  void cancel(SelectionId selectionCount,
+              ExperimentId experimentCount) {}
 };
 
 class FileTransferCB : public OnFrameRetrace {
@@ -196,7 +198,7 @@ static const char *test_file = CMAKE_CURRENT_SOURCE_DIR "/simple.trace";
 class UploadSkel : public FrameRetraceSkeleton {
  public:
   UploadSkel(Socket *s, IFrameRetrace *f) :
-      FrameRetraceSkeleton(s, f) {
+      FrameRetraceSkeleton(s, NULL, f) {
     m_force_upload = true;
   }
   void noForce() { m_force_upload = false; }
@@ -225,6 +227,7 @@ TEST(FrameRetrace, FileTransfer) {
   FrameRetraceStub stub;
   FileTransfer frameretrace;
   ServerSocket server(0);
+  ServerSocket cancel(server.GetPort() + 1);
   stub.Init("localhost", server.GetPort());
   UploadSkel skel(server.Accept(), &frameretrace);
   skel.Start();

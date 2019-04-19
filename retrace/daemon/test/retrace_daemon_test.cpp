@@ -361,10 +361,11 @@ TEST_F(RetraceTest, TextureStub) {
 
   glretrace::Socket::Init();
   glretrace::ServerSocket server(0);
+  glretrace::ServerSocket cancel(server.GetPort() + 1);
   FrameRetrace rt;
   glretrace::FrameRetraceStub stub;
   stub.Init("localhost", server.GetPort());
-  glretrace::FrameRetraceSkeleton skel(server.Accept(), &rt);
+  glretrace::FrameRetraceSkeleton skel(server.Accept(), cancel.Accept(), &rt);
   skel.Start();
   NullCallback cb;
   get_md5(test_file, &md5, &fileSize);
