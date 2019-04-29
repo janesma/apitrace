@@ -158,7 +158,7 @@ PerfMetricsContextAMD::PerfMetricsContextAMD(OnFrameRetrace *cb)
           "provided by platform");
     return;
   }
-  std::vector<uint> groups(num_groups);
+  std::vector<unsigned int> groups(num_groups);
   assert(!GL::GetError());
   GlFunctions::GetPerfMonitorGroupsAMD(&num_groups, num_groups, groups.data());
   assert(!GL::GetError());
@@ -235,7 +235,7 @@ PerfMetricGroup::PerfMetricGroup(int group_id, int offset)
                                          0, NULL);
   assert(offset < num_counters);
   assert(!GL::GetError());
-  std::vector<uint> counters(num_counters);
+  std::vector<unsigned int> counters(num_counters);
   GlFunctions::GetPerfMonitorCountersAMD(m_group_id,
                                          &num_counters,
                                          &max_active_counters,
@@ -281,7 +281,7 @@ PerfMetricGroup::selectMetric(MetricId metric) {
 
 void
 PerfMetricGroup::selectMetric(MetricId metric, bool enabled) {
-  std::vector<uint> counters;
+  std::vector<unsigned int> counters;
   if (metric == ALL_METRICS_IN_GROUP) {
     for (auto metric : m_metrics) {
       counters.push_back(metric.first.counter());
@@ -341,7 +341,7 @@ PerfMetricGroup::publish(MetricId metric,
     std::vector<unsigned char> buf(data_size);
     GlFunctions::GetPerfMonitorCounterDataAMD(
             extant_monitor.second, GL_PERFMON_RESULT_AMD, data_size,
-            reinterpret_cast<uint *>(buf.data()), &bytes_written);
+            reinterpret_cast<unsigned int *>(buf.data()), &bytes_written);
     const unsigned char *buf_ptr = buf.data();
     const unsigned char *buf_end = buf_ptr + bytes_written;
     while (buf_ptr < buf_end) {

@@ -29,6 +29,8 @@
 #include "glframe_cancellation.hpp"
 
 using glretrace::CancellationPolicy;
+using glretrace::ExperimentId;
+using glretrace::SelectionId;
 
 bool
 CancellationPolicy::isCancelled(SelectionId selectionCount,

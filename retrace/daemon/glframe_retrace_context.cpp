@@ -45,24 +45,25 @@
 #include "image.hpp"
 #include "trace_model.hpp"
 
-using image::Image;
 using glretrace::BatchControl;
+using glretrace::CancellationPolicy;
 using glretrace::ExperimentId;
-using glretrace::OutputPoller;
 using glretrace::OnFrameRetrace;
+using glretrace::OutputPoller;
 using glretrace::PerfMetrics;
 using glretrace::RenderId;
-using glretrace::RetraceRender;
 using glretrace::RenderOptions;
 using glretrace::RenderSelection;
 using glretrace::RenderTargetType;
 using glretrace::RetraceContext;
+using glretrace::RetraceRender;
+using glretrace::SelectionId;
 using glretrace::StateKey;
 using glretrace::StateOverride;
-using glretrace::SelectionId;
 using glretrace::StateTrack;
 using glretrace::Textures;
 using glretrace::WARN;
+using image::Image;
 
 static int geometry_render_supported = -1;
 

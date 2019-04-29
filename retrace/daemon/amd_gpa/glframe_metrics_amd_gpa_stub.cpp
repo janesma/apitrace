@@ -27,11 +27,16 @@
 
 #include "glframe_metrics_amd_gpa.hpp"
 
+using glretrace::ExperimentId;
+using glretrace::MetricId;
+using glretrace::OnFrameRetrace;
 using glretrace::PerfMetricsAMDGPA;
+using glretrace::RenderId;
+using glretrace::SelectionId;
 
 PerfMetricsAMDGPA::PerfMetricsAMDGPA(OnFrameRetrace *cb) {}
 PerfMetricsAMDGPA::~PerfMetricsAMDGPA() { assert(false); }
-int PerfMetricsAMDGPA::groupCount() const { assert(false); }
+int PerfMetricsAMDGPA::groupCount() const { assert(false); return 0; }
 void PerfMetricsAMDGPA::selectMetric(MetricId metric) { assert(false); }
 void PerfMetricsAMDGPA::selectGroup(int index) { assert(false); }
 void PerfMetricsAMDGPA::begin(RenderId render) { assert(false); }

@@ -61,10 +61,12 @@ using glretrace::RenderId;
 using glretrace::RenderTargetType;
 using glretrace::SelectionId;
 using glretrace::ServerSocket;
-using glretrace::StateKey;
 using glretrace::ShaderAssembly;
-using glretrace::UniformType;
+using glretrace::StateKey;
+using glretrace::TextureData;
+using glretrace::TextureKey;
 using glretrace::UniformDimension;
+using glretrace::UniformType;
 
 FrameRetraceModel::FrameRetraceModel()
     : m_experiment(&m_retrace),

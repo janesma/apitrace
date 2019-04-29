@@ -36,14 +36,19 @@
 #include "glframe_state_enums.hpp"
 #include "glframe_logger.hpp"
 
+using glretrace::ExperimentId;
+using glretrace::FrameImages;
+using glretrace::IFrameRetrace;
+using glretrace::OnFrameRetrace;
+using glretrace::QBoundTexture;
 using glretrace::QTextureModel;
 using glretrace::RenderId;
+using glretrace::RenderTextures;
 using glretrace::ScopedLock;
 using glretrace::SelectionId;
-using glretrace::FrameImages;
-using glretrace::RenderTextures;
+using glretrace::TextureData;
+using glretrace::TextureKey;
 using glretrace::state_name_to_enum;
-using glretrace::QBoundTexture;
 
 QTextureModel::QTextureModel() : m_currentTexture(&m_defaultTexture),
                                  m_defaultTexture(this) {}

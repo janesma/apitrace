@@ -202,7 +202,6 @@ static void * _GetProcAddress(const char *name) {
   if (ret == NULL)
     ret = wglGetProcAddress(name);
 #endif
-  assert(ret);
   return ret;
 }
 void
@@ -433,36 +432,25 @@ GlFunctions::Init(void *lookup_fn) {
   pTexImage2D = _GetProcAddress("glTexImage2D");
   assert(pTexImage2D);
   pGetPerfMonitorGroupsAMD = _GetProcAddress("glGetPerfMonitorGroupsAMD");
-  assert(pGetPerfMonitorGroupsAMD);
   pGetPerfMonitorCountersAMD = _GetProcAddress("glGetPerfMonitorCountersAMD");
-  assert(pGetPerfMonitorCountersAMD);
   pGetPerfMonitorGroupStringAMD =
       _GetProcAddress("glGetPerfMonitorGroupStringAMD");
-  assert(pGetPerfMonitorGroupStringAMD);
   pGetPerfMonitorCounterStringAMD =
       _GetProcAddress("glGetPerfMonitorCounterStringAMD");
-  assert(pGetPerfMonitorCounterStringAMD);
   pGetPerfMonitorCounterInfoAMD =
       _GetProcAddress("glGetPerfMonitorCounterInfoAMD");
-  assert(pGetPerfMonitorCounterInfoAMD);
   pGenPerfMonitorsAMD =
       _GetProcAddress("glGenPerfMonitorsAMD");
-  assert(pGenPerfMonitorsAMD);
   pDeletePerfMonitorsAMD =
       _GetProcAddress("glDeletePerfMonitorsAMD");
-  assert(pDeletePerfMonitorsAMD);
   pSelectPerfMonitorCountersAMD =
       _GetProcAddress("glSelectPerfMonitorCountersAMD");
-  assert(pSelectPerfMonitorCountersAMD);
   pBeginPerfMonitorAMD =
       _GetProcAddress("glBeginPerfMonitorAMD");
-  assert(pBeginPerfMonitorAMD);
   pEndPerfMonitorAMD =
       _GetProcAddress("glEndPerfMonitorAMD");
-  assert(pEndPerfMonitorAMD);
   pGetPerfMonitorCounterDataAMD =
       _GetProcAddress("glGetPerfMonitorCounterDataAMD");
-  assert(pGetPerfMonitorCounterDataAMD);
   pGenQueries = _GetProcAddress("glGenQueries");
   assert(pGenQueries);
   pDeleteQueries = _GetProcAddress("glDeleteQueries");

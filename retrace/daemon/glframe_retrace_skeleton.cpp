@@ -57,6 +57,8 @@ using glretrace::SelectionId;
 using glretrace::ShaderAssembly;
 using glretrace::Socket;
 using glretrace::StateKey;
+using glretrace::TextureData;
+using glretrace::TextureKey;
 using glretrace::Thread;
 using glretrace::UniformDimension;
 using glretrace::UniformType;
