@@ -705,6 +705,9 @@ GlFunctions::GetGlExtensions(std::string *extensions) {
   if (ext) {
     *extensions = (const char *)ext;
     return;
+  } else {
+    // clear error
+    GL::GetError();
   }
 
   GlFunctions::GetIntegerv(GL_NUM_EXTENSIONS, &count);
