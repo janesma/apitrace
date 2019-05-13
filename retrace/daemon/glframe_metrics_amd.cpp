@@ -213,11 +213,10 @@ PerfMetricGroup::PerfMetricGroup(int group_id, int offset)
     : m_group_id(group_id),
       m_offset(offset),
       m_metric(ALL_METRICS_IN_GROUP) {
-  static GLint max_name_len = 0;
+  GLint max_name_len = 0;
   assert(!GL::GetError());
-  if (max_name_len == 0)
-    GlFunctions::GetPerfMonitorGroupStringAMD(m_group_id, 0,
-                                              &max_name_len, NULL);
+  GlFunctions::GetPerfMonitorGroupStringAMD(m_group_id, 0,
+                                            &max_name_len, NULL);
   assert(!GL::GetError());
   std::vector<GLchar> group_name(max_name_len + 1);
   GLsizei name_len;
