@@ -352,8 +352,8 @@ PerfMetricGroup::publish(MetricId metric,
       MetricId parsed_metric(*group, *counter);
       assert(m_metrics.find(parsed_metric) != m_metrics.end());
 
-      float value;
-      int bytes_read;
+      float value = 0.0;
+      int bytes_read = 0;
       m_metrics[parsed_metric]->getMetric(buf_ptr, &value, &bytes_read);
       (*out_metrics)[parsed_metric][extant_monitor.first] = value;
       buf_ptr += bytes_read;
@@ -361,6 +361,9 @@ PerfMetricGroup::publish(MetricId metric,
     m_free_monitors.push_back(extant_monitor.second);
   }
   m_extant_monitors.clear();
+  GlFunctions::DeletePerfMonitorsAMD(m_free_monitors.size(),
+                                     m_free_monitors.data());
+  m_free_monitors.clear();
 }
 
 void
