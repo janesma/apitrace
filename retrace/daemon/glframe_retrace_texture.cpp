@@ -34,6 +34,7 @@
 #include "md5.h"  // NOLINT
 #include "state_writer.hpp"
 #include "glframe_state_enums.hpp"
+#include "glframe_logger.hpp"
 #include "glstate_internal.hpp"
 
 using glretrace::state_name_to_enum;
@@ -45,6 +46,7 @@ using image::Image;
 using glretrace::TextureKey;
 using glretrace::TextureData;
 using glretrace::Textures;
+using glretrace::WARN;
 
 class TextureCollector : public StateWriter {
  public:
@@ -104,6 +106,8 @@ class TextureCollector : public StateWriter {
           m_state = k_format;
         } else if (strcmp(name, "__data__") ==0) {
           m_state = k_data;
+        } else if (strcmp(name, "__label__") ==0) {
+          m_state = k_label;
         } else {
           assert(false);
           return;
@@ -169,6 +173,7 @@ class TextureCollector : public StateWriter {
       case k_depth:
       case k_data:
       case k_class:
+      case k_label:
       case k_format:
         assert(false);
         return;
@@ -186,6 +191,7 @@ class TextureCollector : public StateWriter {
       case k_depth:
       case k_data:
       case k_class:
+      case k_label:
       case k_format:
         m_state = k_a_texture;
         return;
@@ -227,6 +233,9 @@ class TextureCollector : public StateWriter {
         return;
       case k_format:
         m_textures.back().format = s;
+        return;
+      case k_label:
+        // ignore
         return;
     }
   }
@@ -288,6 +297,7 @@ class TextureCollector : public StateWriter {
       case k_a_texture:
       case k_class:
       case k_format:
+      case k_label:
       case k_data:
         assert(false);
         return;
@@ -315,6 +325,7 @@ class TextureCollector : public StateWriter {
     k_height,
     k_depth,
     k_format,
+    k_label,
     k_data } m_state;
   RenderId m_render;
   SelectionId m_selection_id;
@@ -339,7 +350,7 @@ Textures::retraceTextures(RenderId render,
   // // for debugging texture data
   // std::ostringstream os;
   // StateWriter *dump = createJSONStateWriter(os);
-  // glstate::dumpTextures(*dump, c);
+  // glstate::dumpTextures(*dump, context);
   // // glframe_logger.hpp will probably drop data.  Increase BUF_SIZE
   // GRLOGF(WARN, "JSON dump of texture: %s", os.str().c_str());
 
