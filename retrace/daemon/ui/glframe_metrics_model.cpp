@@ -107,7 +107,7 @@ QMetricsModel::init(IFrameRetrace *r,
   s.id = m_current_selection_count;
   s.series.push_back(RenderSequence(RenderId(0), RenderId(render_count)));
   m_retrace->retraceAllMetrics(s, m_experiment_count, this);
-  emit onMetricsChanged();
+  emit metricTableChanged();
 }
 
 QQmlListProperty<QMetricValue>
@@ -185,7 +185,7 @@ void
 QMetricsModel::filter(const QString& f) {
   if (f.size() == 0) {
     m_filtered_metric_list = m_metric_list;
-    emit onMetricsChanged();
+    emit metricTableChanged();
     return;
   }
   m_filtered_metric_list.clear();
@@ -193,7 +193,7 @@ QMetricsModel::filter(const QString& f) {
     if (m->name().contains(f, Qt::CaseInsensitive))
       m_filtered_metric_list.append(m);
   }
-  emit onMetricsChanged();
+  emit metricTableChanged();
 }
 
 // select rows for subsequent copy

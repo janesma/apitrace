@@ -77,7 +77,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
                       NoCopy, NoAssign, NoMove {
   Q_OBJECT
   Q_PROPERTY(QQmlListProperty<glretrace::QMetricValue> metrics
-             READ metrics NOTIFY onMetricsChanged)
+             READ metrics NOTIFY metricTableChanged)
  public:
   Q_INVOKABLE void copySelect(int row);
   Q_INVOKABLE void copy();
@@ -154,7 +154,7 @@ class QMetricsModel : public QObject, OnFrameRetrace,
   void onExperiment(glretrace::ExperimentId id);
 
  signals:
-  void onMetricsChanged();
+  void metricTableChanged();
 
  private:
   IFrameRetrace *m_retrace;
