@@ -89,6 +89,9 @@ int main(int argc, char *argv[]) {
   Socket::Init();
   Logger::Begin();
 
+  QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
+  QCoreApplication::setAttribute(Qt::AA_DisableShaderDiskCache);
+
   QGuiApplication app(argc, argv);
   app.setOrganizationName("Open Source Technology Center");
   app.setOrganizationDomain("intel.com");
