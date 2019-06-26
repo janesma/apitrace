@@ -376,7 +376,7 @@ glretrace::state_name_to_choices(const std::string &n) {
         "GL_ONE_MINUS_SRC_COLOR",
         "GL_SRC_ALPHA",
         "GL_SRC1_ALPHA",
-        "GL_SRC_ALPHA_SATURATE"
+        "GL_SRC_ALPHA_SATURATE",
         "GL_SRC_COLOR",
         "GL_SRC1_COLOR",
         "GL_ZERO",
