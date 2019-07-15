@@ -168,12 +168,6 @@ PerfMetricsContext::PerfMetricsContext(OnFrameRetrace *cb)
   int group_index = 0;
   for (auto i : query_ids) {
     PerfMetricGroup *g = new PerfMetricGroup(i);
-    if (g->name() == "Compute Metrics Extended Gen9") {
-      // SKL metrics bug.  Queries on this group crash.
-      delete g;
-      continue;
-    }
-
     groups.push_back(g);
     metrics.clear();
     g->metrics(&metrics);
