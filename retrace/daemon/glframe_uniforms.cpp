@@ -86,7 +86,8 @@ class Uniform {
     k_mat3x4,
     k_mat4x2,
     k_mat4x3,
-    k_sampler
+    k_sampler,
+    k_image
   };
 
   UniformType m_dataType;
@@ -272,10 +273,6 @@ Uniform::Uniform(int i) {
       case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
       case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
       case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
-      case GL_IMAGE_2D:
-      case GL_IMAGE_CUBE_MAP_ARRAY:
-      case GL_INT_IMAGE_CUBE_MAP_ARRAY:
-      case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY:
       case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
       case GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY:
       case GL_INT_SAMPLER_1D:
@@ -299,6 +296,28 @@ Uniform::Uniform(int i) {
       case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
       case GL_UNSIGNED_INT_SAMPLER_BUFFER:
         m_dataType = k_sampler;
+        is_float = false;
+        m_data_size = 1 * sizeof(GLint);
+        break;
+      case GL_IMAGE_2D:
+      case GL_IMAGE_3D:
+      case GL_IMAGE_CUBE:
+      case GL_IMAGE_2D_ARRAY:
+      case GL_IMAGE_CUBE_MAP_ARRAY:
+      case GL_IMAGE_BUFFER:
+      case GL_INT_IMAGE_2D:
+      case GL_INT_IMAGE_3D:
+      case GL_INT_IMAGE_CUBE:
+      case GL_INT_IMAGE_2D_ARRAY:
+      case GL_INT_IMAGE_CUBE_MAP_ARRAY:
+      case GL_INT_IMAGE_BUFFER:
+      case GL_UNSIGNED_INT_IMAGE_2D:
+      case GL_UNSIGNED_INT_IMAGE_3D:
+      case GL_UNSIGNED_INT_IMAGE_CUBE:
+      case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+      case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY:
+      case GL_UNSIGNED_INT_IMAGE_BUFFER:
+        m_dataType = k_image;
         is_float = false;
         m_data_size = 1 * sizeof(GLint);
         break;
@@ -361,6 +380,7 @@ Uniform::set() const {
       break;
     case k_bool:
     case k_sampler:
+    case k_image:
     case k_int:
       GlFunctions::Uniform1iv(location, m_array_size,
                               reinterpret_cast<const GLint*>(m_data.data()));
@@ -484,6 +504,7 @@ Uniform::onUniform(SelectionId selectionCount,
     case k_ivec3:
     case k_ivec4:
     case k_sampler:
+    case k_image:
       t = kIntUniform;
       break;
     case k_uint:
@@ -502,6 +523,7 @@ Uniform::onUniform(SelectionId selectionCount,
   switch (m_dataType) {
     case k_float:
     case k_sampler:
+    case k_image:
     case k_int:
     case k_uint:
     case k_bool:
@@ -585,6 +607,7 @@ Uniform::overrideUniform(const std::string &name,
     case k_ivec3:
     case k_ivec4:
     case k_sampler:
+    case k_image:
       t = kIntUniform;
       break;
     case k_uint:
